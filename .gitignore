@@ -1,0 +1,8 @@
+.ai.code.files/
+.projectile
+GTAGS
+GRTAGS
+GPATH
+__pycache__/
+*.elc
+flycheck_*

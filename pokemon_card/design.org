@@ -1,0 +1,95 @@
+* Pokemon Card Trading Game Design Document
+
+** 1. Overview
+This document outlines the design for a command-line interface (CLI) based Pokémon Trading Card Game. The game will be implemented in Python, adhering to the official Pokémon TCG rules. A key architectural principle is the separation of the core game logic from the user interface to allow for future UI enhancements (e.g., a graphical user interface).
+
+** 2. Game Rules
+The game will follow the standard rules of the Pokémon Trading Card Game. Key aspects include:
+- Deck composition (60 cards, including Pokémon, Energy, and Trainer cards).
+- Setup phase (drawing initial hand, placing Active and Benched Pokémon).
+- Turn structure (Draw, Bench Pokémon, Attach Energy, Evolve, Play Trainer Cards, Attack, End Turn).
+- Winning conditions (taking all Prize cards, opponent has no Pokémon in play, opponent cannot draw a card at the start of their turn).
+
+** 3. Architecture
+The application will be divided into two main components:
+- *Game Kernel*: Contains all the data structures and logic for the game. It is completely independent of the UI.
+- *CLI User Interface*: Interacts with the user, displaying the game state and accepting commands. It communicates with the Game Kernel to execute game actions.
+
+*** 3.1. Project Structure
+#+begin_src
+pokemon_card_game/
+├── game/
+│   ├── __init__.py
+│   ├── card.py      # Card definitions (Pokemon, Energy, Trainer)
+│   ├── deck.py      # Deck and hand management
+│   ├── player.py    # Player state and actions
+│   └── game_engine.py # Main game logic, state machine
+├── ui/
+│   ├── __init__.py
+│   └── cli.py       # Command-line interface
+└── main.py          # Main script to start the game
+#+end_src
+
+** 4. Data Structures (Game Kernel)
+
+*** 4.1. Card
+A base `Card` class with subclasses for each card type.
+- `Card(name, description)`
+- `PokemonCard(Card, hp, attacks, weakness, resistance, retreat_cost)`
+- `EnergyCard(Card, energy_type)`
+- `TrainerCard(Card, effect)`
+
+*** 4.2. Deck
+A `Deck` class to manage a collection of cards.
+- `Deck(cards: list[Card])`
+- `shuffle()
+`
+- `draw(n: int)`
+- `add_to_bottom(card: Card)`
+
+*** 4.3. Player
+A `Player` class to manage a player's state.
+- `Player(name: str, deck: Deck)`
+- `hand: list[Card]`
+- `active_pokemon: PokemonCard`
+- `bench: list[PokemonCard]`
+- `prize_cards: list[Card]`
+- `discard_pile: list[Card]`
+- `setup()`
+- `take_turn()`
+
+*** 4.4. GameState
+A `GameState` class (or managed within `GameEngine`) to hold the overall state of the game.
+- `players: list[Player]`
+- `current_turn: int`
+- `game_phase: Enum` (e.g., SETUP, PLAYER_TURN, GAME_OVER)
+- `check_win_condition()`
+
+** 5. Game Logic Flow (GameEngine)
+The `GameEngine` will manage the flow of the game.
+1.  *Initialization*: Create two `Player` objects with their respective decks.
+2.  *Setup*:
+    - Both players shuffle their decks.
+    - Both players draw 7 cards.
+    - Both players choose a Basic Pokémon as their Active Pokémon.
+    - Both players can place up to 5 Basic Pokémon on their Bench.
+    - Both players set aside the top 6 cards of their deck as Prize cards.
+3.  *Game Loop*:
+    - The game starts with Player 1.
+    - *Turn Start*: Player draws a card.
+    - *Main Phase*: The current player can perform any of the following actions in any order:
+        - Play any number of Basic Pokémon to their Bench.
+        - Attach one Energy card to one of their Pokémon.
+        - Evolve their Pokémon.
+        - Play any number of Trainer cards.
+        - Retreat their Active Pokémon.
+    - *Attack Phase*: The player's Active Pokémon attacks the opponent's Active Pokémon.
+    - *Turn End*: Check for win conditions. Switch to the next player.
+4.  *Game End*: The game ends when a win condition is met.
+
+** 6. Command-Line Interface (UI)
+The CLI will be responsible for:
+- Displaying the game board, including each player's Active Pokémon, Bench, hand size, and prize card count.
+- Prompting the current player for actions (e.g., "Choose an action: [A]ttach Energy, [P]lay Trainer, [E]volve, [T]attack, [R]etreat, [E]nd Turn").
+- Parsing user input and calling the appropriate methods in the `GameEngine`.
+- Providing clear feedback to the user after each action.

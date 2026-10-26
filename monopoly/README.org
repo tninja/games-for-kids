@@ -1,0 +1,6 @@
+
+Monopoly game: https://en.wikipedia.org/wiki/Monopoly_(game)
+
+- Are you familiar with monopoly game? https://en.wikipedia.org/wiki/Monopoly_(game) I want to develop this game in python language.
+  - The data structure, rules and logic should be separate from UI. Initially I only want a text-based UI.
+  - I want it support 2-4 players. AI players supported.

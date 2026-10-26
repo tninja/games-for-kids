@@ -1,0 +1,362 @@
+{
+  "players": [
+    {
+      "name": "Alex",
+      "money": 2024,
+      "position": 39,
+      "properties": [
+        "Baltic Avenue",
+        "States Avenue",
+        "Ventnor Avenue",
+        "North Carolina Avenue",
+        "Boardwalk",
+        "Kentucky Avenue",
+        "Pennsylvania Avenue",
+        "Short Line",
+        "B. & O. Railroad",
+        "Electric Company",
+        "Atlantic Avenue",
+        "St. James Place",
+        "Reading Railroad",
+        "Oriental Avenue"
+      ],
+      "in_jail": false,
+      "jail_turns": 0,
+      "get_out_of_jail_free": 3,
+      "token": "Car",
+      "type": "human",
+      "difficulty": null
+    },
+    {
+      "name": "Taylor AI",
+      "money": 243,
+      "position": 0,
+      "properties": [
+        "St. Charles Place",
+        "Virginia Avenue",
+        "New York Avenue",
+        "Pacific Avenue",
+        "Mediterranean Avenue",
+        "Water Works",
+        "Marvin Gardens",
+        "Connecticut Avenue",
+        "Indiana Avenue",
+        "Tennessee Avenue",
+        "Illinois Avenue"
+      ],
+      "in_jail": false,
+      "jail_turns": 0,
+      "get_out_of_jail_free": 0,
+      "token": "Battleship",
+      "type": "ai",
+      "difficulty": "medium"
+    }
+  ],
+  "properties": {
+    "Mediterranean Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "Baltic Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Oriental Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Vermont Avenue": {
+      "owner": null,
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Connecticut Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "St. Charles Place": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "States Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Virginia Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "St. James Place": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Tennessee Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "New York Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "Kentucky Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Indiana Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "Illinois Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "Atlantic Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Ventnor Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Marvin Gardens": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "Pacific Avenue": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    },
+    "North Carolina Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Pennsylvania Avenue": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Park Place": {
+      "owner": null,
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Boardwalk": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Reading Railroad": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Pennsylvania Railroad": {
+      "owner": null,
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "B. & O. Railroad": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Short Line": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Electric Company": {
+      "owner": "Alex",
+      "houses": 0,
+      "is_mortgaged": false
+    },
+    "Water Works": {
+      "owner": "Taylor AI",
+      "houses": 0,
+      "is_mortgaged": true
+    }
+  },
+  "current_player_index": 0,
+  "game_over": false,
+  "winner": null,
+  "doubles_count": 0,
+  "last_dice_roll": [
+    5,
+    4
+  ],
+  "chance_deck": {
+    "cards": [
+      {
+        "text": "You have been elected chairman of the board",
+        "action": "collect_money",
+        "amount": 150
+      },
+      {
+        "text": "Advance to St. Charles Place",
+        "action": "move_to_position",
+        "position": 11
+      },
+      {
+        "text": "Go back 3 spaces",
+        "action": "move_back",
+        "spaces": 3
+      },
+      {
+        "text": "Get out of jail free",
+        "action": "get_out_of_jail_free"
+      },
+      {
+        "text": "Advance to GO (Collect $200)",
+        "action": "move_to_go",
+        "amount": 200
+      },
+      {
+        "text": "Pay poor tax of $15",
+        "action": "pay_money",
+        "amount": 15
+      },
+      {
+        "text": "Go to jail",
+        "action": "go_to_jail"
+      },
+      {
+        "text": "Advance token to nearest railroad",
+        "action": "move_to_nearest_railroad"
+      },
+      {
+        "text": "Advance token to nearest utility",
+        "action": "move_to_nearest_utility"
+      },
+      {
+        "text": "Bank pays you dividend of $50",
+        "action": "collect_money",
+        "amount": 50
+      },
+      {
+        "text": "Take a trip to Reading Railroad",
+        "action": "move_to_position",
+        "position": 5
+      },
+      {
+        "text": "Make general repairs on your property",
+        "action": "pay_repairs",
+        "house_cost": 25,
+        "hotel_cost": 100
+      },
+      {
+        "text": "Your building loan matures",
+        "action": "collect_money",
+        "amount": 150
+      }
+    ],
+    "discard_pile": [
+      {
+        "text": "Advance to Illinois Ave",
+        "action": "move_to_position",
+        "position": 24
+      },
+      {
+        "text": "Take a walk on the Boardwalk",
+        "action": "move_to_position",
+        "position": 39
+      }
+    ]
+  },
+  "community_chest_deck": {
+    "cards": [
+      {
+        "text": "Pay hospital fees of $100",
+        "action": "pay_money",
+        "amount": 100
+      },
+      {
+        "text": "Doctor's fees",
+        "action": "pay_money",
+        "amount": 50
+      },
+      {
+        "text": "Income tax refund",
+        "action": "collect_money",
+        "amount": 20
+      },
+      {
+        "text": "Grand opera opening",
+        "action": "collect_money",
+        "amount": 50
+      },
+      {
+        "text": "Receive $25 consultancy fee",
+        "action": "collect_money",
+        "amount": 25
+      },
+      {
+        "text": "Bank error in your favor",
+        "action": "collect_money",
+        "amount": 200
+      },
+      {
+        "text": "It is your birthday",
+        "action": "collect_money",
+        "amount": 10
+      },
+      {
+        "text": "From sale of stock you get $50",
+        "action": "collect_money",
+        "amount": 50
+      },
+      {
+        "text": "Advance to GO (Collect $200)",
+        "action": "move_to_go",
+        "amount": 200
+      },
+      {
+        "text": "Go to jail",
+        "action": "go_to_jail"
+      }
+    ],
+    "discard_pile": [
+      {
+        "text": "You have won a crossword competition",
+        "action": "collect_money",
+        "amount": 100
+      },
+      {
+        "text": "Life insurance matures",
+        "action": "collect_money",
+        "amount": 100
+      },
+      {
+        "text": "Get out of jail free",
+        "action": "get_out_of_jail_free"
+      },
+      {
+        "text": "Pay school fees of $150",
+        "action": "pay_money",
+        "amount": 150
+      },
+      {
+        "text": "Holiday fund matures",
+        "action": "collect_money",
+        "amount": 100
+      }
+    ]
+  }
+}
