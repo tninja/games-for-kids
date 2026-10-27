@@ -1,0 +1,4 @@
+__pycache__/
+.verification/
+.pytest_cache/
+.venv/

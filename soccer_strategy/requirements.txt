@@ -1,0 +1,2 @@
+# Optional isolated-environment alternative to Ubuntu's python3-pygame package.
+pygame-ce==2.5.8
