@@ -2,6 +2,7 @@
 
 import unittest
 from dataclasses import replace
+from math import dist
 
 from soccer_strategy.catalog import build_catalog
 from soccer_strategy.model import bounded, lerp, transfer_scene
@@ -9,21 +10,42 @@ from soccer_strategy.presentation import positions
 
 
 class CatalogTests(unittest.TestCase):
-    def test_scenario_catalog_has_87_unique_situations(self):
+    def test_scenario_catalog_has_96_unique_situations(self):
         catalog = build_catalog()
-        self.assertEqual(len(catalog), 87)
-        self.assertEqual(len({scene.id for scene in catalog}), 87)
-        self.assertEqual({scene.topic for scene in catalog}, set(range(1, 30)))
+        self.assertEqual(len(catalog), 96)
+        self.assertEqual(len({scene.id for scene in catalog}), 96)
+        self.assertEqual({scene.topic for scene in catalog}, set(range(1, 33)))
 
     def test_context_changes_preferred_action_in_every_topic(self):
         catalog = build_catalog()
-        for topic in range(1, 30):
+        for topic in range(1, 33):
             scenes = [s for s in catalog if s.topic == topic]
             self.assertEqual(len(scenes), 3)
             self.assertEqual(len({s.cue for s in scenes}), 3)
             preferred = {next(c.key for c in s.choices if c.rating == 2) for s in scenes}
             self.assertEqual(len(preferred), 3)
         self.assertTrue(any(c.rating == 1 for s in catalog for c in s.choices))
+
+    def test_pass_turnover_cases_teach_three_different_next_actions(self):
+        catalog = {scene.id: scene for scene in build_catalog()}
+        scenes = [catalog[f"30.{i}"] for i in range(1, 4)]
+        preferred = [next(c.key for c in s.choices if c.rating == 2) for s in scenes]
+        self.assertEqual(preferred, ["intercept", "recover", "press"])
+        forward_pass, controlled, close_carrier = scenes
+        self.assertLess(dist(forward_pass.john.position, forward_pass.ball),
+                        dist(next(a for a in forward_pass.actors if a.key == "carrier").position,
+                             forward_pass.ball))
+        attacker = next(a for a in controlled.actors if a.key == "carrier")
+        self.assertLess(controlled.john.position[1], attacker.position[1])
+        self.assertEqual(forward_pass.ball_state, "pass")
+        self.assertEqual(forward_pass.choices[0].target, forward_pass.ball)
+        self.assertEqual([choice.key for choice in controlled.choices],
+                         ["recover", "contain", "tackle"])
+        self.assertEqual(controlled.choices[0].rating, 2)
+        self.assertEqual(close_carrier.choices[2].explanation,
+                         "A keeps the ball close. A rushed tackle can miss; close under control first.")
+        self.assertGreater(close_carrier.john.position[1],
+                           next(a.position[1] for a in close_carrier.actors if a.key == "carrier"))
 
     def test_switches_crosses_and_rebounds_show_the_correct_ball_direction(self):
         for scene in build_catalog():
@@ -68,11 +90,11 @@ class CatalogTests(unittest.TestCase):
 
     def test_invalid_scenarios_fail_closed(self):
         scene = build_catalog()[0]
-        invalid = [replace(scene, id=""), replace(scene, topic=30), replace(scene, stage=7),
+        invalid = [replace(scene, id=""), replace(scene, topic=33), replace(scene, stage=7),
                    replace(scene, actors=()), replace(scene, actors=scene.actors * 2),
                    replace(scene, choices=()), replace(scene, choices=(scene.choices[0],) * 3),
                    replace(scene, ball=(float("nan"), 5)), replace(scene, ball=(-1, 10)),
-                   replace(scene, topic=0), replace(scene, ball=(5, float("nan"))),
+                   replace(scene, topic=0), replace(scene, topic=33), replace(scene, ball=(5, float("nan"))),
                    replace(scene, ball=(5, 101)), replace(scene, ball=(101, 5)),
                    replace(scene, ball=(5, -1)),
                    replace(scene, actors=(replace(scene.john, team="unknown"),)),

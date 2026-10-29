@@ -13,9 +13,9 @@ class Section:
 
 SECTIONS = (
     Section(1, "1v1 basics", "patience and timing", (1, 2, 3, 5, 6)),
-    Section(2, "Protect the goal", "shots, crosses, slides", (4, 15, 16, 17, 18, 28)),
-    Section(3, "Recover and cover", "get back and help", (7, 8, 9, 10, 11)),
-    Section(4, "Read passes and runs", "two attackers, one-twos", (12, 13, 14)),
+    Section(2, "Defend shooting", "close, block, win the ball", (4, 11, 12, 18, 28, 31, 32)),
+    Section(3, "Recover and cover", "get back and help", (7, 8, 9, 10, 30)),
+    Section(4, "Read passes and runs", "combinations and crosses", (13, 14, 15, 16, 17)),
     Section(5, "Use the ball", "throws, passes, long kicks", (19, 20, 21, 25, 26, 27, 29)),
     Section(6, "Defend restarts", "sidelines, corners, free kicks", (22, 23, 24)),
 )

@@ -62,7 +62,7 @@ class Scenario:
         return next(actor for actor in self.actors if actor.key == "john")
 
     def validate(self) -> None:
-        if not self.id or not 1 <= self.topic <= 29 or self.stage not in SECTION_IDS:
+        if not self.id or not 1 <= self.topic <= 32 or self.stage not in SECTION_IDS:
             raise ValueError("Invalid scenario identity or stage")
         keys = [actor.key for actor in self.actors]
         if len(keys) != len(set(keys)) or keys.count("john") != 1:

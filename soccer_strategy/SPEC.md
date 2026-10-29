@@ -188,3 +188,70 @@ not permission to expand the game or install tools. No new dependencies.
   at its pictured location; retain the preceding snapshot hash in the evidence.
 - Movement-audit snapshot: `50bef7abc8cec9b0cf2c4f3122a052e72deef23a227d05188b2b018940c564ae`.
   Previous reviewed snapshot: `1bcb7399799f74e6eaf725d894d5dbf666441d8cffd635c78e8e6aef421b14ae`.
+
+## User-requested age, team-format and passing-error review
+
+The user requested a careful review for a nine-year-old playing 7v7/9v9, with
+teammate passing and receiving treated as variable, and asked for additional
+realistic cases where useful.
+
+- Keep observations short, concrete and about one visible decision at a time;
+  use familiar words and the existing A/M/R key. No heading action is required.
+- Make field guidance usable in both 7v7 and 9v9 without assuming a formation,
+  number of nearby teammates, offside interpretation, restart procedure or
+  build-out release trigger beyond what the pictured situation states.
+- Preserve the prior 29 topics and add one topic (30) with three distinct
+  examples following a teammate pass that is deflected or intercepted: John can
+  reach a loose ball; an opponent controls and attacks while John is behind;
+  an opponent sends a forward pass through John's lane. Preferred actions differ
+  to teach collection, goal-side recovery and interception.
+- Describe a pass as an attempt, not a guaranteed reception; never label a
+  teammate as bad. Keep John responsible for his next safe decision after a
+  turnover, without guaranteeing that pressure or a tackle wins the ball.
+- Avoid repeated feedback phrases: keep every cue at 24 words or fewer, each
+  choice label at 12 words or fewer, and each feedback explanation at 24 words
+  or fewer. Show the retreat line only during the initial 7v7 keeper-distribution
+  picture; do not draw it during open play or after the release.
+- Preserve three choices per case, six sections, six-plus-two session behavior,
+  scoring and all existing case ratings. Include authored-geometry regressions,
+  update the content snapshot for the addition, review rendered examples, run
+  the complete verifier and document source/evidence limitations.
+- Age/format review snapshot: `d54652c85edd4903636166311adf8c8f128679346f008fa53491a62eee5df31b`.
+  Previous follow-up snapshot: `81ad3e50fb3e97d3a9e7c5016773c6bf4909021e5a1f3b732980354676d3276a`.
+  Prior movement-audit snapshot: `50bef7abc8cec9b0cf2c4f3122a052e72deef23a227d05188b2b018940c564ae`.
+
+## User-requested Defend shooting section and dangerous-zone cases
+
+The user explicitly requested more situations in which a carrier enters a
+dangerous area and prepares to shoot, and a section named `Defend shooting`
+containing the related topics. This is authorized follow-up implementation;
+no separate approval round or new dependencies are required.
+
+- Rename section 2 to `Defend shooting` and group topics 4, 11, 12, 18, 28,
+  31 and 32 there. Move crossing topics 15-17 to `Read passes and runs`.
+  Keep six menu sections, existing topic IDs and all 90 existing case records
+  except their section memberships. Preserve first-attempt scoring and 6+2 rounds.
+- Add topic 31 with three dangerous-zone pictures: close a carrier who still
+  needs a setup touch; block a shot already being prepared; win a genuinely
+  exposed last touch with a standing challenge. Preferred actions must change
+  with the facts; entering the box alone does not justify a tackle or slide.
+- Add topic 32 with three pictures involving a teammate: block when M is beaten
+  and A is about to shoot; stay with R when M actually covers the shooting line;
+  take over pressure when M is beaten and A still has to set up the shot.
+  M's cover is not a guarantee: John must keep watching A and reassess.
+- Every new case has three concrete English choices and picture-specific
+  explanations within the existing 24/12/24-word limits. No heading actions, assumed
+  successful reception, or dangerous contact as a recommended action.
+- Test the timing distinction, clean-ball distance advantage, shot-line geometry,
+  visible runner and teammate roles, membership and session reachability.
+  Render all six new decisions and feedback. Refresh the catalog snapshot only
+  for these six additions, and retain the prior hash above.
+- Use the installed Pygame and existing verifier. Record the diagnostics
+  baseline failure (HTTP 401) as unavailable; independent verification is not
+  reported as editor diagnostics. Append the implementation result to the Org
+  Coding section and record fresh verifier evidence.
+- Visual follow-up: give the six new pictures a larger authored pressure gap
+  so the preferred closing pose does not merge John's sprite into A's sprite.
+  This distance illustrates a balanced stop; it is not a prescribed real-world
+  measurement. Prior pictures retain their original routes.
+- Defend-shooting catalog snapshot: `3e9402522638316cab403a3ba14accdcb2cce6b5d0b0181c7c341e00ca97bb79`.

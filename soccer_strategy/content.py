@@ -32,6 +32,8 @@ class Situation:
     interception_target: Point | None = None
     receiver_ready: bool = True
     notes: tuple[str, str, str] = ("", "", "")
+    actions: tuple[str, str, str] | None = None
+    press_gap: float = 4.
 
 
 @dataclass(frozen=True)
@@ -1771,6 +1773,129 @@ LESSONS = (
                     'M is marked and looking away. Do not force the pass when you have open space beside you.',
                     'An opponent waits near the landing area. There is no urgent need to launch the ball.',
                     '',
+                ),
+            ),
+        ),
+    ),
+    Lesson(
+        30, "When a pass is intercepted",
+        "React to the next danger",
+        ("press", "recover", "intercept"),
+        (
+            Situation(
+                (31, 65), (32, 65), (18, 76), (55, 48), 0,
+                "M's pass rolls short across your path. You can reach it before A.",
+                "Step into the slow pass before A reaches it. Then look up again.",
+                ratings=(2, 1, 0), state="pass", attacker=(41, 57), origin=(24, 71),
+                interception_target=(32, 65), actions=("intercept", "recover", "press"),
+                notes=(
+                    "",
+                    "Stay goal-side if you are unsure you can arrive first. Here the ball crosses your path.",
+                    "A is still several steps away. Do not run toward A and leave the pass.",
+                ),
+            ),
+            Situation(
+                (36, 56), (34, 63), (26, 54), (55, 46), 0,
+                "A intercepts M's pass and drives forward. You are behind the play.",
+                "Run back goal-side first. A has the ball and is moving toward your goal.",
+                ratings=(2, 1, 0), state="owned", attacker=(34, 63), origin=(26, 54),
+                actions=("recover", "contain", "tackle"),
+                notes=(
+                    "",
+                    "Contain goal-side if you cannot get in front safely. Keep watching A.",
+                    "A controls the ball several steps ahead. A reach from behind may miss or foul.",
+                ),
+            ),
+            Situation(
+                (24, 73), (18, 67), (38, 76), (55, 62), 0,
+                "A controls M's loose pass near the line. You are goal-side; M covers inside.",
+                "Close A under control while M protects the route into the middle.",
+                ratings=(2, 1, 0), state="owned", attacker=(22, 67), origin=(38, 75),
+                actions=("press", "cover", "tackle"),
+                notes=(
+                    "",
+                    "Keeping your goal-side spot is reasonable if A might pass or turn away.",
+                    "A keeps the ball close. A rushed tackle can miss; close under control first.",
+                ),
+            ),
+        ),
+    ),
+    Lesson(
+        31, "A enters shooting range",
+        "Close, block or win an exposed touch",
+        ("press", "block", "tackle"),
+        (
+            Situation(
+                (40, 79), (37, 70), (64, 85), (70, 52), 0,
+                "A reaches the box with the ball close. You have time to close before A sets to shoot.",
+                "Close quickly, then slow down between A and goal. Give A less space to set up a shot.",
+                ratings=(2, 1, 0), attacker=(37, 67), press_gap=6.,
+                notes=(
+                    "",
+                    "Protecting the shot line also helps. Keep moving closer while balanced; do not wait deep by your goal.",
+                    "A keeps the ball close and is beyond your reach. Rushing a tackle may let A go past.",
+                ),
+            ),
+            Situation(
+                (47, 87), (40, 81), (66, 88), (70, 54), 1,
+                "A cuts inside the box and draws a foot back. The ball stays close; you can step into the shooting line.",
+                "Step into the shot line, stay balanced and keep your arms close. Watch the ball; do not turn away.",
+                ratings=(1, 2, 0), attacker=(39, 78), press_gap=6.,
+                notes=(
+                    "A is already preparing to shoot. A short, balanced close can help if you stay in the shot line.",
+                    "",
+                    "A protects the ball beside the shooting foot. Reaching at A's feet now risks a foul.",
+                ),
+            ),
+            Situation(
+                (39, 85), (39, 83), (65, 88), (70, 54), 2,
+                "A's last touch inside the box rolls beside your foot. You can reach the ball before A shoots.",
+                "Step to the loose ball on your feet. If you win it, look up before your next action.",
+                ratings=(1, 1, 2), state="loose", attacker=(36, 75), origin=(34, 70), press_gap=6.,
+                notes=(
+                    "Closing under control is safe if you are unsure of your timing. Here you can reach the exposed ball first.",
+                    "Blocking is safe if you cannot win the ball cleanly. Here the loose ball is beside your foot.",
+                    "",
+                ),
+            ),
+        ),
+    ),
+    Lesson(
+        32, "Help stop the next shot",
+        "Check who can stop the shooter",
+        ("block", "mark", "press"),
+        (
+            Situation(
+                (51, 86), (44, 81), (33, 70), (68, 85), 0,
+                "M is beaten. A draws a foot back inside the box. You can step into the shot line; R is farther away.",
+                "Stop the immediate shot line on your feet. Call for help with R; do not wait for M to recover.",
+                ratings=(2, 0, 1), attacker=(43, 78), runner_end=(68, 85), press_gap=6.,
+                notes=(
+                    "",
+                    "R needs watching, but A can shoot now. Following R leaves the immediate shot open.",
+                    "A short, balanced close can help if you stay in the shot line. Do not sprint past the ball.",
+                ),
+            ),
+            Situation(
+                (65, 88), (40, 78), (43, 84), (65, 82), 1,
+                "M is set between A and goal as A prepares to shoot. R is free beside you.",
+                "Stay between R and goal while watching A. Call to M; if M is beaten, help stop the shot.",
+                ratings=(0, 2, 0), attacker=(39, 75), runner_end=(65, 82), press_gap=6.,
+                notes=(
+                    "M already covers the shot line. Running to M leaves R free for a pass or rebound.",
+                    "",
+                    "Both defenders chasing A leaves R free. Watch A and be ready to help if M is beaten.",
+                ),
+            ),
+            Situation(
+                (48, 84), (45, 77), (33, 68), (75, 59), 2,
+                "M is beaten. A takes another touch inside the box. You are closest and goal-side; R stays far away.",
+                "Take over pressure now. Slow down as you approach A; M has not recovered and cannot stop the shot yet.",
+                ratings=(1, 0, 2), attacker=(44, 74), runner_end=(75, 59), press_gap=6.,
+                notes=(
+                    "Moving into the shot line helps too. Keep closing under control because A still has time for another touch.",
+                    "R is far from goal. Following R leaves A time to set up an unopposed shot.",
+                    "",
                 ),
             ),
         ),

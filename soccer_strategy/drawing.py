@@ -112,17 +112,18 @@ def arrow(surface: pygame.Surface, start: tuple[int, int], end: tuple[int, int],
     pygame.draw.circle(surface, color, end, 8, 3)
 
 
-def draw_pitch(p: Painter) -> None:
+def draw_pitch(p: Painter, show_build_out_line: bool = False) -> None:
     p.panel(pygame.Rect(28, 140, 742, 676), (24, 61, 52))
     for i in range(10):
         stripe = pygame.Rect(PITCH.x, PITCH.y + i * 59, PITCH.width, 59)
         pygame.draw.rect(p.surface, (43, 116, 82) if i % 2 else (48, 128, 90), stripe)
     white = (190, 222, 191)
     pygame.draw.rect(p.surface, white, PITCH, 2)
-    line_y = pitch_point((0, 36))[1]
-    for x in range(PITCH.left, PITCH.right, 20):
-        pygame.draw.line(p.surface, (170, 206, 181), (x, line_y), (x + 10, line_y), 2)
-    p.text("BUILD-OUT LINE", pygame.Rect(PITCH.left + 10, line_y + 5, 200, 24), 19)
+    if show_build_out_line:
+        line_y = pitch_point((0, 36))[1]
+        for x in range(PITCH.left, PITCH.right, 20):
+            pygame.draw.line(p.surface, (170, 206, 181), (x, line_y), (x + 10, line_y), 2)
+        p.text("BUILD-OUT LINE", pygame.Rect(PITCH.left + 10, line_y + 5, 200, 24), 19)
     for width, height in ((58, 28), (28, 12)):
         rect = pygame.Rect(pitch_point((50 - width / 2, 100 - height)),
                            (PITCH.width * width / 100, PITCH.height * height / 100))

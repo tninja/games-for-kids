@@ -10,6 +10,68 @@ from soccer_strategy.presentation import keeper_observation, positions
 
 
 class CoachingTests(unittest.TestCase):
+    def test_shooting_choices_change_with_setup_swing_and_exposed_touch(self):
+        scenes = [s for s in build_catalog() if s.topic == 31]
+        self.assertEqual(len(scenes), 3)
+        self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
+                         ["press", "block", "tackle"])
+        setup, swing, exposed = scenes
+        for scene in (setup, next(s for s in build_catalog() if s.id == "32.3")):
+            attacker = next(a for a in scene.actors if a.key == "carrier")
+            press = next(c for c in scene.choices if c.key == "press")
+            self.assertGreater(dist(press.target, attacker.position), 5.5)
+            self.assertLess(dist(press.target, attacker.position),
+                            dist(scene.john.position, attacker.position))
+        for scene in (setup, swing):
+            attacker = next(a for a in scene.actors if a.key == "carrier")
+            self.assertLess(dist(attacker.position, scene.ball),
+                            dist(scene.john.position, scene.ball))
+            self.assertEqual(next(c.rating for c in scene.choices if c.key == "tackle"), 0)
+        attacker = next(a for a in exposed.actors if a.key == "carrier")
+        self.assertEqual(exposed.ball_state, "loose")
+        self.assertLess(dist(exposed.john.position, exposed.ball), dist(attacker.position, exposed.ball))
+
+    def test_new_shot_blocks_are_reachable_on_the_ball_to_goal_line(self):
+        scenes = [s for s in build_catalog() if s.topic in (31, 32)]
+        self.assertEqual(len(scenes), 6)
+        for scene in scenes:
+            block = next(c for c in scene.choices if c.key == "block")
+            if block.rating == 2:
+                dx, dy = 50 - scene.ball[0], 100 - scene.ball[1]
+                bx, by = block.target[0] - scene.ball[0], block.target[1] - scene.ball[1]
+                self.assertAlmostEqual(dx * by - dy * bx, 0)
+                self.assertGreater(block.target[1], scene.ball[1])
+                self.assertLess(block.target[1], 100)
+                self.assertLess(dist(scene.john.position, block.target),
+                                dist(scene.john.position, scene.ball))
+
+    def test_shooting_help_uses_actual_cover_and_keeps_the_runner_visible(self):
+        scenes = [s for s in build_catalog() if s.topic == 32]
+        self.assertEqual(len(scenes), 3)
+        self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
+                         ["block", "mark", "press"])
+        for scene in scenes:
+            mate = next(a for a in scene.actors if a.key == "mate")
+            attacker = next(a for a in scene.actors if a.key == "carrier")
+            self.assertIn("runner", {a.key for a in scene.actors})
+            if scene.id == "32.2":
+                block = next(c for c in scene.choices if c.key == "block")
+                self.assertLess(dist(mate.position, block.target), 3)
+                self.assertLess(dist(mate.position, scene.ball), dist(scene.john.position, scene.ball))
+                self.assertIn("watch", next(c.explanation for c in scene.choices if c.rating == 2).lower())
+            else:
+                self.assertLess(mate.position[1], attacker.position[1])
+                self.assertGreater(scene.john.position[1], scene.ball[1])
+
+    def test_scene_text_stays_short_for_a_nine_year_old_reader(self):
+        for scene in build_catalog():
+            self.assertLessEqual(len(scene.cue.split()), 24, scene.id)
+            for choice in scene.choices:
+                self.assertLessEqual(len(choice.label.split()), 12,
+                                     (scene.id, choice.key, choice.label))
+                self.assertLessEqual(len(choice.explanation.split()), 24,
+                                     (scene.id, choice.key, choice.explanation))
+
     def test_pass_waits_at_johns_foot_for_contact(self):
         scene = next(s for s in build_catalog() if s.id == "20.1")
         index = next(i for i, c in enumerate(scene.choices) if c.key == "pass")
@@ -72,9 +134,10 @@ class CoachingTests(unittest.TestCase):
         for lesson in LESSONS:
             for variant, situation in enumerate(lesson.situations):
                 notes = getattr(situation, "notes", ("", "", ""))
+                actions = situation.actions or lesson.actions
                 for index, rating in enumerate(situation.ratings):
                     if rating != 2:
-                        self.assertTrue(notes[index], f"{lesson.topic:02d}.{variant + 1}:{lesson.actions[index]}")
+                        self.assertTrue(notes[index], f"{lesson.topic:02d}.{variant + 1}:{actions[index]}")
                         scene = make_scene(lesson, variant, situation)
                         self.assertIn(notes[index], scene.choices[index].explanation)
                         self.assertNotIn(" Here: ", scene.choices[index].explanation)
@@ -122,12 +185,14 @@ class CoachingTests(unittest.TestCase):
         scenes = [s for s in build_catalog() if s.topic in (25, 26)]
         self.assertEqual(len(scenes), 6)
         for scene in scenes:
-            self.assertIn("first touch", scene.rules)
             players, ball = positions(scene, "observe", .1, None)
             for actor in scene.actors:
                 if actor.team == "away":
                     self.assertLessEqual(players[actor.key][1], 36)
             self.assertGreater(ball[1], 60)
+        keeper_throw = next(s for s in scenes if s.id == "25.1")
+        self.assertIn("first touch", keeper_throw.rules)
+        self.assertIn("Local line rules vary", keeper_throw.rules)
 
     def test_distribution_without_a_keeper_fails_instead_of_faking_a_throw(self):
         scene = next(s for s in build_catalog() if s.topic == 25)
@@ -163,7 +228,7 @@ class CoachingTests(unittest.TestCase):
             for choice in scene.choices:
                 if choice.key == "pass":
                     self.assertIn("not a guaranteed reception", choice.outcome)
-                    self.assertIn("support", choice.explanation)
+                    self.assertTrue("support" in choice.explanation or "help" in choice.label)
 
     def test_preferred_passes_are_short_and_to_a_ready_receiver(self):
         for lesson in LESSONS:

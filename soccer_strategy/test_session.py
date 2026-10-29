@@ -94,7 +94,7 @@ class SessionTests(unittest.TestCase):
                 practice = {s.id for s in a.scenes if not s.transfer}
                 self.assertTrue(all(s.id.split(":")[0] not in practice
                                     for s in a.scenes if s.transfer))
-        self.assertEqual(seen, set(range(1, 30)))
+        self.assertEqual(seen, set(range(1, 33)))
 
     def test_partial_summary_and_small_animation_steps(self):
         session = Session()

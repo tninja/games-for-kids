@@ -117,7 +117,10 @@ class App:
         self.canvas.fill(NAVY)
         p.text("LEFT BACK LAB", pygame.Rect(30, 27, 650, 48), 49)
         p.text("Look. Decide. Learn. Take it to the pitch.", pygame.Rect(32, 83, 700, 30), 27, MUTED)
-        draw_pitch(p)
+        session = self.session
+        show_build_out_line = (session is not None and session.scene.keeper_distribution
+                               and session.phase == "observe" and session.fraction < .45)
+        draw_pitch(p, show_build_out_line)
         p.panel(SIDE)
         if self.session is None:
             self._menu()

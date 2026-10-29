@@ -1,7 +1,7 @@
 # Left Back Lab
 
 An offline soccer decision trainer for John, with **six training sections,
-29 topics and 87 base situations**. Watch a play, choose a response and learn why
+32 topics and 96 base situations**. Watch a play, choose a response and learn why
 it fits the picture. The interface and coaching text are in English.
 
 ## Play
@@ -20,15 +20,22 @@ the Org design and the [case-by-case coaching review](COACHING_REVIEW.md).
 | Section | Focus | Topics |
 |---|---|---|
 | 1 / 1v1 basics | Patience, approach and tackling timing | 01 dribbler; 02 inside cut; 03 heavy touch; 05 touchline run; 06 back-to-goal receiver |
-| 2 / Protect the goal | Shots, crosses, rebounds and sliding decisions | 04 shot in the box; 15 stop a cross; 16 cut-back; 17 far post; 18 rebound; 28 stand or slide |
-| 3 / Recover and cover | Get back, watch runners and help teammates | 07 recovery; 08 pass behind; 09 far-side runner; 10 cover a pressing teammate; 11 cover a beaten teammate |
-| 4 / Read passes and runs | Understand combinations and two attackers | 12 two against one; 13 give-and-go; 14 switch of play |
+| 2 / Defend shooting | Closing, shot blocking, clean tackles and nearby threats | 04 shot in the box; 11 cover a beaten teammate; 12 two against one; 18 rebound; 28 stand or slide; 31 shooting range; 32 help stop the next shot |
+| 3 / Recover and cover | Get back, watch runners and help teammates | 07 recovery; 08 pass behind; 09 far-side runner; 10 cover a pressing teammate; 30 pass is intercepted |
+| 4 / Read passes and runs | Understand combinations, switches and crosses | 13 give-and-go; 14 switch of play; 15 stop a cross; 16 cut-back; 17 far post |
 | 5 / Use the ball | Keeper throws, receiving, passing and long kicks | 19 losing possession; 20 regaining possession; 21 receive under pressure; 25 keeper throw; 26 loose first touch from keeper; 27 teammate miscontrol; 29 short pass or long kick |
 | 6 / Defend restarts | Keep the assigned marking or zone responsibility | 22 sideline restart; 23 corner; 24 free kick |
 
 Start with section 1 or choose the skill John wants to practise. Every topic has
 three variants. Topic membership is defined once in `curriculum.py`; content,
 menu and session validation use the same definition.
+
+Choose **2 / Defend shooting** for seven topics and 21 base pictures. The six
+new pictures distinguish a carrier still setting up, a shot already being
+prepared, an exposed last touch, and help after a teammate is beaten. Close
+under control when there is time; block the shot line when A is already ready
+to shoot; step to a loose ball only when John can reach it cleanly first.
+When M actually covers A, stay with the free runner and keep checking A.
 
 ## A training round
 
@@ -39,8 +46,9 @@ menu and session validation use the same definition.
 
 Each round has **six distinct practice situations and two held-out new layouts**.
 Sections with three or five topics use additional different variants to fill the
-six practice slots. Transfer layouts come from variants not used in that round's
-practice. Section 1 introduces each basic topic in order; other sections mix topics.
+six practice slots. The seven-topic sections rotate which six topics appear.
+Transfer layouts come from variants not used in that round's practice. Section 1
+introduces each basic topic in order; other sections mix topics.
 
 Reasonable and preferred actions both count positively. Only the first attempt
 counts; retrying does not inflate the result. A five-to-ten-minute round is a
@@ -63,8 +71,11 @@ not require external images.
 
 ## John's match context and coaching limits
 
-The current profile is 7v7 with a build-out line. The parent confirmed sliding
-is allowed in John's league, and teammates may not control a pass reliably.
+The current profile is 7v7 with a build-out line. Topic 30 adds turnovers after
+a teammate pass is cut out; the rest of the open-play pictures focus on decisions
+that also occur in 9v9 without assuming a formation or how many nearby players
+are available. The parent confirmed sliding is allowed in John's league, and
+teammates may not always control a pass cleanly.
 
 - Look for a teammate who is ready and use a controllable short pass. Stay
   available afterward. Topic 27 practises helping after a loose first touch.
@@ -74,11 +85,13 @@ is allowed in John's league, and teammates may not control a pass reliably.
 - Keeper clips start opponents beyond the build-out line, then explicitly jump
   to a later first-touch picture with pressure live. They do not declare first
   touch a universal rule for crossing the line; local release triggers vary.
+  The line appears only during the opening 7v7 goalkeeper-distribution picture.
 - Return passes are to the keeper's feet. Sliding decisions distinguish staying
   up, a standing challenge and a controlled slide into a clear ball route.
   Touching the ball first does not excuse dangerous contact.
 - Restart pictures supply John's assignment. The game does not adjudicate a
-  universal marking system, offside, wall distances or heading.
+  universal marking system, offside or wall distances. No choice asks John to
+  head the ball. Restart and offside rules still depend on the local competition.
 
 These are scripted teaching pictures and intended routes, not football physics
 or guaranteed outcomes. They do not assess physical technique, receiver skill or

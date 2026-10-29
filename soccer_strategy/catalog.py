@@ -74,7 +74,7 @@ def targets(s: Situation) -> dict[str, Point]:
     length = max(hypot(dx, dy), 1.0)
     shield = bounded((b[0] - 2 * dx / length, b[1] - 2 * dy / length))
     return {
-        "contain": goal_side(b, 8), "press": goal_side(enemy, min(4., hypot(j[0] - enemy[0], j[1] - enemy[1]) * .7)),
+        "contain": goal_side(b, 8), "press": goal_side(enemy, min(s.press_gap, hypot(j[0] - enemy[0], j[1] - enemy[1]) * .7)),
         "tackle": b, "collect": b,
         "intercept": s.interception_target if s.interception_target is not None else b,
         "inside": goal_side(b, 7), "block": lerp(b, GOAL, .30),
@@ -92,8 +92,6 @@ def make_choice(key: str, index: int, s: Situation) -> Choice:
     explanation = s.reason if rating == 2 else s.notes[index]
     if rating == 1:
         explanation = "Reasonable too. " + explanation
-    if key == "pass":
-        explanation += " Call, then support if the first touch runs loose."
     ball_end = s.ball
     if key in ("press", "tackle", "intercept", "collect", "block", "clear", "pass", "carry", "shield", "slide", "long"):
         ball_end = {
@@ -119,6 +117,10 @@ def delivery_choice(choice: Choice, topic: int) -> Choice:
 
 def describe_choice(choice: Choice, topic: int, s: Situation) -> Choice:
     label = choice.label
+    if topic in (31, 32) and choice.key == "block":
+        label = "Step into A's shot line; stay on your feet."
+    if topic == 30 and choice.key == "intercept":
+        label = "Step across M's pass before A reaches it."
     if choice.key == "cover":
         label = {
             9: "Move toward the middle to protect the gap.",
@@ -159,7 +161,8 @@ def scene_actors(lesson: Lesson, s: Situation) -> tuple[Actor, ...]:
     if s.mate != s.keeper:
         mate_heading = (s.ball[0] - s.mate[0], s.ball[1] - s.mate[1]) if s.receiver_ready else (0, -1)
         actors.append(Actor("mate", "M", "home", s.mate, s.mate, s.mate, mate_heading))
-    if 6 <= lesson.topic <= 24 and lesson.topic not in (20, 21) or lesson.topic == 27:
+    if ((6 <= lesson.topic <= 24 and lesson.topic not in (20, 21))
+            or lesson.topic in (27, 32)):
         actors.append(Actor("runner", "R", "away", s.runner,
                             bounded((s.runner[0] - 3, s.runner[1] - 7)), runner_finish(s), (0, 1)))
     for i, point in enumerate(s.extras):
@@ -169,13 +172,14 @@ def scene_actors(lesson: Lesson, s: Situation) -> tuple[Actor, ...]:
 
 def make_scene(lesson: Lesson, variant: int, s: Situation) -> Scenario:
     ball_from = s.origin if s.origin is not None else bounded((s.ball[0] - 2, s.ball[1] - 8))
+    actions = s.actions if s.actions is not None else lesson.actions
     choices = tuple(describe_choice(delivery_choice(make_choice(key, i, s), lesson.topic), lesson.topic, s)
-                    for i, key in enumerate(lesson.actions))
-    rules = "7v7: nearby players only. Defenders may cross the line during open play."
+                    for i, key in enumerate(actions))
+    rules = "7v7/9v9: nearby players shown. Check the ball and your teammates."
     if lesson.topic in (22, 23, 24):
         rules = "Follow the assigned role and communicate. Local restart rules still apply."
     if s.state == "keeper":
-        rules = "7v7 build-out line. Decision after first touch; pressure is live. Return passes go to keeper's feet."
+        rules = "7v7 throw practice: pressure starts after first touch here. Local line rules vary. Return to GK's feet."
     if lesson.topic == 28:
         rules = "Slides are allowed in John's league. Dangerous contact is still a foul, even with ball first."
     scene = Scenario(f"{lesson.topic:02d}.{variant + 1}", lesson.topic, lesson.title,

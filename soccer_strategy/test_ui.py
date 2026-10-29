@@ -21,6 +21,7 @@ class UITests(unittest.TestCase):
 
     def test_menu_offers_six_training_sections(self):
         self.assertEqual(len(self.app.buttons()), 6)
+        self.assertIn("Defend shooting", self.app.buttons()[1].label)
         self.app.draw()
         self.assertFalse(self.app.layout_errors)
 
@@ -53,6 +54,24 @@ class UITests(unittest.TestCase):
         self.app.draw()
         self.assertFalse(self.app.layout_errors)
         self.assertNotEqual(early, pygame.image.tobytes(self.app.canvas, "RGB"))
+
+    def test_build_out_line_only_appears_before_pressure_in_the_7v7_throw_picture(self):
+        from soccer_strategy.catalog import build_catalog
+        from soccer_strategy.drawing import PITCH, pitch_point
+        self.app.activate("stage:5")
+        scene = next(s for s in build_catalog() if s.id == "25.1")
+        session = self.app.session
+        session.scenes = (scene,)
+        session.phase = "observe"
+        session.elapsed = .1 * 2.4
+        self.app.draw()
+        x, y = PITCH.left + 2, pitch_point((0, 36))[1]
+        visible_line = self.app.canvas.get_at((x, y))[:3]
+        self.assertEqual(visible_line, (170, 206, 181))
+        session.elapsed = .5 * 2.4
+        self.app.draw()
+        self.assertNotEqual(self.app.canvas.get_at((x, y))[:3], visible_line)
+        self.assertFalse(self.app.layout_errors)
 
     def test_mouse_decision_retry_and_next(self):
         self.app.draw()
