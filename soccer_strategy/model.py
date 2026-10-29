@@ -39,6 +39,13 @@ class Choice:
     ball_end: Point
 
 
+def _validate_shot_target(target: Point, choices: tuple[Choice, ...]) -> None:
+    if not (39 <= target[0] <= 61 and target[1] == 100):
+        raise ValueError("Shot target must be in the goal mouth")
+    if not any(c.key == "block" for c in choices):
+        raise ValueError("A shot guide requires a block choice")
+
+
 @dataclass(frozen=True)
 class Scenario:
     id: str
@@ -56,13 +63,14 @@ class Scenario:
     ball_state: str = "controlled"
     keeper_distribution: bool = False
     assigned_zone: Point | None = None
+    shot_target: Point | None = None
 
     @property
     def john(self) -> Actor:
         return next(actor for actor in self.actors if actor.key == "john")
 
     def validate(self) -> None:
-        if not self.id or not 1 <= self.topic <= 32 or self.stage not in SECTION_IDS:
+        if not self.id or not 1 <= self.topic <= 34 or self.stage not in SECTION_IDS:
             raise ValueError("Invalid scenario identity or stage")
         keys = [actor.key for actor in self.actors]
         if len(keys) != len(set(keys)) or keys.count("john") != 1:
@@ -74,6 +82,9 @@ class Scenario:
         points = [self.ball, self.ball_from]
         if self.assigned_zone is not None:
             points.append(self.assigned_zone)
+        if self.shot_target is not None:
+            _validate_shot_target(self.shot_target, self.choices)
+            points.append(self.shot_target)
         for actor in self.actors:
             if actor.team not in ("home", "away", "keeper"):
                 raise ValueError("Unknown team")
@@ -102,6 +113,7 @@ def transfer_scene(scene: Scenario, scale: float) -> Scenario:
     result = replace(scene, id=f"{scene.id}:transfer:{scale}", transfer=True,
                      actors=actors, choices=choices, ball=shift(scene.ball),
                      ball_from=shift(scene.ball_from),
-                     assigned_zone=shift(scene.assigned_zone) if scene.assigned_zone is not None else None)
+                     assigned_zone=shift(scene.assigned_zone) if scene.assigned_zone is not None else None,
+                     shot_target=shift(scene.shot_target) if scene.shot_target is not None else None)
     result.validate()
     return result

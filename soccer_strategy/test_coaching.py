@@ -10,58 +10,116 @@ from soccer_strategy.presentation import keeper_observation, positions
 
 
 class CoachingTests(unittest.TestCase):
-    def test_shooting_choices_change_with_setup_swing_and_exposed_touch(self):
+    def test_shooting_practice_keeps_control_and_protects_goal(self):
+        scenes = [s for s in build_catalog() if s.stage == 2]
+        self.assertEqual(len(scenes), 15)
+        self.assertEqual({s.topic for s in scenes}, {4, 31, 32, 33, 34})
+        for scene in scenes:
+            self.assertEqual(scene.ball_state, "controlled", scene.id)
+            self.assertIsNotNone(scene.shot_target, scene.id)
+            self.assertEqual(len(scene.choices), 3)
+            self.assertTrue({c.key for c in scene.choices} <=
+                            {"block", "press", "recover", "cover"}, scene.id)
+            attacker = next(a for a in scene.actors if a.key == "carrier")
+            self.assertLess(dist(attacker.position, scene.ball),
+                            dist(scene.john.position, scene.ball), scene.id)
+            self.assertIn("block", {c.key for c in scene.choices})
+
+    def test_shooting_choices_distinguish_setup_from_ready_shots(self):
         scenes = [s for s in build_catalog() if s.topic == 31]
         self.assertEqual(len(scenes), 3)
         self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
-                         ["press", "block", "tackle"])
-        setup, swing, exposed = scenes
-        for scene in (setup, next(s for s in build_catalog() if s.id == "32.3")):
+                         ["press", "block", "block"])
+        for scene in (scenes[0], next(s for s in build_catalog() if s.id == "32.3")):
             attacker = next(a for a in scene.actors if a.key == "carrier")
             press = next(c for c in scene.choices if c.key == "press")
             self.assertGreater(dist(press.target, attacker.position), 5.5)
             self.assertLess(dist(press.target, attacker.position),
                             dist(scene.john.position, attacker.position))
-        for scene in (setup, swing):
-            attacker = next(a for a in scene.actors if a.key == "carrier")
-            self.assertLess(dist(attacker.position, scene.ball),
-                            dist(scene.john.position, scene.ball))
-            self.assertEqual(next(c.rating for c in scene.choices if c.key == "tackle"), 0)
-        attacker = next(a for a in exposed.actors if a.key == "carrier")
-        self.assertEqual(exposed.ball_state, "loose")
-        self.assertLess(dist(exposed.john.position, exposed.ball), dist(attacker.position, exposed.ball))
 
-    def test_new_shot_blocks_are_reachable_on_the_ball_to_goal_line(self):
-        scenes = [s for s in build_catalog() if s.topic in (31, 32)]
-        self.assertEqual(len(scenes), 6)
+    def test_shot_blocks_follow_the_stated_middle_or_near_post_line(self):
+        scenes = [s for s in build_catalog() if s.stage == 2]
+        self.assertEqual(len(scenes), 15)
+        near_posts = {"04.2": (40, 100), "31.3": (60, 100), "32.2": (40, 100),
+                      "33.2": (60, 100), "33.3": (40, 100)}
         for scene in scenes:
+            goal = near_posts.get(scene.id, (50, 100))
             block = next(c for c in scene.choices if c.key == "block")
+            dx, dy = goal[0] - scene.ball[0], goal[1] - scene.ball[1]
+            bx, by = block.target[0] - scene.ball[0], block.target[1] - scene.ball[1]
+            self.assertAlmostEqual(dx * by - dy * bx, 0, msg=scene.id)
+            self.assertGreater(block.target[1], scene.ball[1])
+            self.assertLess(block.target[1], 100)
+            self.assertEqual(block.ball_end, block.target)
             if block.rating == 2:
-                dx, dy = 50 - scene.ball[0], 100 - scene.ball[1]
-                bx, by = block.target[0] - scene.ball[0], block.target[1] - scene.ball[1]
-                self.assertAlmostEqual(dx * by - dy * bx, 0)
-                self.assertGreater(block.target[1], scene.ball[1])
-                self.assertLess(block.target[1], 100)
                 self.assertLess(dist(scene.john.position, block.target),
-                                dist(scene.john.position, scene.ball))
+                                dist(scene.john.position, scene.ball), scene.id)
+            if scene.id in near_posts:
+                side = "left" if goal[0] == 40 else "right"
+                self.assertIn(side, block.label)
 
-    def test_shooting_help_uses_actual_cover_and_keeps_the_runner_visible(self):
+    def test_shooting_support_covers_an_angle_instead_of_chasing_a_runner(self):
         scenes = [s for s in build_catalog() if s.topic == 32]
         self.assertEqual(len(scenes), 3)
         self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
-                         ["block", "mark", "press"])
+                         ["block", "block", "press"])
         for scene in scenes:
             mate = next(a for a in scene.actors if a.key == "mate")
             attacker = next(a for a in scene.actors if a.key == "carrier")
-            self.assertIn("runner", {a.key for a in scene.actors})
+            self.assertNotIn("runner", {a.key for a in scene.actors})
             if scene.id == "32.2":
-                block = next(c for c in scene.choices if c.key == "block")
-                self.assertLess(dist(mate.position, block.target), 3)
                 self.assertLess(dist(mate.position, scene.ball), dist(scene.john.position, scene.ball))
-                self.assertIn("watch", next(c.explanation for c in scene.choices if c.rating == 2).lower())
+                block = next(c for c in scene.choices if c.key == "block")
+                self.assertGreater(dist(mate.position, block.target), 6)
+                cover = next(c for c in scene.choices if c.key == "cover")
+                self.assertEqual(cover.target[0], 40)
+                self.assertGreater(cover.target[1], scene.ball[1])
+                self.assertEqual(cover.rating, 1)
             else:
                 self.assertLess(mate.position[1], attacker.position[1])
                 self.assertGreater(scene.john.position[1], scene.ball[1])
+
+    def test_cut_ins_keep_the_ball_close_and_show_a_real_inward_run(self):
+        scenes = [s for s in build_catalog() if s.topic == 33]
+        self.assertEqual(len(scenes), 3)
+        self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
+                         ["press", "block", "block"])
+        for scene in scenes:
+            attacker = next(a for a in scene.actors if a.key == "carrier")
+            for fraction in (0., .1, .25, .5, .75, .9, 1.):
+                actors, ball = positions(scene, "observe", fraction, None)
+                self.assertLess(dist(actors["carrier"], ball), 4, (scene.id, fraction))
+            if scene.id == "33.3":
+                self.assertGreater(attacker.approach[0], attacker.position[0] + 10)
+            else:
+                self.assertLess(attacker.approach[0], attacker.position[0] - 10)
+            self.assertLess(abs(attacker.position[0] - 50), abs(attacker.approach[0] - 50))
+            self.assertEqual(scene.ball_state, "controlled")
+
+    def test_shooter_distance_cases_compare_closing_holding_and_sideways_cover(self):
+        scenes = [s for s in build_catalog() if s.topic == 34]
+        self.assertEqual(len(scenes), 3)
+        self.assertEqual([next(c.key for c in s.choices if c.rating == 2) for s in scenes],
+                         ["press", "block", "block"])
+        far, set_position, side = scenes
+        attacker = next(a for a in far.actors if a.key == "carrier")
+        for scene in scenes:
+            self.assertEqual(scene.ball, far.ball)
+            self.assertEqual(scene.shot_target, far.shot_target)
+            self.assertEqual(next(a.position for a in scene.actors if a.key == "carrier"), attacker.position)
+        self.assertGreater(dist(far.john.position, attacker.position),
+                           dist(set_position.john.position, attacker.position))
+        press = next(c for c in far.choices if c.key == "press")
+        self.assertLess(dist(press.target, attacker.position), dist(far.john.position, attacker.position))
+        block = next(c for c in set_position.choices if c.key == "block")
+        self.assertEqual(block.target, set_position.john.position)
+        self.assertIn("Stay", block.label)
+        sx, sy = side.john.position[0] - side.ball[0], side.john.position[1] - side.ball[1]
+        gx, gy = side.shot_target[0] - side.ball[0], side.shot_target[1] - side.ball[1]
+        self.assertGreater(abs(gx * sy - gy * sx), 20)
+        block = next(c for c in side.choices if c.key == "block")
+        self.assertLess(block.target[0], side.john.position[0])
+        self.assertGreater(block.target[1], side.john.position[1])
 
     def test_scene_text_stays_short_for_a_nine_year_old_reader(self):
         for scene in build_catalog():
@@ -176,7 +234,7 @@ class CoachingTests(unittest.TestCase):
         self.assertEqual(contain.rating, 1)
 
     def test_loose_ball_claim_has_visible_distance_advantage(self):
-        for scene_id in ("01.3", "02.3", "03.1", "04.2", "05.3", "07.3", "15.3", "18.1"):
+        for scene_id in ("01.3", "02.3", "03.1", "05.3", "07.3", "15.3", "18.1"):
             scene = next(s for s in build_catalog() if s.id == scene_id)
             opponent = next(a for a in scene.actors if a.key == "carrier")
             self.assertLess(dist(scene.john.position, scene.ball), dist(opponent.position, scene.ball), scene_id)

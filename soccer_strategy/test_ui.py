@@ -155,6 +155,42 @@ class UITests(unittest.TestCase):
         self.app.draw()
         self.assertNotEqual(before, pygame.image.tobytes(self.app.canvas, "RGB"))
 
+    def test_shot_direction_and_block_ring_appear_only_in_feedback(self):
+        from soccer_strategy.catalog import build_catalog
+        from soccer_strategy.drawing import BLUE, CORAL, pitch_point
+        from soccer_strategy.model import transfer_scene
+        self.app.activate("stage:2")
+        base = next(s for s in build_catalog() if s.id == "33.2")
+        for scene in (base, transfer_scene(base, .92)):
+            self.app.session.scenes = (scene,)
+            self.app.session.selected = 2
+            aim = pitch_point(scene.shot_target)
+            block = pitch_point(next(c.target for c in scene.choices if c.key == "block"))
+            for phase in ("observe", "decide", "outcome"):
+                self.app.session.phase = phase
+                self.app.draw()
+                self.assertNotEqual(self.app.canvas.get_at(aim)[:3], CORAL, phase)
+                self.assertNotEqual(self.app.canvas.get_at((block[0], block[1] - 30))[:3], BLUE, phase)
+            self.app.session.phase = "feedback"
+            self.app.draw()
+            self.assertEqual(self.app.canvas.get_at(aim)[:3], CORAL)
+            self.assertEqual(self.app.canvas.get_at((block[0], block[1] - 30))[:3], BLUE)
+            self.assertFalse(self.app.layout_errors)
+
+    def test_shot_line_dashes_and_block_marker_render_on_a_blank_surface(self):
+        from soccer_strategy.drawing import BLUE, CORAL, NAVY, draw_block_point, draw_shot_line
+        surface = pygame.Surface((240, 120))
+        surface.fill(NAVY)
+        draw_shot_line(surface, (20, 60), (220, 60))
+        self.assertEqual(surface.get_at((26, 60))[:3], CORAL)
+        self.assertEqual(surface.get_at((39, 60))[:3], NAVY)
+        self.assertEqual(surface.get_at((220, 60))[:3], CORAL)
+        before = pygame.image.tobytes(surface, "RGB")
+        draw_shot_line(surface, (20, 60), (20, 60))
+        self.assertEqual(before, pygame.image.tobytes(surface, "RGB"))
+        draw_block_point(surface, (110, 60))
+        self.assertEqual(surface.get_at((110, 30))[:3], BLUE)
+
     def test_outcome_without_a_selected_action_keeps_the_scene_static(self):
         from soccer_strategy.presentation import positions
         self.app.activate("stage:1")

@@ -255,3 +255,82 @@ no separate approval round or new dependencies are required.
   This distance illustrates a balanced stop; it is not a prescribed real-world
   measurement. Prior pictures retain their original routes.
 - Defend-shooting catalog snapshot: `3e9402522638316cab403a3ba14accdcb2cce6b5d0b0181c7c341e00ca97bb79`.
+
+## User correction: keep shooting practice focused on protecting goal
+
+The user clarified that `Defend shooting` should assume the opponent keeps
+control and prepares to shoot. Loose touches, collection and pass interception
+do not belong in this practice. This supersedes the previous section membership
+and the exposed-touch example in topic 31.
+
+- Section 2 contains topics 4, 31 and 32 only: nine controlled-ball shooting
+  pictures. Move 28 to 1v1 basics, 11 to Recover and cover, 12 to Read passes
+  and runs, and 18 to Use the ball. Keep all 32 topic IDs and 96 case IDs.
+- Rewrite the nine shooting pictures around closing the shooting space,
+  standing in the shot line, recovering inside, and covering an angle while
+  M presses. No choice in these pictures collects a loose ball, tackles,
+  intercepts a pass or follows a separate runner.
+- Distinguish a central shot and left/right near-post threats with explicit
+  authored aim points on the goal line. Block routes and the blocked ball must
+  lie on the corresponding shot line; near-post buttons identify the side.
+- Every shooting picture keeps A closer to the ball than John. Vary position,
+  shooting preparation and M's actual pressure; do not manufacture an error by
+  A to create a different preferred answer. Multiple pictures may correctly
+  prefer blocking. Replace the old three-distinct-preferred-actions requirement
+  only for these explicitly changed topics, while retaining it elsewhere.
+- Update affected semantic tests to this corrected contract; test all nine
+  cases for controlled ball state, legal goal aim and goal-protection choices.
+  Retain the general geometry, rendering, text, scoring and session invariants.
+- Preserve the 87 cases outside topics 4, 31 and 32 except section membership.
+  Keep six menu sections and 6+2 rounds; topic-rich sections rotate six topics.
+  Render the revised pictures, run the existing full verifier, record the new
+  snapshot/evidence and append the result to the current Org Coding section.
+- No dependencies or installations. Editor diagnostics baseline returned HTTP
+  401 again; record it as unavailable rather than claiming it passed.
+- Controlled-shooter correction snapshot: `da811188a9d946367e0bed46a97ee5cf797ea47be20b3237e4d42ac7a1a9bf99`; prior snapshot is retained above.
+
+## User-selected shot guides and controlled cut-ins
+
+The user selected both proposed follow-ups: feedback-only shot lines and block
+points, plus controlled cut-in shooting cases. This authorizes implementation.
+
+- Add topic 33 to Defend shooting: three controlled-ball cut-ins. From the left,
+  John can close before the kick or cover a prepared far-corner shot; from the
+  right, John covers the opposite far-corner shot. A stays beside the ball during
+  every observation frame. Author the starting carrier position and ball origin
+  so the animation genuinely moves inward from the side.
+- Keep the prior 96 cases' facts, actions, routes, ratings and explanations.
+  Add optional shot-aim metadata for the shooting pictures, sourced from their
+  existing aim points. The resulting catalog has 33 topics / 99 cases, with
+  four shooting topics / 12 cases. Preserve six sections and 6+2 rounds.
+- Only on feedback, show a coral dashed shot direction from the decision ball
+  position to the stated goal aim, plus a blue ring at the block choice's target.
+  The guide is independent of which choice was selected or preferred; a pressure
+  action can still be the strong decision before a shot is set. Keep gold/green
+  route arrows, add a short English color key, and do not display the guide
+  during observation, decision or outcome animation.
+- Draw the shot line behind players and the block ring above routes. The stated
+  shot is an illustration, not a prediction. Transfer layouts must move the
+  aim, line and block point consistently; validate aims stay in the goal mouth
+  and require a block choice when a shot guide is present.
+- Test controlled carrier/ball movement throughout the cut, left/right approach,
+  choice changes with shot readiness, guide geometry, transfer, invalid metadata,
+  phase visibility, color/endpoint rendering and empty-segment drawing.
+  Render the changed feedback and all new cases, run the existing full verifier,
+  update the snapshot/docs/evidence and append the Org result.
+- No dependencies or installation. Diagnostics baseline again returned HTTP
+  401 and will be recorded as unavailable, not clean.
+
+## Additional user steering: distance to the shooter
+
+The user asked whether blocking should be closer to or farther from the shooter,
+and explicitly requested cases teaching this decision. Add topic 34 with three
+matched controlled-ball pictures: John too deep with time to close, John already
+set on the shot line as the kick starts, and John near A's side but outside the
+shot line. Prefer closing, holding the block, and moving across into the line,
+respectively. Do not teach that closer always means better or prescribe a fixed
+real-world distance from percentage coordinates. Preserve the previous selected
+shot-guide/cut-in scope. Final totals become 34 topics / 102 cases; shooting has
+five topics / 15 cases. Test the matched distances, the stationary block and the
+off-line lateral correction. Include the final counts in docs and evidence.
+- Final shot-guide/cut-in/distance snapshot: `d90a4ad034f1237645d3c003e97756a83f6d0b8cbfa9448b89008cb753dd6113`; previous snapshot is retained above.

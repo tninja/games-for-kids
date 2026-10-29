@@ -1,7 +1,7 @@
 # Left Back Lab
 
 An offline soccer decision trainer for John, with **six training sections,
-32 topics and 96 base situations**. Watch a play, choose a response and learn why
+34 topics and 102 base situations**. Watch a play, choose a response and learn why
 it fits the picture. The interface and coaching text are in English.
 
 ## Play
@@ -19,23 +19,37 @@ the Org design and the [case-by-case coaching review](COACHING_REVIEW.md).
 
 | Section | Focus | Topics |
 |---|---|---|
-| 1 / 1v1 basics | Patience, approach and tackling timing | 01 dribbler; 02 inside cut; 03 heavy touch; 05 touchline run; 06 back-to-goal receiver |
-| 2 / Defend shooting | Closing, shot blocking, clean tackles and nearby threats | 04 shot in the box; 11 cover a beaten teammate; 12 two against one; 18 rebound; 28 stand or slide; 31 shooting range; 32 help stop the next shot |
-| 3 / Recover and cover | Get back, watch runners and help teammates | 07 recovery; 08 pass behind; 09 far-side runner; 10 cover a pressing teammate; 30 pass is intercepted |
-| 4 / Read passes and runs | Understand combinations, switches and crosses | 13 give-and-go; 14 switch of play; 15 stop a cross; 16 cut-back; 17 far post |
-| 5 / Use the ball | Keeper throws, receiving, passing and long kicks | 19 losing possession; 20 regaining possession; 21 receive under pressure; 25 keeper throw; 26 loose first touch from keeper; 27 teammate miscontrol; 29 short pass or long kick |
+| 1 / 1v1 basics | Patience, approach and tackling timing | 01 dribbler; 02 inside cut; 03 heavy touch; 05 touchline run; 06 back-to-goal receiver; 28 stand or slide |
+| 2 / Defend shooting | Protect goal against a controlled-ball shooter | 04 shot in the box; 31 shooting space and angles; 32 cover a shot behind M; 33 cut inside and shoot; 34 distance to the shooter |
+| 3 / Recover and cover | Get back, watch runners and help teammates | 07 recovery; 08 pass behind; 09 far-side runner; 10 cover a pressing teammate; 11 cover a beaten teammate; 30 pass is intercepted |
+| 4 / Read passes and runs | Understand combinations, switches and crosses | 12 two against one; 13 give-and-go; 14 switch of play; 15 stop a cross; 16 cut-back; 17 far post |
+| 5 / Use the ball | Rebounds, receiving, passing and long kicks | 18 rebound; 19 losing possession; 20 regaining possession; 21 receive under pressure; 25 keeper throw; 26 loose first touch from keeper; 27 teammate miscontrol; 29 short pass or long kick |
 | 6 / Defend restarts | Keep the assigned marking or zone responsibility | 22 sideline restart; 23 corner; 24 free kick |
 
 Start with section 1 or choose the skill John wants to practise. Every topic has
 three variants. Topic membership is defined once in `curriculum.py`; content,
 menu and session validation use the same definition.
 
-Choose **2 / Defend shooting** for seven topics and 21 base pictures. The six
-new pictures distinguish a carrier still setting up, a shot already being
-prepared, an exposed last touch, and help after a teammate is beaten. Close
-under control when there is time; block the shot line when A is already ready
-to shoot; step to a loose ball only when John can reach it cleanly first.
-When M actually covers A, stay with the free runner and keep checking A.
+Choose **2 / Defend shooting** for five topics and 15 pictures. Every
+picture assumes A still controls the ball and is preparing a shot. Practise
+closing shooting space, stepping into a central or near-post shot line,
+recovering inside, and protecting an angle while M presses. Several pictures
+correctly prefer blocking; the lesson does not depend on A losing control.
+Left/right near-post buttons identify the post, and their routes follow that
+shot angle. Loose balls, rebounds, tackles and interceptions are in other
+sections. The pictures show a stated shot threat, not a guarantee of its result.
+
+Topics 33-34 add left/right cut-ins and a matched distance comparison: close
+from a deep position when there is time, hold a useful blocking position as
+A starts the kick, or move sideways into the shot line when nearby but off-line.
+A stays beside the ball throughout the cut. This teaches balance and position,
+not a fixed distance or a rule that closer is always better.
+
+On shooting feedback, **coral dashes** show the stated shot direction and a
+**blue ring** marks a point where John can block that line. Gold/green arrows
+still show the selected/suggested movement. The blue ring is a block option,
+not a claim that blocking is always preferable to closing or recovering.
+Guides appear after the choice only and move with transfer layouts.
 
 ## A training round
 
@@ -45,8 +59,8 @@ When M actually covers A, stay with the free runner and keep checking A.
 4. Retry to compare, or continue to the next situation.
 
 Each round has **six distinct practice situations and two held-out new layouts**.
-Sections with three or five topics use additional different variants to fill the
-six practice slots. The seven-topic sections rotate which six topics appear.
+Sections with fewer than six topics use different variants to fill the six
+practice slots. Sections with more than six rotate which six topics appear.
 Transfer layouts come from variants not used in that round's practice. Section 1
 introduces each basic topic in order; other sections mix topics.
 

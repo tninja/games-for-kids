@@ -23,7 +23,7 @@ class CurriculumTests(unittest.TestCase):
 
     def test_all_topics_belong_to_exactly_one_section(self):
         topics = [topic for section in SECTIONS for topic in section.topics]
-        self.assertEqual(sorted(topics), list(range(1, 33)))
+        self.assertEqual(sorted(topics), list(range(1, 35)))
         self.assertEqual(len(topics), len(set(topics)))
         self.assertEqual(SECTION_IDS, (1, 2, 3, 4, 5, 6))
         for section in SECTIONS:
@@ -35,20 +35,23 @@ class CurriculumTests(unittest.TestCase):
             self.assertEqual({s.topic for s in catalog if s.stage == section.id},
                              set(section.topics))
         self.assertEqual(section_for_topic(25), 5)
-        self.assertEqual(section_for_topic(28), 2)
+        self.assertEqual(section_for_topic(28), 1)
         self.assertEqual(section_for_topic(29), 5)
         self.assertEqual(section_for_topic(24), 6)
         self.assertEqual(section_for_topic(30), 3)
 
     def test_direct_shooting_threats_share_a_named_section(self):
         shooting = next(section for section in SECTIONS if section.title == "Defend shooting")
-        self.assertEqual(set(shooting.topics), {4, 11, 12, 18, 28, 31, 32})
+        self.assertEqual(set(shooting.topics), {4, 31, 32, 33, 34})
         for topic in shooting.topics:
             self.assertEqual(section_for_topic(topic), shooting.id)
         self.assertTrue(all(section_for_topic(topic) == 4 for topic in (15, 16, 17)))
+        self.assertEqual(section_for_topic(11), 3)
+        self.assertEqual(section_for_topic(12), 4)
+        self.assertEqual(section_for_topic(18), 5)
 
     def test_unassigned_topics_are_rejected(self):
-        for topic in (0, 33):
+        for topic in (0, 35):
             with self.assertRaises(ValueError):
                 section_for_topic(topic)
 

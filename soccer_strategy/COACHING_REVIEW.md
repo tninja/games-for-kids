@@ -1,10 +1,10 @@
-# Coaching review - 32 topics / 96 pictures
+# Coaching review - 34 topics / 102 pictures
 
 Reviewed again against every option and visible route. Reviewed for John: age 9, three years of play, usually left defender, 7v7 with a
 build-out line, with individual decisions that can transfer to 9v9 when his
 age group and league use that format. The parent confirmed
 slide tackles are allowed and asked us to account for teammates who may not
-control a pass reliably. This authored review covers all 96 pictures and 288
+control a pass reliably. This authored review covers all 102 pictures and 306
 options; it is not certification by a coach who has observed John.
 
 ## Principles and evidence
@@ -52,6 +52,12 @@ options; it is not certification by a coach who has observed John.
   This supports the decision principles; the game adapts them to short local
   pictures for John rather than teaching the full session's formations.
 
+- Being near A only helps if John can influence the shot or its angle:
+  [FIFA: assessing the defender's influence](https://www.fifatrainingcentre.com/en/practice/futsal/coaching-tips/part-3-reading-the-game-before-intervening.php).
+  This futsal goalkeeper seminar is used for its explicit observation about
+  defender influence; its goalkeeper positioning/handling instructions are not
+  transferred to John. The distance comparison is an authored adaptation.
+
 These sources support the principles. They do not individually endorse the
 coordinates, movement speed or every preferred action in this game.
 
@@ -85,11 +91,24 @@ coordinates, movement speed or every preferred action in this game.
 13. The retreat line is drawn only in the initial 7v7 keeper-throw observation.
     Open-play and later-pressure pictures no longer show a rule line that is not
     active in those phases.
-14. Created `Defend shooting` for topics 4, 11, 12, 18, 28, 31 and 32.
-    Crosses and cut-backs (15-17) now sit with passing and running decisions.
-15. Added six shooting-danger pictures (31-32). New pressure poses leave visible
-    stopping space rather than merging John into A; the displayed gap is not
-    a real-world distance prescription. A nearby M is not assumed to stop A.
+14. Initially grouped seven topics under `Defend shooting`; the user's follow-up
+    narrows that section to topics 4, 31 and 32. Mixed loose-ball, interception,
+    rebound and tackle topics remain available in other appropriate sections.
+15. Rewrote all nine shooting pictures to assume A keeps control and prepares
+    to shoot. Choices cover the shot line, close space, recover inside or
+    support a pressing M. They do not depend on an exposed touch or failed pass.
+16. Added explicit left/right near-post aim points and matching block routes.
+    New pressure poses retain stopping space. Several shooting cases correctly
+    prefer blocking; they no longer have to produce three different best actions.
+
+17. Added feedback-only shot guides: coral dashes from the pictured ball to
+    the stated goal aim, plus a blue ring at the block option. Original aims
+    and block targets are reused, including after transfer scaling. The ring
+    is not an answer grade; pressure may still be preferred before the kick.
+18. Added three controlled cut-ins (33) and three matched shooter-distance
+    cases (34). Cut-in observation keeps A beside the ball from the authored
+    side position. Distance cases compare closing from deep, holding a set
+    block, and moving inside from an ineffective side position.
 
 ## How to read the picture review
 
@@ -124,7 +143,7 @@ For long kicks, John is an outfield player; these are not goalkeeper punts.
   also reasonable once controlled. Carrying left goes toward A.
 - **27.1-27.3, miscontrol observation:** the loose touch now starts at M, rather
   than showing a ball travelling directly from an earlier John position.
-- **All 192 non-preferred choices:** each now explains its own picture and
+- **All 204 non-preferred choices:** each now explains its own picture and
   tradeoff. Generic warnings plus the preferred answer have been removed.
 - **Pressure demonstration:** the old generic carrier run crossed John's
   stopping point, so even a preferred pressure route looked beaten. A and the
@@ -136,12 +155,15 @@ For long kicks, John is an outfield player; these are not goalkeeper punts.
   throw picture, not in open play or after the release. Offside, restart and
   formation decisions remain outside the game because local rules and roles vary.
 
-All 90 pre-existing case records are preserved except section membership.
-The six added pictures distinguish pressure before a shooting setup, a balanced
-block when A is already preparing the shot, an exposed last touch, taking over
-from a beaten teammate, and watching a free runner when M actually covers A.
-Preferred means a strong decision for the teaching picture, not the only
-possible real-match response.
+This update preserves all 96 prior case records, with only new shot-aim
+metadata added to support feedback. It adds six pictures in topics 33 and 34.
+All 15 shooting pictures assume A keeps control; the distance lesson changes
+John's position around the same carrier, ball and shot direction. Several
+pictures correctly prefer blocking. Close when there is time to reduce shot
+space; stay balanced on the line as the kick starts; being near A from an
+unhelpful angle is not enough. Coordinates are not real-world distance targets.
+The blue feedback ring marks a block option even when closing or recovery is
+preferred. It is drawn after choosing and is not a prediction of A's exact shot.
 The table below publishes all three choices and explanations, including risky
 ones. The factual and judgment review is authored; the table is a projection
 of the resulting data, not independent evidence that the data are correct.
@@ -149,12 +171,12 @@ of the resulting data, not independent evidence that the data are correct.
 ## Pictures by training section
 
 Each ID has exactly three options. Preferred = 2, reasonable = 1, risk = 0.
-A risk grade does not mean an action is always illegal or certain to fail.
 Either a preferred or reasonable first choice counts positively.
+A risk grade is specific to the picture, not a universal ban on the action.
 
 ### 1. 1v1 basics
 
-5 topics / 15 base pictures.
+6 topics / 18 base pictures.
 
 | ID | Observation | All choices: grade, instruction and explanation |
 |---|---|---|
@@ -173,38 +195,35 @@ Either a preferred or reasonable first choice counts positively.
 | 06.1 | The receiver faces away from goal and has not turned yet. | **press / Preferred:** Run toward A; slow down before reaching A. Approach under control so the receiver cannot turn freely.<br><br>**contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Holding goal-side is possible, but A has not turned. You can close under control.<br><br>**intercept / Risk:** Step into the pass before A can reach it. A already has the ball. There is no travelling pass here to intercept. |
 | 06.2 | The receiver has turned toward you and controls the ball. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Closing a little can work if you stay balanced. A has turned and can now dribble at you.<br><br>**contain / Preferred:** Stay between A and goal; match A's run. Reset your distance now that the receiver can attack forward.<br><br>**intercept / Risk:** Step into the pass before A can reach it. A controls the ball. Stepping at an imagined pass could let A run past. |
 | 06.3 | A slow pass crosses your path before reaching the receiver. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Approaching A under control can help if you cannot reach the pass. Do not let this slow ball roll by.<br><br>**contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Holding goal-side is safe if unsure. Here the pass is in reach before A receives it.<br><br>**intercept / Preferred:** Step into the pass before A can reach it. Read the pass and step across its route before the receiver gets it. |
-
-### 2. Defend shooting
-
-7 topics / 21 base pictures.
-
-| ID | Observation | All choices: grade, instruction and explanation |
-|---|---|---|
-| 04.1 | The attacker controls the ball and draws a foot back to shoot. | **block / Preferred:** Move between the ball and your goal. Stay balanced in the shooting line; there is no clean tackling opening.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A is about to shoot and the ball is protected. A late reach can miss the shot or foul A.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Recovering toward the shooting line can help. Do not keep retreating and open the shot. |
-| 04.2 | The ball rolls loose beside you before the attacker can shoot. | **block / Reasonable:** Move between the ball and your goal. Reasonable too. Blocking protects goal if you cannot win it cleanly. Here the loose ball is beside your foot.<br><br>**tackle / Preferred:** Step to the ball before A's next touch. This exposed ball is reachable before the shooting foot arrives.<br><br>**recover / Risk:** Run back into the space in front of goal. Running away gives A time to recover the loose ball and shoot. |
-| 04.3 | You are behind the attacker, who takes another touch. The keeper is set. | **block / Reasonable:** Move between the ball and your goal. Reasonable too. Moving into the shooting line can help if you get there. First recover from behind A.<br><br>**tackle / Risk:** Step to the ball before A's next touch. You are behind A and the ball. Do not reach through A's legs to try to win it.<br><br>**recover / Preferred:** Run back into the space in front of goal. Recover toward the route to goal; do not reach through the attacker from behind. |
-| 11.1 | The central carrier can shoot. No other defender can block. | **block / Preferred:** Move between the ball and your goal. Protect the immediate shooting route and call for help with your runner.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R needs watching, but A can shoot now and no teammate is in the shooting line.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A still controls the ball. Guessing at a pass leaves the immediate shot open. |
-| 11.2 | Another teammate can block the carrier. Your runner remains free. | **block / Risk:** Move between the ball and your goal. M is already in place to confront A. Joining M leaves your R unmarked.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Stay with R while M faces A. Call to M and react again if A gets past.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A has not released a pass. Gambling on one leaves R free behind you. |
-| 11.3 | The carrier releases a slow square pass across your path. | **block / Reasonable:** Move between the ball and your goal. Reasonable too. Protecting the shot is possible if you cannot reach the pass. Here the ball is already released.<br><br>**mark / Reasonable:** Follow R; stay between R and your goal. Reasonable too. Following R can help if the pass is out of reach. This slow ball crosses your path.<br><br>**intercept / Preferred:** Step into the pass before R reaches it. Cut out the reachable pass before the free attacker receives it. |
-| 12.1 | Two attackers approach outside the box. Your teammate runs back. | **contain / Preferred:** Stay between A and goal; match A's run. Slow their advance and guard the inside route while help arrives.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A has a passing partner and M is still recovering. Rushing A opens the pass behind you.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A has not passed. Guessing at the ball's route can let either attacker get beyond you. |
-| 12.2 | The carrier can shoot now; the overlapping attacker remains wide. | **contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Delaying can work if you also close the shooting line. Do not back away from a shot in range.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Reduce the immediate shooting chance instead of guarding only the wide pass.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A can shoot now and has not passed. Guarding only the wide pass leaves the shot open. |
-| 12.3 | The carrier releases a slow pass across your path to the overlap. | **contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Holding goal-side is possible if you cannot reach it. Here the released ball is reachable.<br><br>**press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Closing the passer can help later, but the ball has already left A's foot.<br><br>**intercept / Preferred:** Step into the pass before R reaches it. Now the ball is released, cut it out before the runner gets it. |
-| 18.1 | The rebound is beside you. A and R are farther away; you have time to control. | **collect / Preferred:** Get to the loose ball before A does. Collect with your feet and look for a short pass. Do not clear automatically when you have time.<br><br>**block / Reasonable:** Move between the ball and your goal. Reasonable too. Holding the shooting line is cautious if unsure. Here you have time to control the rebound.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is farther from the rebound. Following R now gives up a ball you can collect. |
-| 18.2 | The attacker reaches the rebound first and sets up another shot. | **collect / Risk:** Get to the loose ball before A does. A gets there first. Lunging for the rebound risks missing the ball or fouling A.<br><br>**block / Preferred:** Move between the ball and your goal. Get into the shooting line instead of lunging at the controlled ball.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is not the immediate danger. A is ready for another shot and needs confronting. |
-| 18.3 | M is closer to the loose ball. A second attacker runs free near you. | **collect / Risk:** Get to the loose ball before A does. M is closer to the rebound. Both of you chasing it leaves the nearby R free.<br><br>**block / Reasonable:** Move between the ball and your goal. Reasonable too. Protecting the shooting line can help if M loses it, but keep watching the free R.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Track the free attacker and watch M. React again if M cannot control or clear the ball. |
 | 28.1 | A controls the ball close to both feet. You have room to stay in front. | **contain / Preferred:** Stay between A and goal; match A's run. Stay on your feet and match A. A can change direction if you commit to the ground now.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A keeps the ball close and is beyond your reach. Stay balanced rather than reaching at A's feet.<br><br>**slide / Risk:** Slide to knock the ball wide. A can change direction while you are on the ground. There is no exposed ball to slide for. |
 | 28.2 | The ball rolls loose beside your foot. A is farther away; you can reach it standing. | **contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Holding goal-side stays safe if you cannot challenge cleanly. Here the loose ball is beside your foot.<br><br>**tackle / Preferred:** Step to the ball before A's next touch. Use the standing tackle here. You can reach the ball while staying balanced and ready to move again.<br><br>**slide / Reasonable:** Slide to knock the ball wide. Reasonable too. A is clear of the ball, so a controlled slide is possible. Standing keeps you ready for the next play. |
 | 28.3 | A shot rolls toward goal. Only a slide reaches its path in time; A is well away from your route. | **contain / Risk:** Stay between A and goal; match A's run. A has already shot. Containing the distant A will not stop the ball travelling toward goal.<br><br>**tackle / Risk:** Step to the ball before A's next touch. The shot is beyond a standing step in the stated picture. Do not arrive late at A's legs.<br><br>**slide / Preferred:** Slide to knock the ball wide. In this picture a controlled slide can knock the ball wide. Do not slide through A or follow through into A. |
-| 31.1 | A reaches the box with the ball close. You have time to close before A sets to shoot. | **press / Preferred:** Run toward A; slow down before reaching A. Close quickly, then slow down between A and goal. Give A less space to set up a shot.<br><br>**block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Protecting the shot line also helps. Keep moving closer while balanced; do not wait deep by your goal.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A keeps the ball close and is beyond your reach. Rushing a tackle may let A go past. |
-| 31.2 | A cuts inside the box and draws a foot back. The ball stays close; you can step into the shooting line. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. A is already preparing to shoot. A short, balanced close can help if you stay in the shot line.<br><br>**block / Preferred:** Step into A's shot line; stay on your feet. Step into the shot line, stay balanced and keep your arms close. Watch the ball; do not turn away.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A protects the ball beside the shooting foot. Reaching at A's feet now risks a foul. |
-| 31.3 | A's last touch inside the box rolls beside your foot. You can reach the ball before A shoots. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Closing under control is safe if you are unsure of your timing. Here you can reach the exposed ball first.<br><br>**block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Blocking is safe if you cannot win the ball cleanly. Here the loose ball is beside your foot.<br><br>**tackle / Preferred:** Step to the ball before A's next touch. Step to the loose ball on your feet. If you win it, look up before your next action. |
-| 32.1 | M is beaten. A draws a foot back inside the box. You can step into the shot line; R is farther away. | **block / Preferred:** Step into A's shot line; stay on your feet. Stop the immediate shot line on your feet. Call for help with R; do not wait for M to recover.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R needs watching, but A can shoot now. Following R leaves the immediate shot open.<br><br>**press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. A short, balanced close can help if you stay in the shot line. Do not sprint past the ball. |
-| 32.2 | M is set between A and goal as A prepares to shoot. R is free beside you. | **block / Risk:** Step into A's shot line; stay on your feet. M already covers the shot line. Running to M leaves R free for a pass or rebound.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Stay between R and goal while watching A. Call to M; if M is beaten, help stop the shot.<br><br>**press / Risk:** Run toward A; slow down before reaching A. Both defenders chasing A leaves R free. Watch A and be ready to help if M is beaten. |
-| 32.3 | M is beaten. A takes another touch inside the box. You are closest and goal-side; R stays far away. | **block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Moving into the shot line helps too. Keep closing under control because A still has time for another touch.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is far from goal. Following R leaves A time to set up an unopposed shot.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Take over pressure now. Slow down as you approach A; M has not recovered and cannot stop the shot yet. |
+
+### 2. Defend shooting
+
+5 topics / 15 base pictures.
+
+| ID | Observation | All choices: grade, instruction and explanation |
+|---|---|---|
+| 04.1 | A controls the ball inside the box and draws a foot back. You are already between A and goal. | **block / Preferred:** Step into A's shot line; stay on your feet. Stand between the ball and goal, keep your arms close and watch A's kick. Stay balanced as the shot comes.<br><br>**press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. A balanced close can also reduce the shot space. Keep your body in the shooting line as A kicks.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Moving deeper can protect goal if needed, but keep covering the shot line. Do not retreat all the way to GK. |
+| 04.2 | A controls the ball inside the left side of the box and prepares a near-post shot. You can step across the lane. | **block / Preferred:** Step between the ball and left post; stay balanced. Step between the ball and the left post. Stay balanced and keep your arms close to help block the shot.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A is already starting the shot. Running at A can miss the near-post lane; step across that lane first.<br><br>**recover / Risk:** Run back into the space in front of goal. A is aiming near the left post. Dropping toward the middle of goal leaves that route open. |
+| 04.3 | A controls the ball in the box but has not started the shot. You are behind A and outside the shooting lane. | **block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Moving toward the shot line also helps. You are behind A, so first get into a position that protects goal.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A is facing goal ahead of you. Chasing A from behind leaves the shooting lane open.<br><br>**recover / Preferred:** Run back into the space in front of goal. Run inside to get between A and goal. Keep watching the ball; avoid chasing A from behind. |
+| 31.1 | A reaches the box with the ball close. You have time to close before A sets to shoot. | **press / Preferred:** Run toward A; slow down before reaching A. Close quickly, then slow down between A and goal. Give A less space to set up a shot.<br><br>**block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Protecting the shot line also helps. Keep moving closer while balanced; do not wait deep by your goal.<br><br>**recover / Risk:** Run back into the space in front of goal. Backing away gives A more time to set the shot. Close the space while staying between A and goal. |
+| 31.2 | A cuts inside the box and draws a foot back. The ball stays close; you can step into the shooting line. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. A is already preparing to shoot. A short, balanced close can help if you stay in the shot line.<br><br>**block / Preferred:** Step into A's shot line; stay on your feet. Step into the shot line, stay balanced and keep your arms close. Watch the ball; do not turn away.<br><br>**recover / Risk:** Run back into the space in front of goal. Dropping toward GK gives A more of the goal to aim at. Step across the shooting line now. |
+| 31.3 | A keeps the ball close on the right inside the box and prepares a near-post shot. You are nearer the middle. | **press / Risk:** Run toward A; slow down before reaching A. You may not reach A before the shot. Protect the near-post line first.<br><br>**block / Preferred:** Step between the ball and right post; stay balanced. Move across between the ball and the right post. Stay on your feet and keep your arms close.<br><br>**recover / Risk:** Run back into the space in front of goal. Dropping deeper through the middle leaves the right-post shooting lane open. |
+| 32.1 | A beats M inside the box and draws a foot back. You are now the nearest defender between A and goal. | **block / Preferred:** Step into A's shot line; stay on your feet. Step across the shot line and stay balanced. M is behind the play; you must help protect goal now.<br><br>**press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. A short, balanced close can help if you stay in the shot line. Do not sprint past the ball.<br><br>**cover / Risk:** Stay behind M to help if A gets past. M is already beaten. Moving back toward M leaves A's shooting route to goal open. |
+| 32.2 | M presses A from the inside, but A still controls the ball and can shoot at the near post. You are behind M. | **block / Preferred:** Step between the ball and left post; stay balanced. Cover the near-post shot line behind M. Stay balanced; M's pressure does not guarantee the shot is stopped.<br><br>**press / Risk:** Run toward A; slow down before reaching A. M is already closing A. Joining M leaves the near-post shooting lane open.<br><br>**cover / Reasonable:** Stay behind M to help if A gets past. Reasonable too. Staying behind M on this shot line also protects goal. Keep watching A instead of assuming M will stop the shot. |
+| 32.3 | M is beaten inside the box. A keeps the ball close and looks up to shoot. You can close before A kicks. | **block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Moving into the shot line helps too. Keep closing under control because A still has time for another touch.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Close between A and goal, then slow down. Keep the shot line covered; M has not recovered.<br><br>**cover / Risk:** Stay behind M to help if A gets past. M is already behind A. Moving toward M leaves the shot unchallenged. |
+| 33.1 | A cuts in from the left with the ball close. You can close before A plants a foot to shoot. | **block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Covering the shot line helps too. Keep closing while A is still setting up, rather than waiting beside GK.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Move toward A from the goal side, then slow down. Take away shooting space without running past A.<br><br>**recover / Risk:** Run back into the space in front of goal. Dropping deeper lets A finish the cut and set the shot. Close the space while protecting the middle. |
+| 33.2 | A keeps control after cutting in from the left and prepares a shot toward the far corner. | **block / Preferred:** Step between the ball and right post; stay balanced. Step between the ball and the right side of goal. Stay balanced and watch the kick instead of chasing A.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A is ready to kick now. Chasing the dribbler can leave the far-corner shooting lane open.<br><br>**recover / Risk:** Run back into the space in front of goal. Backing toward GK gives A more goal to aim at. Move across the shooting lane while staying on your feet. |
+| 33.3 | A keeps control after cutting in from the right and draws a foot back toward the far corner. You are goal-side. | **block / Preferred:** Step between the ball and left post; stay balanced. Step across the shot line toward the left side of goal. Keep your balance and your arms close.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A has already set the shot. Running at A can miss the cross-goal shooting line.<br><br>**recover / Risk:** Run back into the space in front of goal. Retreating straight toward GK leaves the angled shot open. Move into the ball's route toward the left side. |
+| 34.1 | You are deep near goal. A controls the ball and still needs to set up the shot; you can close safely. | **block / Reasonable:** Step into A's shot line; stay on your feet. Reasonable too. Moving up the shot line also helps. Finish balanced in front of A rather than waiting beside GK.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Close along the shooting line, then slow down before A. Do not keep backing toward your goal.<br><br>**recover / Risk:** Run back into the space in front of goal. You are already too deep. Backing away gives A more time and room to shoot. |
+| 34.2 | You already cover A's shot line at a useful distance. A keeps the ball close and starts the kicking swing. | **block / Preferred:** Stay on the shot line; keep your balance. Stay set on the shot line, watch the ball and keep your balance. Do not rush into A or back away.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A is already swinging. Moving at A now may upset your balance or carry you past the shot.<br><br>**recover / Risk:** Run back into the space in front of goal. Retreating away from the shooter opens more shooting space. Hold your balanced blocking position instead. |
+| 34.3 | You are close to A's side, but the shot line is open. A keeps control and draws a foot back. | **block / Preferred:** Step into A's shot line; stay on your feet. Move across into the shot line first. Being near A does not protect goal if the ball can pass beside you.<br><br>**press / Risk:** Run toward A; slow down before reaching A. Going straight at A from the side can leave the shot line open. Get between the ball and goal first.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Dropping inside onto the shot line can help too. Avoid running straight back to GK and leaving A unopposed. |
 
 ### 3. Recover and cover
 
-5 topics / 15 base pictures.
+6 topics / 18 base pictures.
 
 | ID | Observation | All choices: grade, instruction and explanation |
 |---|---|---|
@@ -220,16 +239,22 @@ Either a preferred or reasonable first choice counts positively.
 | 10.1 | Your teammate is close to the ball. No receiver threatens behind. | **cover / Preferred:** Stay behind M to help if A gets past. Keep a second defensive layer. A teammate applying pressure is not a promise of winning the ball.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is not threatening behind. Leaving your support position makes it harder to help M.<br><br>**press / Risk:** Run toward A; slow down before reaching A. M is already applying pressure. Both of you chasing A leaves no second defender. |
 | 10.2 | M is goal-side and pressing the carrier. Another receiver runs into the inside gap. | **cover / Reasonable:** Stay behind M to help if A gets past. Reasonable too. You can stay ready to help M, but you must also see R entering the inside gap.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Track the receiver while the teammate keeps pressure on the ball.<br><br>**press / Risk:** Run toward A; slow down before reaching A. M is already pressing A. Joining M leaves the inside receiver free. |
 | 10.3 | The pressing teammate is beaten and now behind the play. | **cover / Risk:** Stay behind M to help if A gets past. M is already behind the attack. Running back toward M takes you away from A and the route to goal.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is far from goal. Following R leaves A free to carry forward.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. You are the nearest goal-side defender; take over the pressure. |
+| 11.1 | The central carrier can shoot. No other defender can block. | **block / Preferred:** Move between the ball and your goal. Protect the immediate shooting route and call for help with your runner.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R needs watching, but A can shoot now and no teammate is in the shooting line.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A still controls the ball. Guessing at a pass leaves the immediate shot open. |
+| 11.2 | Another teammate can block the carrier. Your runner remains free. | **block / Risk:** Move between the ball and your goal. M is already in place to confront A. Joining M leaves your R unmarked.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Stay with R while M faces A. Call to M and react again if A gets past.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A has not released a pass. Gambling on one leaves R free behind you. |
+| 11.3 | The carrier releases a slow square pass across your path. | **block / Reasonable:** Move between the ball and your goal. Reasonable too. Protecting the shot is possible if you cannot reach the pass. Here the ball is already released.<br><br>**mark / Reasonable:** Follow R; stay between R and your goal. Reasonable too. Following R can help if the pass is out of reach. This slow ball crosses your path.<br><br>**intercept / Preferred:** Step into the pass before R reaches it. Cut out the reachable pass before the free attacker receives it. |
 | 30.1 | M's pass rolls short across your path. You can reach it before A. | **intercept / Preferred:** Step across M's pass before A reaches it. Step into the slow pass before A reaches it. Then look up again.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Stay goal-side if you are unsure you can arrive first. Here the ball crosses your path.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A is still several steps away. Do not run toward A and leave the pass. |
 | 30.2 | A intercepts M's pass and drives forward. You are behind the play. | **recover / Preferred:** Run back into the space in front of goal. Run back goal-side first. A has the ball and is moving toward your goal.<br><br>**contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Contain goal-side if you cannot get in front safely. Keep watching A.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A controls the ball several steps ahead. A reach from behind may miss or foul. |
 | 30.3 | A controls M's loose pass near the line. You are goal-side; M covers inside. | **press / Preferred:** Run toward A; slow down before reaching A. Close A under control while M protects the route into the middle.<br><br>**cover / Reasonable:** Stay behind M to help if A gets past. Reasonable too. Keeping your goal-side spot is reasonable if A might pass or turn away.<br><br>**tackle / Risk:** Step to the ball before A's next touch. A keeps the ball close. A rushed tackle can miss; close under control first. |
 
 ### 4. Read passes and runs
 
-5 topics / 15 base pictures.
+6 topics / 18 base pictures.
 
 | ID | Observation | All choices: grade, instruction and explanation |
 |---|---|---|
+| 12.1 | Two attackers approach outside the box. Your teammate runs back. | **contain / Preferred:** Stay between A and goal; match A's run. Slow their advance and guard the inside route while help arrives.<br><br>**press / Risk:** Run toward A; slow down before reaching A. A has a passing partner and M is still recovering. Rushing A opens the pass behind you.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A has not passed. Guessing at the ball's route can let either attacker get beyond you. |
+| 12.2 | The carrier can shoot now; the overlapping attacker remains wide. | **contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Delaying can work if you also close the shooting line. Do not back away from a shot in range.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Reduce the immediate shooting chance instead of guarding only the wide pass.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A can shoot now and has not passed. Guarding only the wide pass leaves the shot open. |
+| 12.3 | The carrier releases a slow pass across your path to the overlap. | **contain / Reasonable:** Stay between A and goal; match A's run. Reasonable too. Holding goal-side is possible if you cannot reach it. Here the released ball is reachable.<br><br>**press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Closing the passer can help later, but the ball has already left A's foot.<br><br>**intercept / Preferred:** Step into the pass before R reaches it. Now the ball is released, cut it out before the runner gets it. |
 | 13.1 | The original passer runs behind you. The receiver prepares a return pass. | **mark / Preferred:** Follow R; stay between R and your goal. Turn with the runner instead of chasing the new ball carrier.<br><br>**intercept / Reasonable:** Move into A's return-pass route to R. Reasonable too. Guarding the return route can help if you keep seeing R. Do not gamble past the running player.<br><br>**press / Risk:** Run toward A; slow down before reaching A. Chasing the receiver leaves the original passer running behind you for the return. |
 | 13.2 | A slow return pass crosses directly in front of you. | **mark / Reasonable:** Follow R; stay between R and your goal. Reasonable too. Tracking R is safe if the pass is too quick. This slow return crosses within your reach.<br><br>**intercept / Preferred:** Move into A's return-pass route to R. Reach the return pass before the runner instead of only following them.<br><br>**press / Risk:** Run toward A; slow down before reaching A. The receiver has already passed. Chasing A lets the return ball reach R. |
 | 13.3 | M is goal-side and watching the runner. The receiver keeps the ball and turns forward. | **mark / Risk:** Follow R; stay between R and your goal. M is goal-side of R. Both of you following R lets A turn and advance with the ball.<br><br>**intercept / Risk:** Move into A's return-pass route to R. A keeps the ball, so there is no return pass to intercept. Stay balanced and close A.<br><br>**press / Preferred:** Run toward A; slow down before reaching A. Close the receiver, communicate with M and keep checking the runner; the handover is not a guarantee. |
@@ -248,10 +273,13 @@ Either a preferred or reasonable first choice counts positively.
 
 ### 5. Use the ball
 
-7 topics / 21 base pictures.
+8 topics / 24 base pictures.
 
 | ID | Observation | All choices: grade, instruction and explanation |
 |---|---|---|
+| 18.1 | The rebound is beside you. A and R are farther away; you have time to control. | **collect / Preferred:** Get to the loose ball before A does. Collect with your feet and look for a short pass. Do not clear automatically when you have time.<br><br>**block / Reasonable:** Move between the ball and your goal. Reasonable too. Holding the shooting line is cautious if unsure. Here you have time to control the rebound.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is farther from the rebound. Following R now gives up a ball you can collect. |
+| 18.2 | The attacker reaches the rebound first and sets up another shot. | **collect / Risk:** Get to the loose ball before A does. A gets there first. Lunging for the rebound risks missing the ball or fouling A.<br><br>**block / Preferred:** Move between the ball and your goal. Get into the shooting line instead of lunging at the controlled ball.<br><br>**mark / Risk:** Follow R; stay between R and your goal. R is not the immediate danger. A is ready for another shot and needs confronting. |
+| 18.3 | M is closer to the loose ball. A second attacker runs free near you. | **collect / Risk:** Get to the loose ball before A does. M is closer to the rebound. Both of you chasing it leaves the nearby R free.<br><br>**block / Reasonable:** Move between the ball and your goal. Reasonable too. Protecting the shooting line can help if M loses it, but keep watching the free R.<br><br>**mark / Preferred:** Follow R; stay between R and your goal. Track the free attacker and watch M. React again if M cannot control or clear the ball. |
 | 19.1 | You are close to the new carrier. Your teammate protects the space behind. | **press / Preferred:** Run toward A; slow down before reaching A. Slow the counter-attack immediately while cover is in place.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Recovering protects depth if you cannot close safely. Here you are close and M is behind.<br><br>**intercept / Risk:** Step into the pass before R reaches it. The new carrier controls the ball. There is no released pass to intercept. |
 | 19.2 | The carrier is far away and your defensive channel is empty. | **press / Risk:** Run toward A; slow down before reaching A. A is far away. A long chase leaves your defensive channel empty.<br><br>**recover / Preferred:** Run back into the space in front of goal. Recover into the open defensive space instead of chasing a distant ball.<br><br>**intercept / Risk:** Step into the pass before R reaches it. A has not passed and is far from you. Guessing at a pass delays your recovery. |
 | 19.3 | The first forward pass rolls slowly across your route. | **press / Reasonable:** Run toward A; slow down before reaching A. Reasonable too. Pressure on A can help if the pass escapes you, but A has already released this ball.<br><br>**recover / Reasonable:** Run back into the space in front of goal. Reasonable too. Protecting depth is safe if you cannot arrive. This slow pass crosses within your reach.<br><br>**intercept / Preferred:** Step into the pass before R reaches it. Intercept the reachable pass to stop the break. |
@@ -294,13 +322,13 @@ Either a preferred or reasonable first choice counts positively.
 
 Independent geometry regressions cover the shield, claimed support, loose-ball
 ordering, interception, short passes, blocked exits and the two corrected cover
-grades. The software suite checks all 96 scenes / 288 rendered choice screens,
+grades. The software suite checks all 102 scenes / 306 rendered choice screens,
 text bounds, retries and held-out layouts. The content hash detects unintended
 changes after this authored audit; it does not certify tactical correctness.
 See [EVIDENCE.md](EVIDENCE.md) for fresh commands and results.
 
 Existing decision sheets were inspected in earlier reviews. For this change,
-all six new decision/feedback pictures and the reorganized menu were rendered
+all 15 shooting feedback pictures and six added decision pictures and the reorganized menu were rendered
 and visually inspected. Routes and
 fixed animation durations illustrate intentions; they do not simulate player
 speed, kick timing, successful reception, ball flight physics or physical contact.

@@ -10,20 +10,23 @@ from soccer_strategy.presentation import positions
 
 
 class CatalogTests(unittest.TestCase):
-    def test_scenario_catalog_has_96_unique_situations(self):
+    def test_scenario_catalog_has_102_unique_situations(self):
         catalog = build_catalog()
-        self.assertEqual(len(catalog), 96)
-        self.assertEqual(len({scene.id for scene in catalog}), 96)
-        self.assertEqual({scene.topic for scene in catalog}, set(range(1, 33)))
+        self.assertEqual(len(catalog), 102)
+        self.assertEqual(len({scene.id for scene in catalog}), 102)
+        self.assertEqual({scene.topic for scene in catalog}, set(range(1, 35)))
 
-    def test_context_changes_preferred_action_in_every_topic(self):
+    def test_topics_vary_context_without_forcing_different_shooting_answers(self):
         catalog = build_catalog()
-        for topic in range(1, 33):
+        for topic in range(1, 35):
             scenes = [s for s in catalog if s.topic == topic]
             self.assertEqual(len(scenes), 3)
             self.assertEqual(len({s.cue for s in scenes}), 3)
             preferred = {next(c.key for c in s.choices if c.rating == 2) for s in scenes}
-            self.assertEqual(len(preferred), 3)
+            if topic in (4, 31, 32, 33, 34):
+                self.assertTrue(preferred <= {"block", "press", "recover", "cover"})
+            else:
+                self.assertEqual(len(preferred), 3)
         self.assertTrue(any(c.rating == 1 for s in catalog for c in s.choices))
 
     def test_pass_turnover_cases_teach_three_different_next_actions(self):
@@ -90,11 +93,11 @@ class CatalogTests(unittest.TestCase):
 
     def test_invalid_scenarios_fail_closed(self):
         scene = build_catalog()[0]
-        invalid = [replace(scene, id=""), replace(scene, topic=33), replace(scene, stage=7),
+        invalid = [replace(scene, id=""), replace(scene, topic=35), replace(scene, stage=7),
                    replace(scene, actors=()), replace(scene, actors=scene.actors * 2),
                    replace(scene, choices=()), replace(scene, choices=(scene.choices[0],) * 3),
                    replace(scene, ball=(float("nan"), 5)), replace(scene, ball=(-1, 10)),
-                   replace(scene, topic=0), replace(scene, topic=33), replace(scene, ball=(5, float("nan"))),
+                   replace(scene, topic=0), replace(scene, topic=35), replace(scene, ball=(5, float("nan"))),
                    replace(scene, ball=(5, 101)), replace(scene, ball=(101, 5)),
                    replace(scene, ball=(5, -1)),
                    replace(scene, actors=(replace(scene.john, team="unknown"),)),
@@ -106,6 +109,25 @@ class CatalogTests(unittest.TestCase):
         for item in invalid:
             with self.subTest(scene=item), self.assertRaises(ValueError):
                 item.validate()
+
+    def test_shot_aims_transfer_with_the_line_and_reject_bad_metadata(self):
+        scene = next(s for s in build_catalog() if s.id == "04.2")
+        self.assertEqual(scene.shot_target, (40, 100))
+        for scale in (.8, .92, 1.05):
+            shifted = transfer_scene(scene, scale)
+            self.assertEqual(shifted.shot_target, (50 - 10 * scale, 100))
+            block = next(c for c in shifted.choices if c.key == "block")
+            bx, by = block.target[0] - shifted.ball[0], block.target[1] - shifted.ball[1]
+            dx, dy = shifted.shot_target[0] - shifted.ball[0], 100 - shifted.ball[1]
+            self.assertAlmostEqual(dx * by, dy * bx)
+        for point in ((10, 100), (90, 100), (50, 90), (float("nan"), 100)):
+            with self.assertRaises(ValueError):
+                replace(scene, shot_target=point).validate()
+        choices = tuple(replace(c, key="clear") if c.key == "block" else c for c in scene.choices)
+        with self.assertRaises(ValueError):
+            replace(scene, choices=choices).validate()
+        for other in build_catalog():
+            self.assertEqual(other.shot_target is not None, other.stage == 2, other.id)
 
     def test_john_lookup_handles_actor_order_and_rejects_missing_player(self):
         scene = build_catalog()[0]

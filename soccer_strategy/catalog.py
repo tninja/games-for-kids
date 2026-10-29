@@ -77,7 +77,7 @@ def targets(s: Situation) -> dict[str, Point]:
         "contain": goal_side(b, 8), "press": goal_side(enemy, min(s.press_gap, hypot(j[0] - enemy[0], j[1] - enemy[1]) * .7)),
         "tackle": b, "collect": b,
         "intercept": s.interception_target if s.interception_target is not None else b,
-        "inside": goal_side(b, 7), "block": lerp(b, GOAL, .30),
+        "inside": goal_side(b, 7), "block": lerp(b, s.shot_target, .30),
         "recover": goal_side(b, 13), "mark": goal_side(runner_finish(s), 4),
         "cover": s.zone if s.zone is not None else goal_side(s.mate, 7),
         "lane": lerp(b, s.runner, .62), "pass": goal_side(j, 2),
@@ -117,8 +117,13 @@ def delivery_choice(choice: Choice, topic: int) -> Choice:
 
 def describe_choice(choice: Choice, topic: int, s: Situation) -> Choice:
     label = choice.label
-    if topic in (31, 32) and choice.key == "block":
+    if topic in (4, 31, 32, 33, 34) and choice.key == "block":
         label = "Step into A's shot line; stay on your feet."
+        if s.shot_target[0] != 50:
+            side = "left" if s.shot_target[0] < 50 else "right"
+            label = f"Step between the ball and {side} post; stay balanced."
+        if topic == 34 and choice.target == s.john:
+            label = "Stay on the shot line; keep your balance."
     if topic == 30 and choice.key == "intercept":
         label = "Step across M's pass before A reaches it."
     if choice.key == "cover":
@@ -155,14 +160,16 @@ def scene_actors(lesson: Lesson, s: Situation) -> tuple[Actor, ...]:
         Actor("john", "JOHN", "home", s.john,
               s.john if s.state == "keeper" else bounded((s.john[0], s.john[1] - 3)),
               s.john, (s.ball[0] - s.john[0], s.ball[1] - s.john[1])),
-        Actor("carrier", "A", "away", enemy, bounded((enemy[0] - 2, enemy[1] - 7)), enemy_end, heading),
+        Actor("carrier", "A", "away", enemy,
+              s.attacker_start if s.attacker_start is not None else bounded((enemy[0] - 2, enemy[1] - 7)),
+              enemy_end, heading),
         Actor("keeper", "GK", "keeper", s.keeper, s.keeper, s.keeper, (0, -1)),
     ]
     if s.mate != s.keeper:
         mate_heading = (s.ball[0] - s.mate[0], s.ball[1] - s.mate[1]) if s.receiver_ready else (0, -1)
         actors.append(Actor("mate", "M", "home", s.mate, s.mate, s.mate, mate_heading))
     if ((6 <= lesson.topic <= 24 and lesson.topic not in (20, 21))
-            or lesson.topic in (27, 32)):
+            or lesson.topic == 27):
         actors.append(Actor("runner", "R", "away", s.runner,
                             bounded((s.runner[0] - 3, s.runner[1] - 7)), runner_finish(s), (0, 1)))
     for i, point in enumerate(s.extras):
@@ -186,7 +193,8 @@ def make_scene(lesson: Lesson, variant: int, s: Situation) -> Scenario:
                      lesson.stage, lesson.focus, s.cue, scene_actors(lesson, s),
                      s.ball, ball_from, choices, rules, ball_state=s.state,
                      keeper_distribution=s.state == "keeper",
-                     assigned_zone=s.zone if lesson.topic in (23, 24) else None)
+                     assigned_zone=s.zone if lesson.topic in (23, 24) else None,
+                     shot_target=s.shot_target if lesson.stage == 2 else None)
     scene.validate()
     return scene
 

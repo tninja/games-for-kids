@@ -1,4 +1,176 @@
-# Current evidence - Defend shooting
+# Current evidence - shot guides, cut-ins and shooter distance
+
+The user selected feedback shot lines/block points and controlled cut-in cases,
+then requested an explicit close-versus-far decision lesson. SPEC.md records
+both authorizations and their acceptance criteria before implementation. The
+catalog now has 34 topics / 102 pictures / 306 choices, with five shooting topics
+and 15 controlled-ball pictures. No new dependency or installation was needed.
+
+## Final fresh verification
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit **0**, after the final implementation edit:
+
+| Gate | Result |
+|---|---|
+| Tests | 82 passed |
+| Measured statements | 729/729 covered |
+| Measured conditional edges | 578/578 covered |
+| Hygiene / boundaries / complexity | 20 Python files, zero violations |
+| Types | Nine runtime modules; zero errors/warnings; bad-type control rejected |
+| Scripted mutation | 5/5 applied and executed mutants killed |
+| Shuffled repeat | 82 tests, zero failures |
+| Real SDL execution | Menu, choice, feedback, retry and quit passed; exit 0 |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+Source SHA256: `b708c3d2d38e161b456c2c7e3c2ad03f45c3d58901a259f21055a05b9959a982`.
+Catalog SHA256: `d90a4ad034f1237645d3c003e97756a83f6d0b8cbfa9448b89008cb753dd6113`.
+Prior catalog SHA256: `da811188a9d946367e0bed46a97ee5cf797ea47be20b3237e4d42ac7a1a9bf99`.
+Results and the real-execution screenshot are under `.verification/`.
+
+## Requirement-to-test mapping
+
+| Requirement | Executable evidence |
+|---|---|
+| A remains beside the ball while cutting in from the correct side | `test_cut_ins_keep_the_ball_close_and_show_a_real_inward_run` samples seven observation fractions |
+| Close from deep, hold a set block, correct a nearby off-line position | `test_shooter_distance_cases_compare_closing_holding_and_sideways_cover` compares the same carrier/ball/aim |
+| Goal aim and line move together during transfer; invalid metadata rejected | `test_shot_aims_transfer_with_the_line_and_reject_bad_metadata` |
+| Shot direction and block point only appear on feedback, including after a wrong choice | `test_shot_direction_and_block_ring_appear_only_in_feedback` checks base and transfer pixels |
+| Dashes, arrow endpoint, block ring and empty segment draw correctly | `test_shot_line_dashes_and_block_marker_render_on_a_blank_surface` |
+| Every shooting picture is controlled-ball goal protection | Existing scope/angle/teammate regressions expanded to all 15 pictures |
+| Entire game remains playable and all topics reachable | Full catalog rendering, all-section/seed session invariants and SDL execution |
+
+RED runs observed 96 rather than 99 records before the first addition, missing
+cut-in cases, no coral shot endpoint before the guide implementation, and no
+matched-distance cases before topic 34. The focused catalog/coaching/session/UI
+run passed 70 tests; the curriculum suite passed five. The first complete run
+passed all tests and coverage but failed the existing 15-decision complexity
+budget in Scenario.validate. Shot-aim validation was extracted into a private
+model helper without changing tests or checks. All 82 ordinary tests passed
+again, static checks passed, and the fresh full run above then passed every gate.
+
+Independent before/after comparison against `/tmp/soccer-before-shot-guides.json`
+confirms that all 96 prior records preserve every original field; only new
+shot-aim metadata is added. Document checks match all 102 review rows / 306
+options to runtime and confirm 34 unique Org topic rows, valid links and the
+original Design/Coding headlines. All 15 shooting decision/feedback pictures,
+the reorganized menu and a wrong-choice guide comparison were rendered. The
+six added decisions and all feedback sheets were visually inspected. Images
+are under `/tmp/soccer-shot-guides-review/`.
+
+## Final sensors, modularity and limits
+
+- The final computational gates are clean. Editor MCP baseline and per-file
+  diagnostics still return HTTP 401 and are **UNAVAILABLE**, not clean.
+  Independent type/runtime checks do not impersonate the editor service.
+- Existing stdlib coverage/source-hygiene sensors substitute for coverage.py /
+  Ruff; deterministic geometry/seed tests substitute for Hypothesis; scripted
+  mutants substitute for a general mutation framework. Their negative controls
+  execute, with the narrower rule/input coverage documented in earlier evidence.
+- content.py owns carrier starts, ball origins and shot aims. catalog.py resolves
+  those facts into scene metadata/routes; model.py validates and transfers the
+  aim. drawing.py owns reusable line/ring primitives. app.py selects visibility
+  from the phase and metadata and reuses the block choice's target; it does not
+  infer an answer or author a second shot line. The private validation helper
+  keeps the new domain constraint cohesive within the model. No scoring,
+  capability, dependency or module-boundary change was introduced.
+- Guides show the stated shot threat, not a prediction. A blue ring marks a
+  block option even if pressure/recovery is preferable. The distance lesson
+  teaches angle, balance and time to act; percentage coordinates do not prescribe
+  a real-world distance. The existing Pygame AVX2 warning remains and execution
+  exits normally. No unrelated repository game tests were rerun.
+
+---
+
+# Archived evidence - controlled-shooter focus correction
+
+The user's clarification supersedes the previous shooting grouping. Section 2
+now contains topics 4, 31 and 32 only: nine pictures of an opponent who keeps
+control and prepares to shoot. All 32 topics / 96 pictures / 288 choices remain.
+The change is authorized follow-up; SPEC.md records the corrected acceptance
+criteria, including the justified replacement of the old three-best-actions
+invariant for shooting topics. Several pictures can correctly prefer blocking.
+
+## Fresh final verification
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit **0**, from the final source state:
+
+| Gate | Result |
+|---|---|
+| Tests | 77 passed |
+| Measured statements | 691/691 covered |
+| Measured conditional edges | 542/542 covered |
+| Hygiene / boundaries / complexity | 20 files, zero violations |
+| Types | Nine runtime modules, zero errors or warnings; negative control rejected |
+| Applied and executed mutants | 5/5 killed |
+| Shuffled repeat | 77 tests, zero failures |
+| Real SDL execution | Menu, choice, feedback, retry and quit passed; exit 0 |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+Source SHA256: `45672c144a961f8716e7b6b3cc3ed1e74cea62ba81473bf20c13a52ef4f8ed44`.
+Catalog SHA256: `da811188a9d946367e0bed46a97ee5cf797ea47be20b3237e4d42ac7a1a9bf99`.
+Previous catalog SHA256: `3e9402522638316cab403a3ba14accdcb2cce6b5d0b0181c7c341e00ca97bb79`.
+
+## Requirement mapping and independent checks
+
+| Requirement | Regression |
+|---|---|
+| All nine shooting cases retain A's control and offer goal-protection choices | `test_shooting_practice_keeps_control_and_protects_goal` |
+| Close before setup, block prepared shots; no forced loose touch | `test_shooting_choices_distinguish_setup_from_ready_shots` |
+| Block the stated central or left/right near-post shot, including ball endpoint | `test_shot_blocks_follow_the_stated_middle_or_near_post_line` |
+| Cover a shooting angle while M presses; no separate runner to chase | `test_shooting_support_covers_an_angle_instead_of_chasing_a_runner` |
+| Dedicated shooting membership; other topics remain accessible | Curriculum, session reachability, full-catalog UI tests |
+
+RED: the new shooting-scope and geometry tests failed against the old 21-case
+section and membership. After implementation, 54 focused coaching/catalog/
+curriculum/session tests passed. All ordinary geometry, text, rendering,
+first-attempt scoring and transfer invariants remain enforced. The previous
+requirement for three different preferred actions is retained for every topic
+outside the three explicitly revised shooting topics. This is an intentional
+acceptance-contract change, not a skipped failing check.
+
+An independent comparison against `/tmp/soccer-before-shooting-focus.json`
+confirmed that the other 87 records preserve every field except section
+membership. All 96 published review rows / 288 options match runtime. The Org
+retains both original headlines, 32 unique topic rows and valid local links.
+All nine decision pictures and preferred feedback were rendered and visually
+inspected; images are in `/tmp/soccer-shooting-focus/`. Central and near-post
+block destinations follow the stated goal-line aim; new routes use the same
+arrow and outcome drawing as the rest of the game.
+
+## Final sensors, modularity and limits
+
+- Computational gates above are clean. Editor MCP baseline and per-file checks
+  returned HTTP 401: **UNAVAILABLE**, not clean. Independent types and execution
+  do not stand in for editor-service coverage. The existing AVX2 build warning
+  remains and real SDL execution exits normally.
+- Existing stdlib coverage/source-hygiene sensors substitute for coverage.py /
+  Ruff; deterministic geometry/seed invariants substitute for Hypothesis; five
+  scripted mutants substitute for a general mutation framework. Their negative
+  controls ran; they do not implement those tools' entire rule or input space.
+- Geometry facts stay in content.py. `shot_target` defaults to the previous
+  goal center, so other pictures keep their old routes. catalog.py computes
+  the block and blocked-ball endpoint from that aim and labels the near-post
+  side. curriculum.py owns section membership; the UI reuses it. No new renderer,
+  scoring path, package, dependency or capability was added. The authored nine
+  cases intentionally revise the previous mixed examples; the other 87 case
+  records provide an independent preservation check.
+- These pictures practise a specified threat. They do not claim that opponents
+  cannot miscontrol in matches, that John knows a shot's exact destination, or
+  that M will stop A. They illustrate decisions and do not simulate physical
+  contact, real player speed or guarantee a blocked shot. No unrelated game
+  tests were rerun.
+
+---
+
+# Archived evidence - Defend shooting
 
 The user authorized more dangerous-zone shooting cases and a section named
 `Defend shooting`. SPEC.md records this follow-up scope before implementation.

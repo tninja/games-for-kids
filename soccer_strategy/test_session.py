@@ -10,7 +10,7 @@ class SessionTests(unittest.TestCase):
         for seed in range(10):
             session = Session(1, seed)
             self.assertEqual([s.topic for s in session.scenes[:5]], [1, 2, 3, 5, 6])
-            self.assertIn(session.scenes[5].topic, (1, 2, 3, 5, 6))
+            self.assertEqual(session.scenes[5].topic, 28)
 
     def test_session_progress_has_six_practice_and_two_transfer_scenes(self):
         session = Session(stage=1, seed=4)
@@ -94,7 +94,7 @@ class SessionTests(unittest.TestCase):
                 practice = {s.id for s in a.scenes if not s.transfer}
                 self.assertTrue(all(s.id.split(":")[0] not in practice
                                     for s in a.scenes if s.transfer))
-        self.assertEqual(seen, set(range(1, 33)))
+        self.assertEqual(seen, set(range(1, 35)))
 
     def test_partial_summary_and_small_animation_steps(self):
         session = Session()

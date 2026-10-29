@@ -34,6 +34,8 @@ class Situation:
     notes: tuple[str, str, str] = ("", "", "")
     actions: tuple[str, str, str] | None = None
     press_gap: float = 4.
+    shot_target: Point = (50, 100)
+    attacker_start: Point | None = None
 
 
 @dataclass(frozen=True)
@@ -204,56 +206,40 @@ LESSONS = (
     ),
     Lesson(
         4, "Shot inside the box",
-        "Protect the shooting line",
-        ('block', 'tackle', 'recover'),
+        "Get between the ball and goal",
+        ("block", "press", "recover"),
         (
             Situation(
-                (38, 84), (35, 79), (65, 86), (58, 81),
-                0,
-                "The attacker controls the ball and draws a foot back to shoot.",
-                (
-                    "Stay balanced in the shooting line; there is no clean tackling "
-                    "opening."
-                ),
-                ratings=(2, 0, 1),
+                (38, 84), (35, 79), (65, 86), (58, 81), 0,
+                "A controls the ball inside the box and draws a foot back. You are already between A and goal.",
+                "Stand between the ball and goal, keep your arms close and watch A's kick. Stay balanced as the shot comes.",
+                ratings=(2, 1, 1), press_gap=6.,
                 notes=(
-                    '',
-                    'A is about to shoot and the ball is protected. A late reach can miss the shot or foul A.',
-                    'Recovering toward the shooting line can help. Do not keep retreating and open the shot.',
+                    "",
+                    "A balanced close can also reduce the shot space. Keep your body in the shooting line as A kicks.",
+                    "Moving deeper can protect goal if needed, but keep covering the shot line. Do not retreat all the way to GK.",
                 ),
             ),
             Situation(
-                (36, 83), (36, 81), (65, 86), (58, 81),
-                1,
-                "The ball rolls loose beside you before the attacker can shoot.",
-                "This exposed ball is reachable before the shooting foot arrives.",
-                ratings=(1, 2, 0),
-                state="loose",
+                (37, 91), (30, 87), (65, 86), (58, 81), 0,
+                "A controls the ball inside the left side of the box and prepares a near-post shot. You can step across the lane.",
+                "Step between the ball and the left post. Stay balanced and keep your arms close to help block the shot.",
+                ratings=(2, 0, 0), attacker=(29, 84), press_gap=6., shot_target=(40, 100),
                 notes=(
-                    (
-                        'Blocking protects goal if you cannot win it cleanly. Here the loose ball is beside your '
-                        'foot.'
-                    ),
-                    '',
-                    'Running away gives A time to recover the loose ball and shoot.',
+                    "",
+                    "A is already starting the shot. Running at A can miss the near-post lane; step across that lane first.",
+                    "A is aiming near the left post. Dropping toward the middle of goal leaves that route open.",
                 ),
             ),
             Situation(
-                (26, 76), (37, 84), (65, 86), (58, 81),
-                2,
-                (
-                    "You are behind the attacker, who takes another touch. The keeper is "
-                    "set."
-                ),
-                (
-                    "Recover toward the route to goal; do not reach through the attacker "
-                    "from behind."
-                ),
-                ratings=(1, 0, 2),
+                (28, 70), (40, 80), (65, 86), (58, 81), 2,
+                "A controls the ball in the box but has not started the shot. You are behind A and outside the shooting lane.",
+                "Run inside to get between A and goal. Keep watching the ball; avoid chasing A from behind.",
+                ratings=(1, 0, 2), attacker=(39, 77), press_gap=6.,
                 notes=(
-                    'Moving into the shooting line can help if you get there. First recover from behind A.',
-                    "You are behind A and the ball. Do not reach through A's legs to try to win it.",
-                    '',
+                    "Moving toward the shot line also helps. You are behind A, so first get into a position that protects goal.",
+                    "A is facing goal ahead of you. Chasing A from behind leaves the shooting lane open.",
+                    "",
                 ),
             ),
         ),
@@ -1822,8 +1808,8 @@ LESSONS = (
     ),
     Lesson(
         31, "A enters shooting range",
-        "Close, block or win an exposed touch",
-        ("press", "block", "tackle"),
+        "Close the space and cover the shot line",
+        ("press", "block", "recover"),
         (
             Situation(
                 (40, 79), (37, 70), (64, 85), (70, 52), 0,
@@ -1833,7 +1819,7 @@ LESSONS = (
                 notes=(
                     "",
                     "Protecting the shot line also helps. Keep moving closer while balanced; do not wait deep by your goal.",
-                    "A keeps the ball close and is beyond your reach. Rushing a tackle may let A go past.",
+                    "Backing away gives A more time to set the shot. Close the space while staying between A and goal.",
                 ),
             ),
             Situation(
@@ -1844,58 +1830,142 @@ LESSONS = (
                 notes=(
                     "A is already preparing to shoot. A short, balanced close can help if you stay in the shot line.",
                     "",
-                    "A protects the ball beside the shooting foot. Reaching at A's feet now risks a foul.",
+                    "Dropping toward GK gives A more of the goal to aim at. Step across the shooting line now.",
                 ),
             ),
             Situation(
-                (39, 85), (39, 83), (65, 88), (70, 54), 2,
-                "A's last touch inside the box rolls beside your foot. You can reach the ball before A shoots.",
-                "Step to the loose ball on your feet. If you win it, look up before your next action.",
-                ratings=(1, 1, 2), state="loose", attacker=(36, 75), origin=(34, 70), press_gap=6.,
+                (53, 88), (63, 81), (38, 88), (70, 54), 1,
+                "A keeps the ball close on the right inside the box and prepares a near-post shot. You are nearer the middle.",
+                "Move across between the ball and the right post. Stay on your feet and keep your arms close.",
+                ratings=(0, 2, 0), attacker=(64, 78), press_gap=6., shot_target=(60, 100),
                 notes=(
-                    "Closing under control is safe if you are unsure of your timing. Here you can reach the exposed ball first.",
-                    "Blocking is safe if you cannot win the ball cleanly. Here the loose ball is beside your foot.",
+                    "You may not reach A before the shot. Protect the near-post line first.",
                     "",
+                    "Dropping deeper through the middle leaves the right-post shooting lane open.",
                 ),
             ),
         ),
     ),
     Lesson(
         32, "Help stop the next shot",
-        "Check who can stop the shooter",
-        ("block", "mark", "press"),
+        "Protect the shot line behind a teammate",
+        ("block", "press", "cover"),
         (
             Situation(
                 (51, 86), (44, 81), (33, 70), (68, 85), 0,
-                "M is beaten. A draws a foot back inside the box. You can step into the shot line; R is farther away.",
-                "Stop the immediate shot line on your feet. Call for help with R; do not wait for M to recover.",
-                ratings=(2, 0, 1), attacker=(43, 78), runner_end=(68, 85), press_gap=6.,
+                "A beats M inside the box and draws a foot back. You are now the nearest defender between A and goal.",
+                "Step across the shot line and stay balanced. M is behind the play; you must help protect goal now.",
+                ratings=(2, 1, 0), attacker=(43, 78), press_gap=6.,
                 notes=(
                     "",
-                    "R needs watching, but A can shoot now. Following R leaves the immediate shot open.",
                     "A short, balanced close can help if you stay in the shot line. Do not sprint past the ball.",
+                    "M is already beaten. Moving back toward M leaves A's shooting route to goal open.",
                 ),
             ),
             Situation(
-                (65, 88), (40, 78), (43, 84), (65, 82), 1,
-                "M is set between A and goal as A prepares to shoot. R is free beside you.",
-                "Stay between R and goal while watching A. Call to M; if M is beaten, help stop the shot.",
-                ratings=(0, 2, 0), attacker=(39, 75), runner_end=(65, 82), press_gap=6.,
+                (42, 89), (40, 78), (44, 78), (65, 82), 0,
+                "M presses A from the inside, but A still controls the ball and can shoot at the near post. You are behind M.",
+                "Cover the near-post shot line behind M. Stay balanced; M's pressure does not guarantee the shot is stopped.",
+                ratings=(2, 0, 1), attacker=(39, 75), press_gap=6.,
+                shot_target=(40, 100), zone=(40, 89),
                 notes=(
-                    "M already covers the shot line. Running to M leaves R free for a pass or rebound.",
                     "",
-                    "Both defenders chasing A leaves R free. Watch A and be ready to help if M is beaten.",
+                    "M is already closing A. Joining M leaves the near-post shooting lane open.",
+                    "Staying behind M on this shot line also protects goal. Keep watching A instead of assuming M will stop the shot.",
                 ),
             ),
             Situation(
-                (48, 84), (45, 77), (33, 68), (75, 59), 2,
-                "M is beaten. A takes another touch inside the box. You are closest and goal-side; R stays far away.",
-                "Take over pressure now. Slow down as you approach A; M has not recovered and cannot stop the shot yet.",
-                ratings=(1, 0, 2), attacker=(44, 74), runner_end=(75, 59), press_gap=6.,
+                (48, 84), (45, 77), (33, 68), (75, 59), 1,
+                "M is beaten inside the box. A keeps the ball close and looks up to shoot. You can close before A kicks.",
+                "Close between A and goal, then slow down. Keep the shot line covered; M has not recovered.",
+                ratings=(1, 2, 0), attacker=(44, 74), press_gap=6.,
                 notes=(
                     "Moving into the shot line helps too. Keep closing under control because A still has time for another touch.",
-                    "R is far from goal. Following R leaves A time to set up an unopposed shot.",
                     "",
+                    "M is already behind A. Moving toward M leaves the shot unchallenged.",
+                ),
+            ),
+        ),
+    ),
+    Lesson(
+        33, "Cut inside and shoot",
+        "Stay between the ball and goal",
+        ("block", "press", "recover"),
+        (
+            Situation(
+                (43, 83), (37, 73), (66, 85), (70, 55), 1,
+                "A cuts in from the left with the ball close. You can close before A plants a foot to shoot.",
+                "Move toward A from the goal side, then slow down. Take away shooting space without running past A.",
+                ratings=(1, 2, 0), attacker=(36, 70), origin=(19, 64),
+                attacker_start=(18, 61), press_gap=6.,
+                notes=(
+                    "Covering the shot line helps too. Keep closing while A is still setting up, rather than waiting beside GK.",
+                    "",
+                    "Dropping deeper lets A finish the cut and set the shot. Close the space while protecting the middle.",
+                ),
+            ),
+            Situation(
+                (48, 87), (37, 80), (66, 85), (70, 55), 0,
+                "A keeps control after cutting in from the left and prepares a shot toward the far corner.",
+                "Step between the ball and the right side of goal. Stay balanced and watch the kick instead of chasing A.",
+                ratings=(2, 0, 0), attacker=(36, 77), origin=(19, 68),
+                attacker_start=(18, 65), shot_target=(60, 100), press_gap=6.,
+                notes=(
+                    "",
+                    "A is ready to kick now. Chasing the dribbler can leave the far-corner shooting lane open.",
+                    "Backing toward GK gives A more goal to aim at. Move across the shooting lane while staying on your feet.",
+                ),
+            ),
+            Situation(
+                (52, 88), (62, 80), (34, 87), (30, 55), 0,
+                "A keeps control after cutting in from the right and draws a foot back toward the far corner. You are goal-side.",
+                "Step across the shot line toward the left side of goal. Keep your balance and your arms close.",
+                ratings=(2, 0, 0), attacker=(63, 77), origin=(82, 68),
+                attacker_start=(83, 65), shot_target=(40, 100), press_gap=6.,
+                notes=(
+                    "",
+                    "A has already set the shot. Running at A can miss the cross-goal shooting line.",
+                    "Retreating straight toward GK leaves the angled shot open. Move into the ball's route toward the left side.",
+                ),
+            ),
+        ),
+    ),
+    Lesson(
+        34, "How close to the shooter?",
+        "Distance, balance and the shot line",
+        ("block", "press", "recover"),
+        (
+            Situation(
+                (42, 91.2), (30, 78), (65, 83), (70, 55), 1,
+                "You are deep near goal. A controls the ball and still needs to set up the shot; you can close safely.",
+                "Close along the shooting line, then slow down before A. Do not keep backing toward your goal.",
+                ratings=(1, 2, 0), attacker=(29, 75), press_gap=6.,
+                notes=(
+                    "Moving up the shot line also helps. Finish balanced in front of A rather than waiting beside GK.",
+                    "",
+                    "You are already too deep. Backing away gives A more time and room to shoot.",
+                ),
+            ),
+            Situation(
+                (36, 84.6), (30, 78), (65, 83), (70, 55), 0,
+                "You already cover A's shot line at a useful distance. A keeps the ball close and starts the kicking swing.",
+                "Stay set on the shot line, watch the ball and keep your balance. Do not rush into A or back away.",
+                ratings=(2, 0, 0), attacker=(29, 75), press_gap=6.,
+                notes=(
+                    "",
+                    "A is already swinging. Moving at A now may upset your balance or carry you past the shot.",
+                    "Retreating away from the shooter opens more shooting space. Hold your balanced blocking position instead.",
+                ),
+            ),
+            Situation(
+                (40, 81), (30, 78), (65, 83), (70, 55), 0,
+                "You are close to A's side, but the shot line is open. A keeps control and draws a foot back.",
+                "Move across into the shot line first. Being near A does not protect goal if the ball can pass beside you.",
+                ratings=(2, 0, 1), attacker=(29, 75), press_gap=6.,
+                notes=(
+                    "",
+                    "Going straight at A from the side can leave the shot line open. Get between the ball and goal first.",
+                    "Dropping inside onto the shot line can help too. Avoid running straight back to GK and leaving A unopposed.",
                 ),
             ),
         ),

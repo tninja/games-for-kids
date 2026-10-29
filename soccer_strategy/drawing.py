@@ -112,6 +112,33 @@ def arrow(surface: pygame.Surface, start: tuple[int, int], end: tuple[int, int],
     pygame.draw.circle(surface, color, end, 8, 3)
 
 
+def draw_shot_line(surface: pygame.Surface, start: tuple[int, int], end: tuple[int, int]) -> None:
+    dx, dy = end[0] - start[0], end[1] - start[1]
+    length = hypot(dx, dy)
+    if length < 1:
+        return
+    ux, uy = dx / length, dy / length
+    for offset in range(0, int(length), 24):
+        tail = (start[0] + ux * offset, start[1] + uy * offset)
+        tip = (start[0] + ux * min(offset + 14, length),
+               start[1] + uy * min(offset + 14, length))
+        pygame.draw.line(surface, NAVY, tail, tip, 7)
+        pygame.draw.line(surface, CORAL, tail, tip, 3)
+    base = (end[0] - ux * 14, end[1] - uy * 14)
+    pygame.draw.polygon(surface, NAVY,
+                        [end, (base[0] - uy * 10, base[1] + ux * 10),
+                         (base[0] + uy * 10, base[1] - ux * 10)])
+    pygame.draw.polygon(surface, CORAL,
+                        [end, (base[0] - uy * 6, base[1] + ux * 6),
+                         (base[0] + uy * 6, base[1] - ux * 6)])
+    pygame.draw.circle(surface, CORAL, end, 4)
+
+
+def draw_block_point(surface: pygame.Surface, point: tuple[int, int]) -> None:
+    pygame.draw.circle(surface, NAVY, point, 33, 7)
+    pygame.draw.circle(surface, BLUE, point, 30, 3)
+
+
 def draw_pitch(p: Painter, show_build_out_line: bool = False) -> None:
     p.panel(pygame.Rect(28, 140, 742, 676), (24, 61, 52))
     for i in range(10):

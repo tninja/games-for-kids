@@ -4,8 +4,8 @@ import pygame
 from math import pi, sin
 
 from .drawing import (BLUE, CORAL, GOLD, GREEN, HEIGHT, MUTED, NAVY, SIDE,
-                      WIDTH, Button, Painter, arrow, draw_ball, draw_pitch,
-                      draw_player, pitch_point)
+                      WIDTH, Button, Painter, arrow, draw_ball, draw_block_point, draw_pitch,
+                      draw_player, draw_shot_line, pitch_point)
 from .presentation import outgoing_fraction, positions
 from .content import LESSONS
 from .curriculum import SECTIONS
@@ -158,6 +158,8 @@ class App:
         actors, ball = positions(scene, s.phase, s.fraction, s.selected)
         if scene.assigned_zone is not None:
             pygame.draw.circle(self.canvas, BLUE, pitch_point(scene.assigned_zone), 34, 2)
+        if s.phase == "feedback" and scene.shot_target is not None:
+            draw_shot_line(self.canvas, pitch_point(scene.ball), pitch_point(scene.shot_target))
         for actor in scene.actors:
             heading = actor.heading
             if s.phase == "observe" and not (scene.keeper_distribution and s.fraction < .45):
@@ -238,8 +240,15 @@ class App:
                   else "Your route ends at the suggested spot")
         self.painter.text(legend,
                           pygame.Rect(64, 187, 650, 28), 23)
+        note_y = 216
+        if s.scene.shot_target is not None:
+            block = next(c for c in s.scene.choices if c.key == "block")
+            draw_block_point(self.canvas, pitch_point(block.target))
+            self.painter.text("Coral dashes: shot line / Blue ring: block point",
+                              pygame.Rect(64, 216, 650, 28), 23)
+            note_y = 245
         self.painter.text("Illustrated routes, not guaranteed outcomes.",
-                          pygame.Rect(64, 216, 650, 28), 21)
+                          pygame.Rect(64, note_y, 650, 28), 21)
 
     def _summary(self) -> None:
         s = self.session
