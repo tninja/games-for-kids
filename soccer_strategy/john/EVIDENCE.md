@@ -1,0 +1,596 @@
+# Current evidence - keeper, backfield and midfield possession
+
+Tier 2 implementation requested on 2026-10-30. The user explicitly directed a
+separate menu section during the work. Section 7, **Receive and decide**, has
+four topics / twelve new pictures; the game has seven sections, 38 topics,
+114 pictures and 342 choices. All 102 earlier scene records, including section
+membership, are identical to the captured pre-change catalog.
+
+- Specification: append-only [SPEC.md](SPEC.md), named acceptance tests and
+  visible amendments for the separate section and rendering findings.
+- Spec approval: **not obtained separately** in this user-authorized autonomous
+  run; confidence is reduced relative to the harness's human-approved contract.
+- Source SHA256: `29272ce04199874cd9d84901f3ade86b7a326642e8554ee5aa501a3a7f779ee9`.
+- Full catalog SHA256: `9d3bb55c977579cbbf69491a7443b816b48334a00fe991e365712c4162edb702`.
+- Original 102-picture SHA256: `d90a4ad034f1237645d3c003e97756a83f6d0b8cbfa9448b89008cb753dd6113`,
+  independently retained in `test_original_102_pictures_are_unchanged`.
+- Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+
+## Fresh final gauntlet
+
+Persisted entry point, executed after the last source/spec edit:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.john.verify
+```
+
+Exit **0**. Final report: `.verification/report.json`; all six declared gates
+passed. The source hash was independently checked against the current files.
+This command removes stale artifacts and reruns the following gates in order:
+
+| Gate | Exact implementation command/layer | Final result |
+|---|---|---|
+| Tests and coverage | `john.verify:unit_and_coverage` / unittest discovery | 91 passed; 738/738 statements; 586/586 conditional edges |
+| Hygiene, boundaries, complexity | `john.verify:static_checks` | 20 Python files; zero violations; function limits 60 lines / 15 decisions |
+| Static types | `john.verify:types` / cached Pyright with generated config | 9 modules; 0 errors, 0 warnings; known-bad assignment rejected |
+| Manual mutation | `john.verify:mutations` | 8/8 applied, executed and killed by assertions |
+| Suite health | `john.verify:suite_health` | 91 tests passed in shuffled order, seed 734 |
+| Real execution | `python3 -m soccer_strategy.john --smoke --screenshot <package>/.verification/feedback.png` | SDL menu, choice, feedback, retry and quit passed; exit 0 |
+
+The report records the exact argv, working directory and exit status for all
+11 subprocesses, including the rejected type control and eight mutants.
+Mutation outputs are retained in `.verification/mutations.json`; full runtime
+coverage is in `.verification/coverage.json`. The three feature mutants send a
+named pass to the wrong endpoint, release the wing pass too early, and collapse
+pass arrows to John's step. The original five mutants remain enforced.
+
+Additional final ordinary-suite command:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest discover -s soccer_strategy/john -t . -q
+```
+
+Exit **0**, 91 tests passed. `git diff --check` also exited **0**.
+
+## Specification to executable evidence
+
+| Scenario or invariant | Test | Result |
+|---|---|---|
+| Keeper throw: carry, left wing, central receiver or long upfield kick | `test_keeper_distribution_changes_with_space_and_receivers` | 6 pictures pass |
+| Backfield/midfield: carry or pass in different directions | `test_backfield_and_midfield_offer_directional_receivers` | 6 pictures pass |
+| Visible recipients, foot contact and matching transferred endpoints | `test_directional_passes_reach_visible_teammates_after_contact` | 21 named passes; 63 transfer endpoint checks pass |
+| Each decision has specific feedback; marking is visible | `test_new_possession_feedback_explains_each_decision` | 12 pictures pass |
+| New player labels/sprites have room in the decision picture | `test_new_possession_players_have_readable_spacing` | All new actor pairs pass |
+| Separate section; old membership preserved | `test_receiving_has_its_own_section_without_changing_existing_sections` | pass |
+| Seven menu cards, click/key 7, no action selection by keys 4-7 | Existing extended menu/keyboard tests | pass |
+| Two different passes have separate preview/feedback destinations | `test_directional_pass_preview_and_wrong_pass_comparison` | pixel checks pass |
+| Midfield feedback does not obscure A | `test_midfield_feedback_does_not_paint_over_the_opponent` | pixel equality passes |
+| Original facts, ratings, feedback and routes preserved | `test_original_102_pictures_are_unchanged` and independent captured-record comparison | 102/102 identical |
+| Six practice + two held-out layouts, determinism and scoring | Existing session/geometry/rendering tests | seven sections; 20 seeds; 280 generated sessions pass |
+
+## Final sensors, review and limits
+
+- **Clean:** fresh tests/coverage, types, hygiene, dependency boundaries,
+  complexity, mutation, shuffled repeat and SDL execution. No thresholds were
+  lowered. Sensor failure paths are exercised by existing known-bad controls.
+- **UNAVAILABLE:** editor diagnostics baseline returned `baseline_unavailable`:
+  old `soccer_strategy/app.py` has no active backend. Per-file checks with
+  `since="baseline"` returned `no_baseline`, and moved package buffers are not
+  open. This does **not** satisfy the harness's complete-clean editor condition;
+  the passing executable gates are independent evidence, not a replacement claim.
+- **SUBSTITUTED:** existing stdlib coverage/source hygiene replace coverage.py /
+  Ruff; deterministic generated layout/session invariants replace Hypothesis;
+  scripted mutation replaces a general mutation framework. These enforce the
+  stated gates but do not implement those tools' full rule/input spaces.
+- **N/A:** dependency/license changes, API migration, concurrency, storage,
+  network and performance budgets: none introduced. No packages were installed,
+  no commits made, and no Luke source or pre-existing root deletions were changed.
+- Semantic modularity review: authored facts/receivers remain in `content.py`;
+  `catalog.py` maps the receiver to a visible actor and intended pass endpoint.
+  `presentation.py` owns shared contact timing and preview destination policy;
+  the UI reuses that helper for hover and feedback. `curriculum.py` alone owns
+  membership. Existing animation, scoring and round scheduling are reused.
+  The separate menu requires only denser cards and key 7. No second scene
+  engine, dependency boundary violation or duplicate section list was introduced.
+- Trade-off: four explicit pass keys identify four receivers through the
+  existing three-choice API. Their contact timings are listed with the existing
+  actions; the small shared preview helper avoids divergent UI decisions.
+- Full-size final menu, all twelve decision/feedback pictures and a wrong-pass
+  comparison were rendered and inspected under `/tmp/john-possession-review/`.
+  All 114 published coaching rows / 342 options match runtime. Markers were
+  spaced to avoid overlapping decision sprites; midfield is near the halfway
+  line of the defensive-half view. Feedback notes move below that action.
+- Failures and fixes: the moved package initially had seven
+  `ModuleNotFoundError` test imports; test/verifier paths were repaired before
+  behavior work (82 original tests passed). The new case tests failed on zero
+  matching scenes before implementation. One 25-word explanation was shortened
+  to honor the unchanged 24-word limit. Visual regressions first failed for
+  overlapping markers, shared pass arrows and a legend painted over A, then
+  passed after scoped fixes. A stale in-progress coverage run was superseded by
+  this fresh complete run. The old-case test's initial incorrect expected hash
+  was corrected to the recorded baseline before runtime edits.
+- The existing Pygame AVX2 build warning remains. These are scripted intended
+  actions, not ball-flight physics, guaranteed receptions or measured match
+  improvement. Long kicks can be won by either team. Local keeper-release rules
+  are not inferred. Physical-display interaction was not checked; real SDL used
+  the dummy video/audio drivers. Unrelated repository game suites were not run.
+
+---
+
+# Archived evidence - shot guides, cut-ins and shooter distance
+
+The user selected feedback shot lines/block points and controlled cut-in cases,
+then requested an explicit close-versus-far decision lesson. SPEC.md records
+both authorizations and their acceptance criteria before implementation. The
+catalog now has 34 topics / 102 pictures / 306 choices, with five shooting topics
+and 15 controlled-ball pictures. No new dependency or installation was needed.
+
+## Final fresh verification
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit **0**, after the final implementation edit:
+
+| Gate | Result |
+|---|---|
+| Tests | 82 passed |
+| Measured statements | 729/729 covered |
+| Measured conditional edges | 578/578 covered |
+| Hygiene / boundaries / complexity | 20 Python files, zero violations |
+| Types | Nine runtime modules; zero errors/warnings; bad-type control rejected |
+| Scripted mutation | 5/5 applied and executed mutants killed |
+| Shuffled repeat | 82 tests, zero failures |
+| Real SDL execution | Menu, choice, feedback, retry and quit passed; exit 0 |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+Source SHA256: `b708c3d2d38e161b456c2c7e3c2ad03f45c3d58901a259f21055a05b9959a982`.
+Catalog SHA256: `d90a4ad034f1237645d3c003e97756a83f6d0b8cbfa9448b89008cb753dd6113`.
+Prior catalog SHA256: `da811188a9d946367e0bed46a97ee5cf797ea47be20b3237e4d42ac7a1a9bf99`.
+Results and the real-execution screenshot are under `.verification/`.
+
+## Requirement-to-test mapping
+
+| Requirement | Executable evidence |
+|---|---|
+| A remains beside the ball while cutting in from the correct side | `test_cut_ins_keep_the_ball_close_and_show_a_real_inward_run` samples seven observation fractions |
+| Close from deep, hold a set block, correct a nearby off-line position | `test_shooter_distance_cases_compare_closing_holding_and_sideways_cover` compares the same carrier/ball/aim |
+| Goal aim and line move together during transfer; invalid metadata rejected | `test_shot_aims_transfer_with_the_line_and_reject_bad_metadata` |
+| Shot direction and block point only appear on feedback, including after a wrong choice | `test_shot_direction_and_block_ring_appear_only_in_feedback` checks base and transfer pixels |
+| Dashes, arrow endpoint, block ring and empty segment draw correctly | `test_shot_line_dashes_and_block_marker_render_on_a_blank_surface` |
+| Every shooting picture is controlled-ball goal protection | Existing scope/angle/teammate regressions expanded to all 15 pictures |
+| Entire game remains playable and all topics reachable | Full catalog rendering, all-section/seed session invariants and SDL execution |
+
+RED runs observed 96 rather than 99 records before the first addition, missing
+cut-in cases, no coral shot endpoint before the guide implementation, and no
+matched-distance cases before topic 34. The focused catalog/coaching/session/UI
+run passed 70 tests; the curriculum suite passed five. The first complete run
+passed all tests and coverage but failed the existing 15-decision complexity
+budget in Scenario.validate. Shot-aim validation was extracted into a private
+model helper without changing tests or checks. All 82 ordinary tests passed
+again, static checks passed, and the fresh full run above then passed every gate.
+
+Independent before/after comparison against `/tmp/soccer-before-shot-guides.json`
+confirms that all 96 prior records preserve every original field; only new
+shot-aim metadata is added. Document checks match all 102 review rows / 306
+options to runtime and confirm 34 unique Org topic rows, valid links and the
+original Design/Coding headlines. All 15 shooting decision/feedback pictures,
+the reorganized menu and a wrong-choice guide comparison were rendered. The
+six added decisions and all feedback sheets were visually inspected. Images
+are under `/tmp/soccer-shot-guides-review/`.
+
+## Final sensors, modularity and limits
+
+- The final computational gates are clean. Editor MCP baseline and per-file
+  diagnostics still return HTTP 401 and are **UNAVAILABLE**, not clean.
+  Independent type/runtime checks do not impersonate the editor service.
+- Existing stdlib coverage/source-hygiene sensors substitute for coverage.py /
+  Ruff; deterministic geometry/seed tests substitute for Hypothesis; scripted
+  mutants substitute for a general mutation framework. Their negative controls
+  execute, with the narrower rule/input coverage documented in earlier evidence.
+- content.py owns carrier starts, ball origins and shot aims. catalog.py resolves
+  those facts into scene metadata/routes; model.py validates and transfers the
+  aim. drawing.py owns reusable line/ring primitives. app.py selects visibility
+  from the phase and metadata and reuses the block choice's target; it does not
+  infer an answer or author a second shot line. The private validation helper
+  keeps the new domain constraint cohesive within the model. No scoring,
+  capability, dependency or module-boundary change was introduced.
+- Guides show the stated shot threat, not a prediction. A blue ring marks a
+  block option even if pressure/recovery is preferable. The distance lesson
+  teaches angle, balance and time to act; percentage coordinates do not prescribe
+  a real-world distance. The existing Pygame AVX2 warning remains and execution
+  exits normally. No unrelated repository game tests were rerun.
+
+---
+
+# Archived evidence - controlled-shooter focus correction
+
+The user's clarification supersedes the previous shooting grouping. Section 2
+now contains topics 4, 31 and 32 only: nine pictures of an opponent who keeps
+control and prepares to shoot. All 32 topics / 96 pictures / 288 choices remain.
+The change is authorized follow-up; SPEC.md records the corrected acceptance
+criteria, including the justified replacement of the old three-best-actions
+invariant for shooting topics. Several pictures can correctly prefer blocking.
+
+## Fresh final verification
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit **0**, from the final source state:
+
+| Gate | Result |
+|---|---|
+| Tests | 77 passed |
+| Measured statements | 691/691 covered |
+| Measured conditional edges | 542/542 covered |
+| Hygiene / boundaries / complexity | 20 files, zero violations |
+| Types | Nine runtime modules, zero errors or warnings; negative control rejected |
+| Applied and executed mutants | 5/5 killed |
+| Shuffled repeat | 77 tests, zero failures |
+| Real SDL execution | Menu, choice, feedback, retry and quit passed; exit 0 |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+Source SHA256: `45672c144a961f8716e7b6b3cc3ed1e74cea62ba81473bf20c13a52ef4f8ed44`.
+Catalog SHA256: `da811188a9d946367e0bed46a97ee5cf797ea47be20b3237e4d42ac7a1a9bf99`.
+Previous catalog SHA256: `3e9402522638316cab403a3ba14accdcb2cce6b5d0b0181c7c341e00ca97bb79`.
+
+## Requirement mapping and independent checks
+
+| Requirement | Regression |
+|---|---|
+| All nine shooting cases retain A's control and offer goal-protection choices | `test_shooting_practice_keeps_control_and_protects_goal` |
+| Close before setup, block prepared shots; no forced loose touch | `test_shooting_choices_distinguish_setup_from_ready_shots` |
+| Block the stated central or left/right near-post shot, including ball endpoint | `test_shot_blocks_follow_the_stated_middle_or_near_post_line` |
+| Cover a shooting angle while M presses; no separate runner to chase | `test_shooting_support_covers_an_angle_instead_of_chasing_a_runner` |
+| Dedicated shooting membership; other topics remain accessible | Curriculum, session reachability, full-catalog UI tests |
+
+RED: the new shooting-scope and geometry tests failed against the old 21-case
+section and membership. After implementation, 54 focused coaching/catalog/
+curriculum/session tests passed. All ordinary geometry, text, rendering,
+first-attempt scoring and transfer invariants remain enforced. The previous
+requirement for three different preferred actions is retained for every topic
+outside the three explicitly revised shooting topics. This is an intentional
+acceptance-contract change, not a skipped failing check.
+
+An independent comparison against `/tmp/soccer-before-shooting-focus.json`
+confirmed that the other 87 records preserve every field except section
+membership. All 96 published review rows / 288 options match runtime. The Org
+retains both original headlines, 32 unique topic rows and valid local links.
+All nine decision pictures and preferred feedback were rendered and visually
+inspected; images are in `/tmp/soccer-shooting-focus/`. Central and near-post
+block destinations follow the stated goal-line aim; new routes use the same
+arrow and outcome drawing as the rest of the game.
+
+## Final sensors, modularity and limits
+
+- Computational gates above are clean. Editor MCP baseline and per-file checks
+  returned HTTP 401: **UNAVAILABLE**, not clean. Independent types and execution
+  do not stand in for editor-service coverage. The existing AVX2 build warning
+  remains and real SDL execution exits normally.
+- Existing stdlib coverage/source-hygiene sensors substitute for coverage.py /
+  Ruff; deterministic geometry/seed invariants substitute for Hypothesis; five
+  scripted mutants substitute for a general mutation framework. Their negative
+  controls ran; they do not implement those tools' entire rule or input space.
+- Geometry facts stay in content.py. `shot_target` defaults to the previous
+  goal center, so other pictures keep their old routes. catalog.py computes
+  the block and blocked-ball endpoint from that aim and labels the near-post
+  side. curriculum.py owns section membership; the UI reuses it. No new renderer,
+  scoring path, package, dependency or capability was added. The authored nine
+  cases intentionally revise the previous mixed examples; the other 87 case
+  records provide an independent preservation check.
+- These pictures practise a specified threat. They do not claim that opponents
+  cannot miscontrol in matches, that John knows a shot's exact destination, or
+  that M will stop A. They illustrate decisions and do not simulate physical
+  contact, real player speed or guarantee a blocked shot. No unrelated game
+  tests were rerun.
+
+---
+
+# Archived evidence - Defend shooting
+
+The user authorized more dangerous-zone shooting cases and a section named
+`Defend shooting`. SPEC.md records this follow-up scope before implementation.
+There are now six sections, 32 topics, 96 pictures and 288 choices. Section 2
+contains topics 4, 11, 12, 18, 28, 31 and 32: seven topics / 21 base pictures.
+No separate spec-approval round was requested for this authorized follow-up.
+
+## Fresh verification
+
+Command from the repository root:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit **0**. One fresh final run reported:
+
+| Gate | Result |
+|---|---|
+| Tests | 76 passed, zero failures/errors |
+| Measured statement coverage | 687/687 |
+| Measured conditional-edge coverage | 538/538 |
+| Hygiene, boundaries, complexity | 20 Python files, zero violations |
+| Types | Nine runtime modules, zero errors/warnings; bad-type control rejected |
+| Scripted mutation | 5/5 applied and executed mutants killed |
+| Shuffled repeat | 76 tests, zero failures |
+| Real SDL execution | Menu, choice, feedback, retry and quit passed; exit 0 |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+Source SHA256: `29f9dcc38b9f33002678018463e8cccebc0e7822c3b4e7a3205cf58721599086`.
+Catalog SHA256: `3e9402522638316cab403a3ba14accdcb2cce6b5d0b0181c7c341e00ca97bb79`.
+Previous catalog SHA256: `d54652c85edd4903636166311adf8c8f128679346f008fa53491a62eee5df31b`.
+The verifier report and screenshot are in `.verification/`.
+
+## Specification and evidence mapping
+
+| Requirement | Executable evidence |
+|---|---|
+| Setup touch, shooting preparation and reachable loose touch require different decisions | `test_shooting_choices_change_with_setup_swing_and_exposed_touch` |
+| Preferred blocks lie on the ball-to-goal line and are closer than the ball | `test_new_shot_blocks_are_reachable_on_the_ball_to_goal_line` |
+| M's actual cover determines whether John faces A or watches R | `test_shooting_help_uses_actual_cover_and_keeps_the_runner_visible` |
+| Shooting topics share a named menu section | `test_direct_shooting_threats_share_a_named_section`, menu rendering test |
+| Six practice cases, two held-out layouts, all topics reachable | Existing session invariants across all sections and 20 seeds |
+| Every case/choice fits and renders | Existing complete-catalog rendering and text-bound tests |
+
+RED: the new tests first failed because no added pictures or named section
+existed. A second visual regression failed at a four-unit pressure gap. New
+pictures now use six units to keep preferred pressure sprites distinct; these
+are illustration coordinates, not distances to teach on a real pitch. All
+pre-existing routes keep their previous gap. The focused coaching/catalog/session
+run then passed 48 tests, and curriculum/UI checks passed 21 tests.
+
+An independent before/after comparison confirmed that all 90 previous records
+keep their facts, ratings, feedback and routes when section membership is
+excluded. Document checks matched all 96 review rows and 288 options to runtime,
+verified 32 Org topic rows and local links, and retained the Design/Coding
+headlines. All six added decisions and preferred feedback, plus the reorganized
+menu, were rendered and visually inspected after the final pressure-gap fix.
+Manual images: `/tmp/soccer-shooting-review/`.
+
+## Final sensors, modularity and limits
+
+- Computational gates above are clean against the final source. `git diff
+  --check` also passed. Editor MCP baseline and per-file diagnostics returned
+  HTTP 401 and are **UNAVAILABLE**, not clean. Python types and execution are
+  independent checks and do not replace editor-service coverage.
+- **SUBSTITUTED:** the existing stdlib coverage/source-hygiene gates substitute
+  for coverage.py/Ruff, deterministic layout/seed invariants for Hypothesis,
+  and five scripted mutants for a general mutation framework. Their existing
+  negative controls execute; their coverage is narrower than those full tools.
+- Content remains authored facts in content.py; curriculum.py owns membership;
+  catalog.py resolves the contextual block label, runner visibility and pressure
+  gap. No UI-specific topic list or second scoring path was introduced. The
+  small pressure-gap field belongs with scene geometry and defaults to the old
+  value, preserving old routes. Tests hard-code the requested shooting membership
+  as an independent acceptance condition. No dependency or capability change.
+- The ordinary motion drawing and all-choice rendering are tested; an image
+  cannot certify a real child's tackling technique or time to reach a ball.
+  Short passes remain attempts, M's cover remains fallible, and shots/blocks are
+  illustrative outcomes. The existing Pygame AVX2 performance warning is
+  unchanged. No unrelated repository game tests were rerun.
+
+---
+
+# Archived evidence - complete case and answer audit
+
+The user requested careful review of all cases and choices, with correction of
+errors. The append-only [SPEC.md](SPEC.md) records this authorized scope and the
+final visual finding. No separate approval was requested for these scoped fixes.
+There are still six sections, 29 topics, 87 pictures and 261 choices.
+
+## Football findings
+
+All 87 preferred action keys are retained. Only two grades changed:
+09.1/cover and 10.3/cover, both from reasonable (1) to risk (0). Their actual
+routes abandoned the free far-side runner or went toward an already beaten M.
+The final catalog contains 87 preferred, 71 reasonable and 103 risk options.
+
+Corrections include the body/ball order during shielding, the pressure
+demonstration, visible support in 07.2, the loose-ball state in 18.3 and M's
+miscontrol origins in 27.1-27.3. All 174 non-preferred options now explain their
+own picture, replacing generic warnings plus the preferred answer. A short pass
+still requires a ready receiver and support afterward; a long kick promises no
+reception. Slides remain conditional on a reachable ball and a safe route.
+
+[COACHING_REVIEW.md](COACHING_REVIEW.md) publishes all 87 observations and all
+261 graded choices with their explanations, the exact findings, and primary
+FA/FIFA/IFAB references. These sources support the principles, not individual
+coordinates or a guarantee that a preferred action is optimal in every real match.
+The complete table is generated from the reviewed data, not independent proof.
+
+## Fresh final verification
+
+Command actually run from the repository root:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit status: **0**. All six declared local computational gates passed.
+
+| Gate | Final result |
+|---|---|
+| Full soccer suite | 64 passed, zero failures/errors |
+| Runtime statements | 656/656 measured statements covered |
+| Runtime conditional edges | 506/506 measured edges covered |
+| Types | Nine modules; zero errors/warnings; bad assignment rejected |
+| Source hygiene, architecture, complexity | 20 Python files; zero violations |
+| Scripted mutation | 5/5 applied, executed and killed by assertion failures |
+| Shuffled repeat | 64 passed, seed 734 |
+| Real SDL execution | Exit 0; menu, choose, feedback, retry, screenshot and quit |
+| UI regression | All 87 pictures and three choices render without overflow |
+
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10 and cached Pyright 1.1.399.
+Pyright uses explicit interpreter paths/typeshed and Python 3.13 type mode;
+actual execution uses Python 3.14. The generated .verification/report.json
+records eight subprocess argument lists, working directories, exit codes and
+all in-process gates. Deliberate type errors and five mutants must exit nonzero.
+
+Final source SHA256:
+`10ac05996b0c705bc3e9299929fb5b452002f395b91331d94c68f6a1d753a3d5`.
+
+The hash uses sorted package-relative paths plus bytes, excluding EVIDENCE.md,
+generated .verification files and bytecode caches. The archived evidence is
+included. Runtime, tests, spec and other docs were finalized before this run.
+
+Reviewed case-content SHA256, excluding only section membership:
+`1bcb7399799f74e6eaf725d894d5dbf666441d8cffd635c78e8e6aef421b14ae`.
+The new baseline intentionally includes the requested coaching corrections.
+SPEC.md retains the old hash and the exact authorized changes. Updating this
+snapshot does not establish the correctness of the judgments inside it.
+
+## Specification to regression mapping
+
+| Requirement | Test |
+|---|---|
+| Body between A and ball; no touch toward A | test_shield_places_body_between_a_and_ball |
+| Do not reward the two abandoned-threat routes | test_support_choices_do_not_abandon_the_live_threat |
+| Specific explanation for every non-preferred option | test_all_nonpreferred_choices_have_picture_specific_feedback |
+| Claimed support, loose rebound, miscontrol origin visible | test_named_support_and_loose_touch_are_visible |
+| Pressure pose does not run A through John's stop point | test_pressure_demonstration_keeps_the_carrier_at_the_pictured_ball |
+| Unintended future catalog drift detected | test_reviewed_content_matches_persisted_baseline |
+| Six-plus-two, distinct and deterministic sessions | test_stages_and_seed_are_deterministic |
+| All scenes/actions and feedback fit the window | test_real_render_for_every_scene_and_choice |
+| Passes, slides, keeper throws, interceptions and clearances | Existing catalog/coaching/session suites |
+
+All five new regressions first failed on the original behavior, then passed
+after correction. The old snapshot failed when content intentionally changed;
+it was refreshed visibly and the test renamed to describe the reviewed baseline.
+No assertion was removed, no coverage threshold was lowered, and no mutant was
+removed. First-attempt scoring, retries and the section scheduler are unchanged.
+
+The property sweep still constructs 240 sessions (six sections, 20 seeds, two
+repetitions), checks uniqueness, transfer/practice separation, section membership,
+determinism and reachability of all topics.
+
+Additional commands actually run:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest soccer_strategy.test_coaching -q
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest discover -s soccer_strategy -t . -q
+git diff --exit-code HEAD -- '*.py'
+```
+
+The coaching suite finished with 24 passing tests; the final ordinary full suite
+had 64 passing tests. Existing tracked Python files match HEAD. Five focused
+RED runs are described above; the exact unified final results supersede all
+intermediate counts. Earlier evidence is in EVIDENCE_HISTORY.md.
+
+## Visual and document checks
+
+All 87 decision pictures were rendered in six section sheets and visually
+inspected. Full-size support, rebound, keeper shielding, teammate miscontrol,
+sliding and long-kick examples were checked. After the final pressure fix,
+the pressure and risk-feedback screens were rendered and inspected again.
+Artifacts are under /tmp/soccer-answer-audit/. The final SDL smoke screenshot
+is generated separately at .verification/feedback.png.
+
+Independent document checks verified the original Org headlines, all 29 topic
+IDs exactly once, local file links and exact agreement of all 261 published
+choice labels and explanations with the game. The before/after inventory
+confirmed that no other grades or preferred action keys changed.
+
+## Sensors, modularity and limits
+
+- **Clean:** tests, coverage, cached types, source hygiene, boundaries,
+  complexity, mutation, repeat and real execution in the final run.
+  Statement coverage is complete for the measured runtime; conditional-edge
+  coverage excludes compiler-generated annotation/builtin-identity machinery.
+- **UNAVAILABLE:** editor MCP baseline coverage remains incomplete because app.py
+  lacks an active checker. Per-file Python/new-document requests remain unavailable
+  when buffers are not open or lack a checker. Org and SPEC are clean. This does
+  not meet the editor harness's complete-clean done-condition.
+- **SUBSTITUTED:** stdlib coverage/source hygiene replace unavailable coverage.py
+  and Ruff; deterministic generated cases replace Hypothesis. Known-bad controls
+  verify declared failure paths, not every possible style defect or input.
+  Pyright provides independent types, not a substitute claim of editor-MCP clean.
+- Repository-wide unrelated game tests were not rerun; earlier baseline failures
+  and interactive limitations remain in the archived evidence. No existing
+  tracked game source changed.
+- Semantic review: notes live beside each Situation's independently authored facts
+  and ratings. The catalog selects the chosen option's note; it does not derive
+  facts from the grade. Shielding geometry belongs in action targeting. The
+  pressure teaching pose belongs in presentation and is independent of grades.
+  No new module boundary or duplicated membership table was introduced.
+- The larger content file is intentional authored teaching data, not new control
+  flow. No dependencies, installations, secrets, network/subprocess capabilities
+  or persistent user data were introduced.
+- The existing AVX2 Pygame build warning remains; real execution exits normally.
+  Fixed route durations do not simulate movement speed, kick success or contact.
+  The audit does not measure real-match improvement or certify physical tackling
+  technique. Actual league release timing and team roles still require local
+  knowledge. Reasonable options count positively; risky is not synonymous with
+  illegal or certain failure.
+
+## User-requested movement and arrow review
+
+The movement contract is recorded in SPEC.md. Positioning actions now keep the
+ball at the pictured location; this changes derived ball endpoints captured by
+the catalog snapshot. Previous snapshot: `1bcb7399799f74e6eaf725d894d5dbf666441d8cffd635c78e8e6aef421b14ae`.
+Current snapshot: `50bef7abc8cec9b0cf2c4f3122a052e72deef23a227d05188b2b018940c564ae`.
+
+Regressions cover pass contact timing, ball stability during positioning,
+fixed positions for non-selected actors, and the exact hovered arrow destination.
+Existing tests cover clearance, slide and long-kick contact-before-release plus
+all scenes' choice and feedback rendering. The arrow has a dark outline, distinct
+route color and endpoint marker, and is drawn above the sprites. Outcome pictures
+illustrate John's intent while other players hold their pictured poses; they do
+not predict live play.
+
+The editor diagnostics MCP did not provide a baseline for new Python files. Its
+status is unavailable, not clean.
+
+Final fresh command, run from the repository root:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit status: **0**. All gates passed: 69 tests; 679/679 measured statements;
+522/522 conditional edges; 20 Python files with zero hygiene, boundary or
+complexity violations; nine runtime modules type checked with zero errors or
+warnings and a rejected bad-type control; 5/5 applied-and-executed mutants
+killed; 69 shuffled-repeat tests; and real SDL menu/choice/feedback/retry/quit.
+The smoke screenshot is `soccer_strategy/.verification/feedback.png`.
+Toolchain: Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399.
+
+Final source SHA256: `9d1adf243ceebc4ec79c25db5cc18146857094f1ddf2246a33d78f8ad556d516`.
+Manually rendered examples (decision arrow, pass before/after contact, static
+positioning ball, and long kick before/after contact) are under
+`/tmp/soccer-movement-review/`; every example rendered without layout errors.
+
+## User-requested age, format and teammate-error review
+
+The current review includes 30 topics, 90 pictures and 270 choices. Topic 30
+adds a distinct reaction to each turnover state: intercept a reachable pass,
+recover goal-side when an opponent has controlled the ball and John is behind,
+and press a nearby carrier when a teammate covers inside. Corrected the preferred
+rating for 30.2, spaced the 30.1 attacker away from John, clarified the 30.3
+rushed-tackle explanation, and added regression assertions for action order,
+preferred rating and explanation. Existing teammate-miscontrol and unreliable
+reception guidance remains in place. Seven-a-side build-out-line practice stays
+explicit; open-play choices avoid assuming 9v9 formations or local rule details.
+
+Full command:
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.verify
+```
+
+Exit status: **0**. Results: 72 tests; 684/684 measured statements and 534/534
+conditional edges; 20 files with zero hygiene, boundary or complexity violations;
+nine runtime modules type checked with zero errors or warnings; 5/5 mutants
+killed; 72 shuffled-repeat tests; real SDL menu, choice, feedback, retry and quit
+passed. Python 3.14.4, Pygame 2.6.1, SDL 2.32.10, Pyright 1.1.399. The existing
+AVX2 Pygame build warning remains and did not prevent execution.
+
+Current source SHA256: `d09e03f5b988b9a7d5c0d6de51468f23baf6596e7265599043b21cbc73f0a3bf`.
+The authored-case snapshot is
+`d54652c85edd4903636166311adf8c8f128679346f008fa53491a62eee5df31b`;
+previous snapshot: `81ad3e50fb3e97d3a9e7c5016773c6bf4909021e5a1f3b732980354676d3276a`.
+Editor diagnostics MCP is still unavailable for Python buffers without an active
+checker; it is not reported as clean. This is a scripted teaching review, not
+an independent coach certification or a measure of real-match improvement.
