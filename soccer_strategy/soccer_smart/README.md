@@ -44,12 +44,29 @@ PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart --smoke
 ```
 
 Run the full verification gauntlet (tests, 100% statement and branch coverage,
-AST lint/boundaries, Pyright static types, 11/11 mutants, shuffled repeat,
-existing-game preservation, and SDL smoke):
+AST lint/boundaries, Pyright static types, 13/13 mutants, shuffled repeat,
+existing-game preservation, SDL smoke, and GitHub Pages web bundle sync/smoke):
 
 ```sh
 PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify
 ```
+
+### Web version (GitHub Pages and local testing)
+
+A zero-backend HTML5 `<canvas>` web port is generated in
+[docs/soccer_smart/index.html](../../docs/soccer_smart/index.html) (with landing
+page [docs/index.html](../../docs/index.html) and exported catalog bundle in
+[web_export.py](web_export.py)):
+
+```sh
+python3 -m http.server 8000 -d docs
+```
+
+Then open `http://127.0.0.1:8000/soccer_smart/` (or open
+`docs/soccer_smart/index.html` directly in a browser). In the web build, the
+controlled player is labeled `YOU` with second-person prompts so any child can
+play. Touch devices preview a choice route on the first tap and confirm on the
+second tap.
 
 ## Controls and game structure
 

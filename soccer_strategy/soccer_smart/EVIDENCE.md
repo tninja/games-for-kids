@@ -1,3 +1,70 @@
+# Evidence Report -- GitHub Pages Web Migration (Tier 2)
+
+Current report: 2026-11-08. Historical coverage expansion and initial
+implementation reports are preserved below.
+
+- Spec approval: obtained for Q1-Q6 architecture/scope decisions in conversation;
+  detailed scenario test list in [SPEC.md](SPEC.md) authored under the user's
+  "yes. go ahead! also make sure we can locally test the page" and "use Uncle
+  Bob's harness+" instructions.
+- Source SHA256 (excluding `EVIDENCE.md`, bytecode, and `.verification`):
+  `133cbc61822a294c7459741e7a56561ef30315377a0567c980c48e728c366f3f`
+- Toolchain: Python `3.14.4`, Pygame `2.6.1`, Node.js `v24.21.0`, Pyright `1.1.399`
+- Entry point: `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify`
+- Local web server: `python3 -m http.server 8000 -d docs` (or open
+  [docs/soccer_smart/index.html](../../docs/soccer_smart/index.html) directly)
+
+## Web migration contract to executable checks
+
+| Scenario or invariant | Test or gate | Status |
+| --- | --- | --- |
+| `web_bundle_sync` (5 web files, ASCII/whitespace check, byte-exact `data.json` & `data.js` sync, negative controls) | `WebExportTests.test_committed_docs_bundle_is_complete_and_in_sync`, `WebExportTests.test_export_and_negative_controls_for_missing_whitespace_and_drift`, `verify.static_checks` | pass |
+| `web_player_named_you` (controlled player labeled `YOU` with second-person grammar and zero occurrences of `John` in `docs/`) | `WebExportTests.test_committed_docs_bundle_is_complete_and_in_sync` and mutant `web export skips You personalization` | pass |
+| `web_geometry_parity` (JS `positions`, `ballHeight`, `cardPositions`, `cardHeight`, `routeDestination`, `transferScene` match Python) | `WebExportTests.test_web_geometry_and_presentation_match_python` | pass |
+| `web_ui_and_touch_controls` (all 7 modules, 65 scenes, 31 cards, 57 book entries render without overflow; touch two-tap preview/confirm; retry preserves first-try score; `localStorage`) | `WebExportTests.test_web_ui_touch_two_tap_book_and_local_storage`, `verify.real_execution` (`web_smoke_exit: 0`) | pass |
+| `local_http_serving` (`ThreadingHTTPServer` serves all 5 static web assets with HTTP 200) | `WebExportTests.test_local_http_serving_delivers_all_static_assets` | pass |
+| `preserve_existing_games` (54 John/Luke files, `content.py`, `drawing.py`, `quality.py`, and 33741-byte Org prefix preserved) | `verify.static_checks` (`_check_docs_and_preservation`) | pass |
+
+## Fresh gauntlet results (2026-11-08 Web Migration)
+
+| Layer | Command or gate | Numeric result |
+| --- | --- | --- |
+| Full test suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify` (`tests_and_coverage`) | 57 passed, 0 failed, 0 errors |
+| Runtime & web-export coverage | `tests_and_coverage` | 1112/1112 statements (100%), 1090/1090 branch edges (100%) across 14 modules |
+| Lint, boundaries, docs, web sync, preservation | `lint_boundaries_complexity` | 29 Python files (0 violations, <=60 lines/fn, <=15 decisions/fn), 8 docs, 47 local links, 5 web files in sync (65 scenes, 31 cards, 57 lessons), 54/54 sibling files preserved |
+| Static types | `types` (Pyright 1.1.399) | 14 files analyzed, 0 errors, 0 warnings; bad-type negative control rejected |
+| Mutation testing | `mutation` | 13/13 mutants applied, executed, and killed (including `web export drops book scenes` and `web export skips You personalization`) |
+| Suite health | `suite_health` | 57/57 repeated tests in shuffled order, 0 failures |
+| Real execution (SDL + Node web smoke) | `real_execution` | `soccer_smart` SDL smoke exit 0, `john` SDL smoke exit 0, Node `app.js` web smoke exit 0 |
+| Whitespace check | `git diff --check` | exit 0 |
+
+## Maintainability review (Web Migration)
+
+- **Semantic duplication**: Python remains the single source of truth for all
+  65 scenes, 31 cards, 57 book lessons, sections, and theme groups;
+  [web_export.py](web_export.py) serializes them deterministically into
+  `docs/soccer_smart/data.json` and `docs/soccer_smart/data.js`, verified on
+  every `verify.py` run.
+- **Responsibility placement**: [web_export.py](web_export.py) has zero Pygame
+  or network imports (enforced by `boundaries()`), and the browser runtime lives
+  cleanly under `docs/soccer_smart/` without altering any desktop Pygame module.
+- **Dependency direction & change radius**: `drawing.py`, `quality.py`,
+  `content.py`, `app.py`, and all 54 `john`/`luke` files are 100% untouched.
+- **Failures encountered and resolved**:
+  1. Initial `json.loads()` vs `asdict()` comparison in `test_web.py` differed
+     on Python `tuple` vs JSON `list` types; resolved by comparing against the
+     canonical JSON bundle `json.loads(format_bundle(build_web_payload())[0])`.
+  2. Top-level import of `verify_web_export` in `verify.py` loaded domain
+     modules before `sys.settrace(sensor.trace)` started in
+     `unit_and_coverage()`; moved the import inside `static_checks()` so all
+     1109 statements and 1090 branch edges are traced from module load.
+- **Sensor status & limits**: All computational sensors are `clean` except Emacs
+  MCP `diagnostics_baseline` (`baseline_unavailable` because stale buffers
+  `soccer_strategy/soccer_smart/content.py` and `soccer_strategy/app.py` have
+  `no_active_backend`; `get_diagnostics(since="baseline")` was run after every
+  edit and returned `no_baseline`, with open buffer `README.md` reporting
+  `flycheck` state `ready`).
+
 # Evidence Report -- 2016 Public-index Coverage Expansion (Tier 2)
 
 Current report: 2026-11-08. Earlier implementation evidence below is historical.

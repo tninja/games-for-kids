@@ -1,5 +1,56 @@
 # Approved specification -- Soccer Smart Lab
 
+## GitHub Pages Web Migration Contract - 2026-11-08
+
+The user approved all Q1-Q6 architecture and scope recommendations (Q1=A Python
+exports static JSON + native HTML5 `<canvas>` / JS frontend; Q2=A zero-backend
+pure static architecture with `localStorage`; Q3=A host in `games-for-kids`
+GitHub Pages; Q4=A commit `docs/soccer_smart/` and verify synchronization in
+`verify.py`; Q5=A mouse hover preview + click confirm and touch first-tap
+preview + second-tap confirm; Q6=A full 7-module migration plus `docs/index.html`
+landing page) and asked to implement it with local testing and Uncle Bob's
+Coding Agent Harness+. The high-level specification was approved by the user;
+the detailed test list below is authored under that instruction.
+
+```gherkin
+Feature: Zero-backend GitHub Pages web version of Soccer Smart Lab
+
+  Scenario: Deterministic Python-to-web bundle export and sync gate (web_bundle_sync)
+    Given the canonical Python catalogs (36 starter scenes, 29 book scenes, 7 starter cards, 24 book cards, 57 book lessons)
+    When build_web_payload() and export_web() generate docs/soccer_smart/data.json and docs/soccer_smart/data.js
+    Then verify_web_export() confirms all 5 required web files exist, are clean ASCII without trailing whitespace, and match the live Python catalog byte-for-byte
+    And missing files, non-ASCII/trailing-whitespace characters, or out-of-sync JSON/JS bundles raise ValueError
+
+  Scenario: Web geometry and presentation match Python across scenes and cards (web_geometry_parity)
+    Given docs/soccer_smart/app.js loaded in Node.js alongside Python presentation.py
+    When comparing positions(), ballHeight(), cardPositions(), cardHeight(), routeDestination(), and transferScene() across authored scenes and cards
+    Then JavaScript and Python coordinates and heights agree within 1e-9 across observe, decide, outcome, feedback, and coach phases
+
+  Scenario: All 7 modules, 65 scenes, 31 cards, and 57 book topics render without overflow (web_ui_and_touch_controls)
+    Given SoccerSmartWebApp initialized with docs/soccer_smart/data.json and a 1280x880 2D canvas context
+    When exercising all 7 menu entries, 65 tactical scenes across all phases/choices, 31 practice cards, and 57 book companion topics
+    Then layoutErrors remains empty on every screen
+    And on touch input in the decide phase, the first tap on a choice previews its gold route without leaving decide, and the second tap on the same choice commits the action
+    And retry preserves first-attempt scores while localStorage records practiced scenes
+
+  Scenario: Local static file and HTTP server testing (local_http_serving)
+    Given the static site in docs/
+    When served over a local Python HTTP server on 127.0.0.1 or opened via data.js bundle
+    Then /index.html, /soccer_smart/index.html, /soccer_smart/app.js, /soccer_smart/data.json, and /soccer_smart/data.js return HTTP 200 with valid contents
+
+  Scenario: Web version personalizes player identity from John to You (web_player_named_you)
+    Given the exported web bundle and HTML/JS files in docs/
+    When inspecting all actor keys/labels, cues, outcomes, explanations, card summaries, and UI legends in the web build
+    Then the controlled player is labeled "YOU" (key "you") with second-person grammar ("You ...", "your ...") and zero occurrences of "John" remain in docs/
+    And the desktop Python game files retain "John" / "JOHN" unchanged
+```
+
+Negative constraints:
+- All 54 `john` and `luke` files, `content.py`, `drawing.py`, `quality.py`, and
+  the original Org prefix retain their exact SHA256 hashes.
+- Existing Pygame runtime and tests remain untouched and green.
+- Zero external npm packages or backend services introduced.
+
 ## Coverage expansion contract - 2026-11-07
 
 The user requests checking design and play against the 2016 book and adding

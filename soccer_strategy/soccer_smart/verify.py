@@ -21,6 +21,7 @@ from typing import Any, Callable
 from .quality import Coverage, RUNTIME, boundaries, lint
 
 PACKAGE = Path(__file__).resolve().parent
+CHECKED_MODULES = (*RUNTIME, "web_export.py")
 ROOT = PACKAGE.parent.parent
 ARTIFACTS = PACKAGE / ".verification"
 COMMANDS: list[dict[str, Any]] = []
@@ -57,6 +58,12 @@ MUTANTS = (
      'OFFSIDE, 20. if behind_ball else 30.)', 'OFFSIDE, 30.)'),
     ("book pagination cannot advance", "book_view.py",
      'self.page + delta', 'self.page'),
+    ("web export drops book scenes", "web_export.py",
+     '"book_scenes": [asdict(s) for s in build_book_scenes()],',
+     '"book_scenes": [],'),
+    ("web export skips You personalization", "web_export.py",
+     "personalized = JOHN_PATTERN.sub(_replace_match, json.dumps(raw_payload))",
+     "personalized = json.dumps(raw_payload)"),
 )
 
 
@@ -79,7 +86,7 @@ def flatten(suite: unittest.TestSuite) -> list[unittest.TestCase]:
 
 
 def unit_and_coverage() -> dict[str, Any]:
-    sensor = Coverage([PACKAGE / name for name in RUNTIME])
+    sensor = Coverage([PACKAGE / name for name in CHECKED_MODULES])
     prior = sys.gettrace()
     try:
         sys.settrace(sensor.trace)
@@ -149,14 +156,17 @@ def _check_docs_and_preservation() -> dict[str, int]:
 
 
 def static_checks() -> dict[str, int]:
+    from .web_export import verify_web_export
+
     files = list(PACKAGE.glob("*.py"))
     failures = {p.name: lint(p.read_text(), p.name) for p in files}
-    for name in RUNTIME:
-        failures[name].extend(boundaries((PACKAGE / name).read_text(), name))
+    for name in CHECKED_MODULES:
+        failures[name].extend(boundaries((PACKAGE / name).read_text(), "model.py" if name == "web_export.py" else name))
     bad = {name: messages for name, messages in failures.items() if messages}
     if bad:
         raise RuntimeError(str(bad))
     doc_stats = _check_docs_and_preservation()
+    web_stats = verify_web_export()
     ledger = (PACKAGE / "BOOK_COVERAGE.md").read_text()
     coverage_stats = check_book_ledger(ledger)
     broken = ledger.replace("bk008", "missing-card", 1)
@@ -170,7 +180,7 @@ def static_checks() -> dict[str, int]:
     else:
         raise RuntimeError("Coverage ledger accepted a wrong destination")
     return {"files": len(files), "violations": 0, "max_function_lines": 60,
-            "max_decisions": 15, **doc_stats, **coverage_stats, "bad_coverage_row_rejected": 1}
+            "max_decisions": 15, **doc_stats, **web_stats, **coverage_stats, "bad_coverage_row_rejected": 1}
 
 
 def check_book_ledger(source: str) -> dict[str, int]:
@@ -205,7 +215,7 @@ def pyright_command() -> list[str]:
 def types() -> dict[str, Any]:
     command = pyright_command()
     config: dict[str, Any] = {
-        "include": [os.path.relpath(PACKAGE / n, ARTIFACTS) for n in RUNTIME],
+        "include": [os.path.relpath(PACKAGE / n, ARTIFACTS) for n in CHECKED_MODULES],
         "extraPaths": [p for p in sys.path if p], "pythonVersion": "3.13",
         "typeCheckingMode": "basic",
     }
@@ -218,7 +228,7 @@ def types() -> dict[str, Any]:
     (ARTIFACTS / "types.json").write_text(json.dumps(raw, indent=2))
     summary = raw["summary"]
     if (run.returncode or summary["errorCount"]
-            or summary["warningCount"] or summary["filesAnalyzed"] != len(RUNTIME)):
+            or summary["warningCount"] or summary["filesAnalyzed"] != len(CHECKED_MODULES)):
         raise RuntimeError(run.stdout)
     control = ARTIFACTS / "typing_control.py"
     control.write_text('value: int = "not an integer"\n')
@@ -239,6 +249,7 @@ def mutations() -> dict[str, Any]:
             root = Path(folder)
             shutil.copytree(PACKAGE, root / "soccer_strategy" / "soccer_smart",
                             ignore=shutil.ignore_patterns("__pycache__", ".verification"))
+            shutil.copytree(ROOT / "docs", root / "docs")
             path = root / "soccer_strategy" / "soccer_smart" / filename
             source = path.read_text()
             if source.count(original) != 1:
@@ -255,6 +266,7 @@ def mutations() -> dict[str, Any]:
                 "soccer_strategy.soccer_smart.test_ui",
                 "soccer_strategy.soccer_smart.test_book",
                 "soccer_strategy.soccer_smart.test_book_ui",
+                "soccer_strategy.soccer_smart.test_web",
                 "-q",
             ], root)
             killed = run.returncode == 1 and "FAIL:" in run.stdout
@@ -274,8 +286,25 @@ def real_execution() -> dict[str, Any]:
     john_smoke = execute([sys.executable, "-m", "soccer_strategy.john", "--smoke"])
     if john_smoke.returncode or "quit passed" not in john_smoke.stdout:
         raise RuntimeError(john_smoke.stdout)
+    node = shutil.which("node")
+    if not node:
+        raise RuntimeError("UNAVAILABLE: node required for web smoke check")
+    script = (
+        'const fs=require("fs"),d=JSON.parse(fs.readFileSync("docs/soccer_smart/data.json","utf8")),'
+        'w=require("./docs/soccer_smart/app.js"),c={font:"16px sans-serif",measureText:(s)=>({width:s.length*7}),'
+        'fillText(){},fillRect(){},strokeRect(){},beginPath(){},roundRect(){},rect(){},fill(){},stroke(){},'
+        'arc(){},ellipse(){},moveTo(){},lineTo(){},closePath(){}},'
+        'a=new w.SoccerSmartWebApp(d,{getContext:()=>c},{getItem:()=>null,setItem(){}});'
+        'a.activate("stage:1");a.handleKeyDown(" ");a.handlePointerDown([850,440],"touch");'
+        'a.handlePointerDown([850,440],"touch");a.handleKeyDown(" ");a.activate("book");a.draw();'
+        'if(a.layoutErrors.length)process.exit(1);console.log("web smoke passed");'
+    )
+    web_smoke = execute([node, "-e", script])
+    if web_smoke.returncode or "web smoke passed" not in web_smoke.stdout:
+        raise RuntimeError(web_smoke.stdout)
     return {"exit_code": run.returncode, "screenshot": "feedback.png",
-            "output": run.stdout.strip(), "john_smoke_exit": john_smoke.returncode}
+            "output": run.stdout.strip(), "john_smoke_exit": john_smoke.returncode,
+            "web_smoke_exit": web_smoke.returncode}
 
 
 def source_hash() -> str:
