@@ -20,23 +20,23 @@ git diff --check
 
 - Spec approval: obtained during grilling for web architecture and `"You"` personalization; detailed Gherkin assertions in [SPEC.md](SPEC.md) authored under user instruction ("go ahead and convert soccer_smarter as well").
 - Final package SHA256 (excluding `EVIDENCE.md`, bytecode and `.verification`):
-  `7010ee7110f620a68b2cf84a205ebd57b2ab0a3dcb18e6aa4fe8a542299c92bc`.
+  `38545f698598b953a8e1c02c6b308f6a5f11085a36f21658d9e99feee841b5e5`.
 - Design SHA256 (excluding `EVIDENCE.md`):
-  `0fc6622798841b465138eac93995f9764bc8c603f63d51c5bdd1003df1fa8b2d`.
+  `319491d2832105c09b7d8a25396ed6af7b8bfacbb48c55a3f02b968ba868ff68`.
 - Toolchain: Python 3.14.4, Pygame 2.6.1 / SDL 2.32.10, Node.js v24.21.0, cached Pyright 1.1.399.
 
 ## Fresh gauntlet results
 
 | Layer | Command | Numeric result |
 | --- | --- | --- |
-| Full new-game + web suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smarter.verify` | 55 tests passed; 0 failures, 0 errors |
+| Full new-game + web suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smarter.verify` | 56 tests passed; 0 failures, 0 errors |
 | Runtime statement coverage | `verify.py` (`tests_and_coverage`) | 729/729 statements (100%) across 8 runtime modules; 0 missing |
 | Runtime conditional edges | `verify.py` (`tests_and_coverage`) | 746/746 branch edges (100%); 0 missing |
 | Static types | `verify.py` (`types`, Pyright 1.1.399) | 8 runtime modules; 0 errors, 0 warnings; 1/1 bad control rejected |
 | Lint / boundaries / complexity | `verify.py` (`static_checks`) | 18 Python files, 0 violations; <= 60 lines / <= 15 decisions; 2/2 bad controls rejected |
-| Document, coaching, and web bundle | `verify.py` (`static_checks`) | 7 docs, 38 local links, 10 mission mappings, 28 nodes / 84 choices, 5 web files (7 missions, 14 episodes, 3 notebook activities) in sync; 4/4 bad controls rejected |
+| Document, coaching, and web bundle | `verify.py` (`static_checks`) | 7 docs, 39 local links, 10 mission mappings, 28 nodes / 84 choices, 5 web files (7 missions, 14 episodes, 3 notebook activities) in sync; 4/4 bad controls rejected |
 | Mutation testing | `verify.py` (`mutations`) | 8/8 scripted mutants (including 2 web export/personalization mutants) uniquely applied, executed and killed |
-| Suite health | `verify.py` (`suite_health`) | 55 tests repeated in seeded shuffled order; 0 failures |
+| Suite health | `verify.py` (`suite_health`) | 56 tests repeated in seeded shuffled order; 0 failures |
 | Real SDL + Node web execution | `verify.py` (`real_execution`) | All 4 games (`soccer_smarter`, `soccer_smart`, `john`, `luke`) `--smoke` plus `web_smarter` Node smoke and local HTTP server test exited 0 |
 | Preservation / whitespace | `verify.py` + `git diff --check` | 56 preserved `john`/`luke`/shared-primitive files and Org prefix intact; `git diff --check` exit 0 |
 

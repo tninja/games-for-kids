@@ -304,4 +304,10 @@ Feature: Zero-backend GitHub Pages web version of Soccer Smarter Lab
     Given the static site in docs/
     When served over a local Python HTTP server on 127.0.0.1
     Then /index.html, /soccer_smarter/index.html, /soccer_smarter/app.js, /soccer_smarter/data.json, and /soccer_smarter/data.js return HTTP 200
+
+  Scenario: iPhone and mobile portrait readability mode (smarter_mobile_portrait_readability)
+    Given docs/soccer_smarter/index.html and docs/soccer_smarter/app.js on an iPhone or narrow/portrait viewport
+    When mobileMode is enabled on SoccerSmarterWebApp
+    Then the canvas crops to the 764x696 pitch region with Retina devicePixelRatio scaling so the pitch fills the screen width
+    And mobileState() provides native HTML text (badge, title, subtitle, body, note) and full-width touch buttons in #mobile-panel without disabling user pinch-zoom
 ```

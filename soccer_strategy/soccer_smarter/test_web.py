@@ -154,6 +154,37 @@ class SmarterWebExportTests(unittest.TestCase):
                              capture_output=True, text=True)
         self.assertGreaterEqual(json.loads(run.stdout)["saved"], 1)
 
+    def test_mobile_portrait_state_and_iphone_readability(self) -> None:
+        html = (DEFAULT_DOCS / "soccer_smarter/index.html").read_text(encoding="utf-8")
+        self.assertNotIn("user-scalable=no", html)
+        self.assertIn('id="mobile-panel"', html)
+        node = shutil.which("node")
+        self.assertIsNotNone(node)
+        assert node is not None
+        script = (
+            'const fs=require("fs"),d=JSON.parse(fs.readFileSync("docs/soccer_smarter/data.json","utf8")),'
+            'w=require("./docs/soccer_smarter/app.js"),'
+            'ctx={font:"16px sans-serif",measureText:(s)=>({width:s.length*7.2}),fillText(){},'
+            'fillRect(){},strokeRect(){},beginPath(){},roundRect(){},rect(){},fill(){},stroke(){},'
+            'arc(){},ellipse(){},moveTo(){},lineTo(){},closePath(){},save(){},restore(){},translate(){},scale(){}},'
+            'app=new w.SoccerSmarterWebApp(d,{getContext:()=>ctx},null);'
+            'app.setMobileMode(true);app.draw();'
+            'const m0=app.mobileState();'
+            'app.activate("M01");app.activate("skip");app.touchPreviewChoice=0;'
+            'const m1=app.mobileState();'
+            'app.activate("choice:0");app.activate("skip");'
+            'const m2=app.mobileState();'
+            'app.activate("X01");const m3=app.mobileState();'
+            'console.log(JSON.stringify({m0:m0.title,m1:m1.note,m2:m2.title,m3:m3.title,err:app.layoutErrors.length}));'
+        )
+        run = subprocess.run([node, "-e", script], cwd=DEFAULT_DOCS.parent, check=True,
+                             capture_output=True, text=True)
+        out = json.loads(run.stdout)
+        self.assertEqual(out["err"], 0)
+        self.assertEqual(out["m0"], "Advanced practice")
+        self.assertIn("Tap the same choice again", out["m1"])
+        self.assertIn("My playing principle", out["m3"])
+
     def test_local_http_serving_delivers_all_static_assets(self) -> None:
         handler = partial(SimpleHTTPRequestHandler, directory=str(DEFAULT_DOCS))
         server = ThreadingHTTPServer(("127.0.0.1", 0), handler)

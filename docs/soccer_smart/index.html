@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Soccer Smart Lab - Your Tactical Decisions</title>
   <style>
     :root {
       color-scheme: dark;
       --navy: rgb(14, 29, 40);
       --panel: rgb(24, 44, 57);
+      --card: rgb(34, 59, 73);
+      --border: rgb(67, 95, 107);
       --ink: rgb(231, 241, 244);
       --muted: rgb(157, 181, 190);
       --green: rgb(159, 235, 164);
       --gold: rgb(255, 207, 107);
+      --coral: rgb(249, 143, 121);
     }
     * {
       box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
     html, body {
       margin: 0;
@@ -42,6 +44,7 @@
       justify-content: space-between;
       font-size: 0.85rem;
       color: var(--muted);
+      gap: 10px;
     }
     .topbar a {
       color: var(--green);
@@ -50,6 +53,17 @@
     }
     .topbar a:hover {
       text-decoration: underline;
+    }
+    .mobile-nav-btn {
+      display: none;
+      background: var(--card);
+      color: var(--green);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
     }
     .stage-wrap {
       flex: 1;
@@ -71,15 +85,164 @@
       touch-action: manipulation;
       cursor: pointer;
     }
+    #mobile-panel {
+      display: none;
+      width: 100%;
+      max-width: 560px;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 4px 28px 4px;
+    }
+    .mobile-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    #mobile-badge {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.03em;
+      margin-bottom: 4px;
+    }
+    #mobile-title {
+      font-size: 1.22rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      margin: 0 0 6px 0;
+    }
+    #mobile-subtitle {
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    #mobile-body {
+      font-size: 1.02rem;
+      line-height: 1.48;
+      color: var(--ink);
+      white-space: pre-line;
+    }
+    #mobile-note {
+      font-size: 0.92rem;
+      line-height: 1.4;
+      color: var(--gold);
+      margin-top: 8px;
+      white-space: pre-line;
+    }
+    #mobile-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mobile-btn {
+      width: 100%;
+      min-height: 52px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.32;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      white-space: pre-line;
+    }
+    .mobile-btn.previewed {
+      border-color: var(--gold);
+      background: rgb(48, 77, 86);
+    }
+    .mobile-btn-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 0.92rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mobile-btn-text {
+      flex: 1;
+    }
+    .mobile-btn-pill {
+      flex-shrink: 0;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--navy);
+      background: var(--gold);
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+    @media (max-width: 900px), (orientation: portrait) {
+      html, body {
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+      }
+      .topbar {
+        max-width: 560px;
+        padding: 10px 12px 6px 12px;
+        font-size: 0.95rem;
+      }
+      #status-hint {
+        display: none;
+      }
+      .mobile-nav-btn {
+        display: inline-block;
+      }
+      .stage-wrap {
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 4px 10px 24px 10px;
+      }
+      canvas#game-canvas {
+        width: 100%;
+        max-width: 560px;
+        max-height: none;
+        aspect-ratio: 740 / 660;
+      }
+      #mobile-panel {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
   <header class="topbar">
-    <a href="../index.html">&lt;- All Games</a>
+    <div>
+      <a href="../index.html">&lt;- All Games</a>
+      <span style="margin: 0 8px;">|</span>
+      <a href="../soccer_smarter/index.html">Soccer Smarter</a>
+    </div>
     <span id="status-hint">Keys: 1-7, SPACE (skip), C (coach), R (retry), N (next), B (book), ESC (menu) | Touch: tap choice to preview, tap again to confirm</span>
+    <button type="button" id="mobile-menu-btn" class="mobile-nav-btn">Menu</button>
   </header>
   <div class="stage-wrap">
     <canvas id="game-canvas" width="1280" height="880" aria-label="Soccer Smart Lab tactical pitch and controls"></canvas>
+    <section id="mobile-panel" aria-live="polite">
+      <div class="mobile-card">
+        <div id="mobile-badge"></div>
+        <h2 id="mobile-title"></h2>
+        <div id="mobile-subtitle"></div>
+        <div id="mobile-body"></div>
+        <div id="mobile-note"></div>
+      </div>
+      <div id="mobile-buttons"></div>
+    </section>
   </div>
   <script src="data.js"></script>
   <script src="app.js"></script>

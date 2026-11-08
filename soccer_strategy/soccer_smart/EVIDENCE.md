@@ -8,7 +8,7 @@ implementation reports are preserved below.
   "yes. go ahead! also make sure we can locally test the page" and "use Uncle
   Bob's harness+" instructions.
 - Source SHA256 (excluding `EVIDENCE.md`, bytecode, and `.verification`):
-  `133cbc61822a294c7459741e7a56561ef30315377a0567c980c48e728c366f3f`
+  `ad1d43f1c3619e6ce1722533bac9dbdb1e27fae49f9a7def5c2bce28dbafd8e3`
 - Toolchain: Python `3.14.4`, Pygame `2.6.1`, Node.js `v24.21.0`, Pyright `1.1.399`
 - Entry point: `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify`
 - Local web server: `python3 -m http.server 8000 -d docs` (or open
@@ -22,6 +22,7 @@ implementation reports are preserved below.
 | `web_player_named_you` (controlled player labeled `YOU` with second-person grammar and zero occurrences of `John` in `docs/`) | `WebExportTests.test_committed_docs_bundle_is_complete_and_in_sync` and mutant `web export skips You personalization` | pass |
 | `web_geometry_parity` (JS `positions`, `ballHeight`, `cardPositions`, `cardHeight`, `routeDestination`, `transferScene` match Python) | `WebExportTests.test_web_geometry_and_presentation_match_python` | pass |
 | `web_ui_and_touch_controls` (all 7 modules, 65 scenes, 31 cards, 57 book entries render without overflow; touch two-tap preview/confirm; retry preserves first-try score; `localStorage`) | `WebExportTests.test_web_ui_touch_two_tap_book_and_local_storage`, `verify.real_execution` (`web_smoke_exit: 0`) | pass |
+| `mobile_portrait_readability` (iPhone/mobile portrait mode crops `<canvas>` to `740x660` pitch region with HiDPI `devicePixelRatio` and renders native HTML text/buttons in `#mobile-panel` without `user-scalable=no`) | `WebExportTests.test_mobile_portrait_state_and_iphone_readability` | pass |
 | `local_http_serving` (`ThreadingHTTPServer` serves all 5 static web assets with HTTP 200) | `WebExportTests.test_local_http_serving_delivers_all_static_assets` | pass |
 | `preserve_existing_games` (54 John/Luke files, `content.py`, `drawing.py`, `quality.py`, and 33741-byte Org prefix preserved) | `verify.static_checks` (`_check_docs_and_preservation`) | pass |
 
@@ -29,12 +30,12 @@ implementation reports are preserved below.
 
 | Layer | Command or gate | Numeric result |
 | --- | --- | --- |
-| Full test suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify` (`tests_and_coverage`) | 57 passed, 0 failed, 0 errors |
+| Full test suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify` (`tests_and_coverage`) | 58 passed, 0 failed, 0 errors |
 | Runtime & web-export coverage | `tests_and_coverage` | 1112/1112 statements (100%), 1090/1090 branch edges (100%) across 14 modules |
 | Lint, boundaries, docs, web sync, preservation | `lint_boundaries_complexity` | 29 Python files (0 violations, <=60 lines/fn, <=15 decisions/fn), 8 docs, 47 local links, 5 web files in sync (65 scenes, 31 cards, 57 lessons), 54/54 sibling files preserved |
 | Static types | `types` (Pyright 1.1.399) | 14 files analyzed, 0 errors, 0 warnings; bad-type negative control rejected |
 | Mutation testing | `mutation` | 13/13 mutants applied, executed, and killed (including `web export drops book scenes` and `web export skips You personalization`) |
-| Suite health | `suite_health` | 57/57 repeated tests in shuffled order, 0 failures |
+| Suite health | `suite_health` | 58/58 repeated tests in shuffled order, 0 failures |
 | Real execution (SDL + Node web smoke) | `real_execution` | `soccer_smart` SDL smoke exit 0, `john` SDL smoke exit 0, Node `app.js` web smoke exit 0 |
 | Whitespace check | `git diff --check` | exit 0 |
 

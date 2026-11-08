@@ -151,6 +151,12 @@ Feature: Soccer Smart Lab tactical decision trainer and practice cards
     Given the Pygame App running with SDL dummy video/audio drivers
     When exercising menu navigation, all 36 scenes, hover previews, feedback overlays, coach demo, retry, summary, practice cards, window scaling, and "--smoke"
     Then Painter records zero text overflow errors across all scenes and cards, and the smoke command exits 0
+
+  Scenario: iPhone and mobile portrait readability mode (mobile_portrait_readability)
+    Given docs/soccer_smart/index.html and docs/soccer_smart/app.js on an iPhone or narrow/portrait viewport
+    When mobileMode is enabled on SoccerSmartWebApp
+    Then the canvas crops to the 764x696 pitch region with Retina devicePixelRatio scaling so the pitch fills the screen width
+    And mobileState() provides native HTML text (badge, title, subtitle, body, note) and full-width touch buttons in #mobile-panel without disabling user pinch-zoom
 ```
 
 ## Negative constraints and preservation

@@ -668,6 +668,7 @@
     this.storedResults = loadStoredResults(storage);
     this.hover = [-1, -1];
     this.touchPreviewChoice = null;
+    this.mobileMode = false;
     this.layoutErrors = [];
     this.menuItems = data.missions.map(function (m) {
       return [m.title, "mission:" + m.id];
@@ -876,45 +877,182 @@
     }
   };
 
+  SoccerSmarterWebApp.prototype.setMobileMode = function (flag) {
+    this.mobileMode = Boolean(flag);
+  };
+
+  SoccerSmarterWebApp.prototype.mobileState = function () {
+    var self = this;
+    var btns = this.buttons().map(function (b) {
+      return {
+        label: b.label,
+        action: b.action,
+        number: b.number,
+        previewed: self.page === "game" && self.session !== null && self.session.phase === "decide" && self.touchPreviewChoice !== null && b.action === "choice:" + self.touchPreviewChoice
+      };
+    });
+    if (this.page === "basics") {
+      return {
+        badge: "BASICS REVIEW",
+        title: "The basics are already here",
+        subtitle: "Soccer Smart Lab",
+        body: "Soccer Smart Lab covers receiving, passing, space, support and defending.\nTap 'Soccer Smart Basics' in the top bar to open it.",
+        note: "",
+        buttons: btns
+      };
+    }
+    if (this.page === "notebook") {
+      var book = this.notebook;
+      if (book.activity === null) {
+        return {
+          badge: "GROWTH NOTEBOOK / UNSCORED",
+          title: "My growth notebook",
+          subtitle: "Optional reflection and pro study",
+          body: "Optional. Unscored. Saved only while this app stays open.",
+          note: "",
+          buttons: btns
+        };
+      }
+      var step = book.step;
+      var entries = book.entries[book.activity];
+      var notes = Object.keys(entries).map(function (k) {
+        return k.charAt(0).toUpperCase() + k.slice(1) + ": " + entries[k];
+      }).join("\n");
+      return {
+        badge: book.activity + " / GROWTH NOTEBOOK",
+        title: step ? step.title : "Activity complete",
+        subtitle: step ? step.prompt : "Your next step is yours to choose. No stars added or removed.",
+        body: notes || "No entries yet. You may skip any step.",
+        note: "",
+        buttons: btns
+      };
+    }
+    if (this.page !== "game" || this.session === null) {
+      return {
+        badge: "SOCCER SMARTER LAB",
+        title: "Advanced practice",
+        subtitle: "7 missions / A and B contrasts",
+        body: "Notice a cue. Choose. Watch what changes. Adapt.",
+        note: "Blue = teammates / Coral = opponents / Green ring = player you control.",
+        buttons: btns
+      };
+    }
+    var s = this.session;
+    if (s.phase === "summary") {
+      var sum = s.summary();
+      return {
+        badge: s.mission + " COMPLETE",
+        title: "Round complete!",
+        subtitle: "First tries: " + sum[0] + " / " + sum[1] + " fit or workable (Practice choices: " + sum[2] + ")",
+        body: "Only decisions on your initial path enter the total. New retry branches are practice.",
+        note: "",
+        buttons: btns
+      };
+    }
+    if (s.phase === "feedback") {
+      var ch = s.feedback;
+      var titles = ["Notice the risk", "A workable option", "Fits this picture"];
+      var note = s.practiceOnly ? "Practice choice. First attempts stay saved." : "First attempt saved for this decision.";
+      var dest = ch.next_node ? "Next: a new cue in this play." : "This branch ends here. Continue for the next contrast or summary.";
+      return {
+        badge: s.episode.id + " / " + s.node.title,
+        title: titles[ch.rating],
+        subtitle: s.episode.title + " (Role: " + s.node.role + ")",
+        body: ch.feedback,
+        note: note + "\n" + dest,
+        buttons: btns
+      };
+    }
+    if (s.phase === "predict") {
+      return {
+        badge: s.episode.id + " / PREDICTION",
+        title: "Your unscored prediction",
+        subtitle: s.episode.title,
+        body: "After the pass, will the defender follow it or hold the central lane?",
+        note: "Either prediction advances. Watch for evidence before your second decision.",
+        buttons: btns
+      };
+    }
+    var bodyText = s.node.cue;
+    if (s.episode.prediction && s.node.id === "adapt") {
+      var predLabel = ["Follow the pass", "Hold the central lane"][s.prediction || 0];
+      bodyText = "You predicted: " + predLabel + "\nObserved: " + s.episode.reveal + "\n\n" + s.node.cue;
+    }
+    var hint = s.phase === "decide"
+      ? (this.touchPreviewChoice !== null
+        ? "Route previewed on pitch. Tap the same choice again to confirm."
+        : "Tap a choice once to preview its route on the pitch, then tap again to confirm.")
+      : (s.paused ? "Paused" : (s.phase === "coach" ? "Watch the coach" : "Watch what changes"));
+    return {
+      badge: s.episode.id + " / " + s.node.title,
+      title: s.episode.title,
+      subtitle: "Your role: " + s.node.role,
+      body: bodyText,
+      note: hint,
+      buttons: btns
+    };
+  };
+
   SoccerSmarterWebApp.prototype.draw = function () {
     var p = new Painter(this.ctx);
     this.ctx.fillStyle = NAVY;
     this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    p.text("SOCCER SMARTER LAB", { x: 30, y: 27, width: 870, height: 54 }, 48, INK);
-    p.text("Notice a cue. Choose. Watch what changes. Adapt.", { x: 32, y: 87, width: 850, height: 34 }, 27, MUTED);
+    if (this.mobileMode && this.ctx.save) {
+      this.ctx.save();
+      this.ctx.translate(-28, -130);
+    }
+    if (!this.mobileMode) {
+      p.text("SOCCER SMARTER LAB", { x: 30, y: 27, width: 870, height: 54 }, 48, INK);
+      p.text("Notice a cue. Choose. Watch what changes. Adapt.", { x: 32, y: 87, width: 850, height: 34 }, 27, MUTED);
+    }
     var role = this.page === "game" && this.session !== null ? this.session.node.role : "";
     drawPitch(p, role);
-    p.panel(SIDE, PANEL, 18);
+    if (!this.mobileMode) {
+      p.panel(SIDE, PANEL, 18);
+    }
     if (this.page === "game" && this.session !== null) {
       this._drawGame(p);
     } else if (this.page === "notebook") {
-      this._drawNotebook(p);
+      if (!this.mobileMode) {
+        this._drawNotebook(p);
+      } else {
+        p.text("NOTICE\nREFLECT\nTRY AGAIN", { x: 110, y: 330, width: 570, height: 290 }, 64, GREEN);
+      }
     } else if (this.page === "basics") {
-      this._drawBasics(p);
+      if (!this.mobileMode) {
+        this._drawBasics(p);
+      }
     } else {
-      p.text("Advanced practice", { x: 814, y: 150, width: 410, height: 42 }, 35, GREEN);
-      p.text("7 missions / A and B contrasts\nOptional growth and pro study", { x: 814, y: 188, width: 410, height: 50 }, 22, INK);
+      if (!this.mobileMode) {
+        p.text("Advanced practice", { x: 814, y: 150, width: 410, height: 42 }, 35, GREEN);
+        p.text("7 missions / A and B contrasts\nOptional growth and pro study", { x: 814, y: 188, width: 410, height: 50 }, 22, INK);
+      }
       p.text("LOOK\nCHOOSE\nADAPT", { x: 130, y: 330, width: 540, height: 300 }, 80, GREEN);
     }
-    var btns = this.buttons();
-    for (var i = 0; i < btns.length; i++) {
-      var item = btns[i];
-      var isTouchPreview = (
-        this.page === "game" &&
-        this.session !== null &&
-        this.session.phase === "decide" &&
-        this.touchPreviewChoice !== null &&
-        item.action === "choice:" + this.touchPreviewChoice
+    if (!this.mobileMode) {
+      var btns = this.buttons();
+      for (var i = 0; i < btns.length; i++) {
+        var item = btns[i];
+        var isTouchPreview = (
+          this.page === "game" &&
+          this.session !== null &&
+          this.session.phase === "decide" &&
+          this.touchPreviewChoice !== null &&
+          item.action === "choice:" + this.touchPreviewChoice
+        );
+        p.button(item, collidePoint(item.rect, this.hover), isTouchPreview);
+      }
+      p.text(
+        "Blue: teammates / Coral: opponents / Gold: keeper\nGreen ring: the player you control",
+        { x: 32, y: 827, width: 740, height: 50 },
+        22,
+        MUTED
       );
-      p.button(item, collidePoint(item.rect, this.hover), isTouchPreview);
+      p.text("Untimed choices. Practice is welcome.", { x: 814, y: 837, width: 430, height: 30 }, 22, MUTED);
     }
-    p.text(
-      "Blue: teammates / Coral: opponents / Gold: keeper\nGreen ring: the player you control",
-      { x: 32, y: 827, width: 740, height: 50 },
-      22,
-      MUTED
-    );
-    p.text("Untimed choices. Practice is welcome.", { x: 814, y: 837, width: 430, height: 30 }, 22, MUTED);
+    if (this.mobileMode && this.ctx.restore) {
+      this.ctx.restore();
+    }
     this.layoutErrors = p.errors;
   };
 
@@ -932,6 +1070,9 @@
       hovered = this.touchPreviewChoice;
     }
     drawWorld(p, s, hovered);
+    if (this.mobileMode) {
+      return;
+    }
     p.text(s.episode.title, { x: 814, y: 162, width: 410, height: 50 }, 36, GREEN);
     p.text(s.episode.id + " / " + s.node.title, { x: 814, y: 220, width: 410, height: 62 }, 24, INK);
     if (s.phase === "summary") {
@@ -1019,11 +1160,13 @@
     );
   };
 
-  function canvasPoint(canvas, clientX, clientY) {
+  function canvasPoint(canvas, clientX, clientY, mobileMode) {
     var rect = canvas.getBoundingClientRect();
+    var logW = mobileMode ? 740 : WIDTH;
+    var logH = mobileMode ? 660 : HEIGHT;
     return [
-      ((clientX - rect.left) / rect.width) * WIDTH,
-      ((clientY - rect.top) / rect.height) * HEIGHT
+      ((clientX - rect.left) / rect.width) * logW + (mobileMode ? 28 : 0),
+      ((clientY - rect.top) / rect.height) * logH + (mobileMode ? 130 : 0)
     ];
   }
 
@@ -1036,14 +1179,98 @@
       return;
     }
     var app = new SoccerSmarterWebApp(window.SOCCER_SMARTER_DATA, canvas, window.localStorage);
+    var mobileBadge = document.getElementById("mobile-badge");
+    var mobileTitle = document.getElementById("mobile-title");
+    var mobileSubtitle = document.getElementById("mobile-subtitle");
+    var mobileBody = document.getElementById("mobile-body");
+    var mobileNote = document.getElementById("mobile-note");
+    var mobileButtons = document.getElementById("mobile-buttons");
+    var mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    var lastMobileKey = "";
+
+    function syncViewport() {
+      var isMobile = window.innerWidth <= 900 || window.innerHeight > window.innerWidth;
+      var dpr = Math.min(window.devicePixelRatio || 1, 3);
+      var logW = isMobile ? 740 : WIDTH;
+      var logH = isMobile ? 660 : HEIGHT;
+      app.setMobileMode(isMobile);
+      if (canvas.width !== Math.round(logW * dpr) || canvas.height !== Math.round(logH * dpr)) {
+        canvas.width = Math.round(logW * dpr);
+        canvas.height = Math.round(logH * dpr);
+      }
+      if (app.ctx.setTransform) {
+        app.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
+
+    function syncMobileDom() {
+      if (!app.mobileMode || !mobileButtons) {
+        return;
+      }
+      var st = app.mobileState();
+      var key = JSON.stringify(st);
+      if (key === lastMobileKey) {
+        return;
+      }
+      lastMobileKey = key;
+      mobileBadge.textContent = st.badge || "";
+      mobileTitle.textContent = st.title || "";
+      mobileSubtitle.textContent = st.subtitle || "";
+      mobileBody.textContent = st.body || "";
+      mobileNote.textContent = st.note || "";
+      mobileButtons.innerHTML = "";
+      st.buttons.forEach(function (b) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mobile-btn" + (b.previewed ? " previewed" : "");
+        if (b.number) {
+          var num = document.createElement("span");
+          num.className = "mobile-btn-num";
+          num.textContent = b.number;
+          btn.appendChild(num);
+        }
+        var txt = document.createElement("span");
+        txt.className = "mobile-btn-text";
+        txt.textContent = b.label;
+        btn.appendChild(txt);
+        if (b.previewed) {
+          var pill = document.createElement("span");
+          pill.className = "mobile-btn-pill";
+          pill.textContent = "Tap to confirm";
+          btn.appendChild(pill);
+        }
+        btn.addEventListener("click", function () {
+          if (app.page === "game" && app.session !== null && app.session.phase === "decide" && b.action.indexOf("choice:") === 0) {
+            var idx = parseInt(b.action.split(":")[1], 10);
+            if (app.touchPreviewChoice !== idx) {
+              app.touchPreviewChoice = idx;
+              return;
+            }
+          }
+          app.activate(b.action);
+        });
+        mobileButtons.appendChild(btn);
+      });
+    }
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", function () {
+        app.activate("menu");
+      });
+    }
+    window.addEventListener("resize", syncViewport);
+    syncViewport();
+
     canvas.addEventListener("pointermove", function (ev) {
       if (ev.pointerType !== "touch") {
-        app.handlePointerMove(canvasPoint(canvas, ev.clientX, ev.clientY));
+        app.handlePointerMove(canvasPoint(canvas, ev.clientX, ev.clientY, app.mobileMode));
       }
     });
     canvas.addEventListener("pointerdown", function (ev) {
-      ev.preventDefault();
-      app.handlePointerDown(canvasPoint(canvas, ev.clientX, ev.clientY), ev.pointerType || "mouse");
+      if (!app.mobileMode) {
+        ev.preventDefault();
+        app.handlePointerDown(canvasPoint(canvas, ev.clientX, ev.clientY, false), ev.pointerType || "mouse");
+      }
     });
     window.addEventListener("keydown", function (ev) {
       if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(ev.key) !== -1) {
@@ -1059,9 +1286,11 @@
         app.session.tick(dt);
       }
       app.draw();
+      syncMobileDom();
       window.requestAnimationFrame(frame);
     }
     app.draw();
+    syncMobileDom();
     window.requestAnimationFrame(frame);
   }
 
