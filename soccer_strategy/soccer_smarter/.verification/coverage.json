@@ -1,0 +1,58 @@
+{
+  "model.py": {
+    "statements": 112,
+    "covered": 112,
+    "missing_lines": [],
+    "branch_edges": 184,
+    "covered_edges": 184,
+    "missing_edges": []
+  },
+  "content.py": {
+    "statements": 113,
+    "covered": 113,
+    "missing_lines": [],
+    "branch_edges": 210,
+    "covered_edges": 210,
+    "missing_edges": []
+  },
+  "session.py": {
+    "statements": 121,
+    "covered": 121,
+    "missing_lines": [],
+    "branch_edges": 68,
+    "covered_edges": 68,
+    "missing_edges": []
+  },
+  "notebook.py": {
+    "statements": 43,
+    "covered": 43,
+    "missing_lines": [],
+    "branch_edges": 22,
+    "covered_edges": 22,
+    "missing_edges": []
+  },
+  "rendering.py": {
+    "statements": 32,
+    "covered": 32,
+    "missing_lines": [],
+    "branch_edges": 26,
+    "covered_edges": 26,
+    "missing_edges": []
+  },
+  "app.py": {
+    "statements": 227,
+    "covered": 227,
+    "missing_lines": [],
+    "branch_edges": 190,
+    "covered_edges": 190,
+    "missing_edges": []
+  },
+  "main.py": {
+    "statements": 35,
+    "covered": 35,
+    "missing_lines": [],
+    "branch_edges": 16,
+    "covered_edges": 16,
+    "missing_edges": []
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
+  "source_sha256": "3e38a469c0fbbf89943d9b16572e980c1d1611169f05e4d7378b0733d1ca6b3a",
+  "gates": {
+    "tests_and_coverage": {
+      "status": "pass",
+      "result": {
+        "tests": 50,
+        "statements": 683,
+        "branch_edges": 716,
+        "missing": 0
+      }
+    },
+    "coverage_control": {
+      "status": "pass",
+      "result": {
+        "known_uncovered_branch_rejected": 1
+      }
+    },
+    "static_checks": {
+      "status": "pass",
+      "result": {
+        "python_files": 16,
+        "violations": 0,
+        "preserved_game_files": 56,
+        "complexity_limits": "60 lines / 15 decisions",
+        "lint_boundary_controls_rejected": 2,
+        "coaching_ledger": {
+          "decisions": 28,
+          "choices": 84
+        },
+        "bad_coaching_grade_rejected": 1
+      }
+    },
+    "types": {
+      "status": "pass",
+      "result": {
+        "version": "1.1.399",
+        "filesAnalyzed": 7,
+        "errorCount": 0,
+        "warningCount": 0,
+        "informationCount": 0,
+        "timeInSec": 1.283,
+        "negative_control_rejected": 1
+      }
+    },
+    "mutations": {
+      "status": "pass",
+      "result": {
+        "killed": 6,
+        "total": 6
+      }
+    },
+    "suite_health": {
+      "status": "pass",
+      "result": {
+        "tests": 50,
+        "failures": 0
+      }
+    },
+    "real_execution": {
+      "status": "pass",
+      "result": {
+        "soccer_smarter": {
+          "exit_code": 0,
+          "output": "<frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2 capable but pygame was not built with support for it. The performance of some of your blits could be adversely affected. Consider enabling compile time detection with environment variables like PYGAME_DETECT_AVX2=1 if you are compiling without cross compilation.\nSDL smoke: curved route, branches, coach, retry, notebook, prediction, pause and quit passed"
+        },
+        "soccer_smart": {
+          "exit_code": 0,
+          "output": "<frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2 capable but pygame was not built with support for it. The performance of some of your blits could be adversely affected. Consider enabling compile time detection with environment variables like PYGAME_DETECT_AVX2=1 if you are compiling without cross compilation.\nSDL smoke: menu, choices, coach, retry, cards, book topics, offside, patterns and quit passed"
+        },
+        "john": {
+          "exit_code": 0,
+          "output": "<frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2 capable but pygame was not built with support for it. The performance of some of your blits could be adversely affected. Consider enabling compile time detection with environment variables like PYGAME_DETECT_AVX2=1 if you are compiling without cross compilation.\nSDL smoke: menu, choice, feedback, retry and quit passed"
+        },
+        "luke": {
+          "exit_code": 0,
+          "output": "<frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2 capable but pygame was not built with support for it. The performance of some of your blits could be adversely affected. Consider enabling compile time detection with environment variables like PYGAME_DETECT_AVX2=1 if you are compiling without cross compilation.\nLuke SDL smoke: menu, choice, attempt, coach, replay, retry, summary and quit passed"
+        }
+      }
+    }
+  },
+  "commands": [
+    {
+      "command": [
+        "/home/tninja/.nvm/versions/node/v24.21.0/bin/node",
+        "/home/tninja/.cache/uv/wheels-v6/pypi/pyright/1.1.399-py3-none-any/pyright/dist/index.js",
+        "--project",
+        "/home/tninja/Dropbox/git/games-for-kids/soccer_strategy/soccer_smarter/.verification/pyrightconfig.json",
+        "--outputjson"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/tninja/.nvm/versions/node/v24.21.0/bin/node",
+        "/home/tninja/.cache/uv/wheels-v6/pypi/pyright/1.1.399-py3-none-any/pyright/dist/index.js",
+        "--project",
+        "/home/tninja/Dropbox/git/games-for-kids/soccer_strategy/soccer_smarter/.verification/pyrightconfig.json",
+        "--outputjson"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "soccer_strategy.soccer_smarter",
+        "--smoke",
+        "--screenshot",
+        "/home/tninja/Dropbox/git/games-for-kids/soccer_strategy/soccer_smarter/.verification/feedback.png"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "soccer_strategy.soccer_smart",
+        "--smoke"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "soccer_strategy.john",
+        "--smoke"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "soccer_strategy.luke",
+        "--smoke"
+      ],
+      "exit_code": 0
+    }
+  ]
+}
