@@ -1,15 +1,14 @@
-# Book-coverage expansion verification evidence
+# Book-coverage expansion and GitHub Pages web verification evidence
 
-Current delivery: expanded Soccer Smarter Lab after auditing the 2026 book's
-publicly verified themes (publisher records S1-S6 plus the June 2026 *School
-Library Journal* review S7 by Bob Hassett) and [DESIGN.md](DESIGN.md). Added
-three missing tactical mission families - Speed dribble and adapt (M05),
-Penalty-box finish (M06, forward role) and Break the press (M07, defender role)
-- plus the X03 Pro watch and Try It notebook activity (covering Girma, Bonmati,
-Pulisic and Mbappe role study, match-watch focus, solo "Try It" drills,
-six-week goal check-ins and coach-led safe heading boundaries). All seven
-mission families (14 episodes, 28 decision nodes, 84 graded choices) and three
-growth activities are documented in [SCENARIOS.md](SCENARIOS.md) and
+Current delivery: migrated Soccer Smarter Lab to a zero-backend GitHub Pages
+static HTML5 `<canvas>` web version (`docs/soccer_smarter/index.html`,
+`docs/soccer_smarter/app.js`, `docs/soccer_smarter/data.json`,
+`docs/soccer_smarter/data.js`, linked from `docs/index.html`), exported
+deterministically via `web_export.py` and personalized with `"You"` / `"YOU"`
+so any child can play (while preserving desktop Python files). Also includes
+the expanded 7-mission catalog (M01-M07: 14 episodes, 28 decision nodes, 84
+graded choices) and 3 growth activities (X01-X03) documented in
+[DESIGN.md](DESIGN.md), [SCENARIOS.md](SCENARIOS.md) and
 [COACHING_REVIEW.md](COACHING_REVIEW.md). Earlier reports below are historical.
 
 ## Reproduce this verification
@@ -19,42 +18,39 @@ PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smarter.verify
 git diff --check
 ```
 
-- Spec approval: not obtained (autonomous execution under user instruction; confidence downgraded accordingly).
+- Spec approval: obtained during grilling for web architecture and `"You"` personalization; detailed Gherkin assertions in [SPEC.md](SPEC.md) authored under user instruction ("go ahead and convert soccer_smarter as well").
 - Final package SHA256 (excluding `EVIDENCE.md`, bytecode and `.verification`):
-  `26d612dfc14f1fabb42190213cdc4537bbbab91966b9b61c972b7db27428952a`.
+  `7010ee7110f620a68b2cf84a205ebd57b2ab0a3dcb18e6aa4fe8a542299c92bc`.
 - Design SHA256 (excluding `EVIDENCE.md`):
-  `8418db666f47b3ab6e0e6606c4cde4488b2f6b6175e1db16a19053ad174d30f9`.
-- Toolchain: Python 3.14.4, Pygame 2.6.1 / SDL 2.32.10, cached Pyright 1.1.399.
+  `0fc6622798841b465138eac93995f9764bc8c603f63d51c5bdd1003df1fa8b2d`.
+- Toolchain: Python 3.14.4, Pygame 2.6.1 / SDL 2.32.10, Node.js v24.21.0, cached Pyright 1.1.399.
 
 ## Fresh gauntlet results
 
 | Layer | Command | Numeric result |
 | --- | --- | --- |
-| Full new-game suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smarter.verify` | 50 tests passed; 0 failures, 0 errors |
-| Runtime statement coverage | `verify.py` (`tests_and_coverage`) | 683/683 statements (100%); 0 missing |
-| Runtime conditional edges | `verify.py` (`tests_and_coverage`) | 716/716 branch edges (100%); 0 missing |
-| Static types | `verify.py` (`types`, Pyright 1.1.399) | 7 runtime modules; 0 errors, 0 warnings; 1/1 bad control rejected |
-| Lint / boundaries / complexity | `verify.py` (`static_checks`) | 16 Python files, 0 violations; <= 60 lines / <= 15 decisions; 2/2 bad controls rejected |
-| Document and coaching ledger | `verify.py` (`static_checks`) | 7 docs, 33 local links, 10 mission mappings, 28 nodes / 84 choices matched; 4/4 bad controls rejected |
-| Mutation testing | `verify.py` (`mutations`) | 6/6 scripted mutants uniquely applied, executed and killed |
-| Suite health | `verify.py` (`suite_health`) | 50 tests repeated in seeded shuffled order; 0 failures |
-| Real SDL execution | `verify.py` (`real_execution`) | All 4 games (`soccer_smarter`, `soccer_smart`, `john`, `luke`) `--smoke` exited 0 |
+| Full new-game + web suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smarter.verify` | 55 tests passed; 0 failures, 0 errors |
+| Runtime statement coverage | `verify.py` (`tests_and_coverage`) | 729/729 statements (100%) across 8 runtime modules; 0 missing |
+| Runtime conditional edges | `verify.py` (`tests_and_coverage`) | 746/746 branch edges (100%); 0 missing |
+| Static types | `verify.py` (`types`, Pyright 1.1.399) | 8 runtime modules; 0 errors, 0 warnings; 1/1 bad control rejected |
+| Lint / boundaries / complexity | `verify.py` (`static_checks`) | 18 Python files, 0 violations; <= 60 lines / <= 15 decisions; 2/2 bad controls rejected |
+| Document, coaching, and web bundle | `verify.py` (`static_checks`) | 7 docs, 38 local links, 10 mission mappings, 28 nodes / 84 choices, 5 web files (7 missions, 14 episodes, 3 notebook activities) in sync; 4/4 bad controls rejected |
+| Mutation testing | `verify.py` (`mutations`) | 8/8 scripted mutants (including 2 web export/personalization mutants) uniquely applied, executed and killed |
+| Suite health | `verify.py` (`suite_health`) | 55 tests repeated in seeded shuffled order; 0 failures |
+| Real SDL + Node web execution | `verify.py` (`real_execution`) | All 4 games (`soccer_smarter`, `soccer_smart`, `john`, `luke`) `--smoke` plus `web_smarter` Node smoke and local HTTP server test exited 0 |
 | Preservation / whitespace | `verify.py` + `git diff --check` | 56 preserved `john`/`luke`/shared-primitive files and Org prefix intact; `git diff --check` exit 0 |
 
 ## Failures encountered and resolved
 
-1. Expected RED phase: before updating `content.py`, `notebook.py` and `app.py`,
-   the expanded unit suite failed with 2 failures and 6 errors (`M05`..`M07`
-   missing, `X03` unknown, menu count 6 != 9).
-2. Complexity gate failure: initial `speed` and `press_break` builders in
-   `content.py` exceeded the 15-decision AST budget due to repeated inline
-   conditional expressions. Refactored `end`, `role` and `cue` assignments into
-   the existing `if`/`else` contrast blocks, bringing all functions within the
-   60-line / 15-decision budget.
-3. Concurrent sibling modification: a separate user session concurrently added
-   files in `soccer_strategy/soccer_smart`. Updated `SPEC.md` visibly to verify
-   all 54 `john` and `luke` files plus the exact SHA256 hashes of the two
-   reused `soccer_smart` boundary modules (`drawing.py` and `quality.py`).
+1. Expected RED phase (`test_web.py`): against the stub `web_export.py` before
+   creating `docs/soccer_smarter/`, `python3 -m unittest soccer_strategy.soccer_smarter.test_web`
+   failed with 5 errors (`Missing web file: soccer_smarter/index.html`, HTTP 404).
+2. `TITLES` iteration in `web_export.py`: initial `TITLES.items()` raised
+   `AttributeError` because `TITLES` is a 7-tuple of title strings; fixed to
+   `[{"id": f"M0{i + 1}", "title": title} for i, title in enumerate(TITLES)]`.
+3. Trailing blank line in `SPEC.md`: `git diff --check` inside `SPEC.md`'s
+   embedded gate rejected line 308 (`new blank line at EOF`); removed the extra
+   blank line so `git diff --check` exited 0.
 
 ## Sensor status, maintainability review and remaining risks
 
@@ -62,11 +58,11 @@ git diff --check
   `static_checks`, `types`, `mutations`, `suite_health`, `real_execution`,
   `git diff --check`): PASS (`clean`).
 - Editor diagnostics (`diagnostics_baseline` / `get_diagnostics`): UNAVAILABLE
-  (MCP editor diagnostic tools are not exposed in this session environment).
-- Maintainability review: `content.py` owns mission episodes, `notebook.py`
-  owns unscored reflection steps (`X01`-`X03`), and `app.py` maps menu keys
-  `1`-`9` without changing `model.py`, `session.py`, `rendering.py` or shared
-  drawing primitives.
+  (MCP editor diagnostic tools are not exposed in this session environment after server restart).
+- Maintainability review: `web_export.py` is a pure exporter checked under
+  `model.py` boundaries; `docs/soccer_smarter/app.js` mirrors `model.py`,
+  `session.py`, `notebook.py`, `rendering.py` and `app.py` without modifying
+  any existing desktop runtime module or shared drawing primitive.
 - Remaining risk: full chapter bodies for the 2026 book's "more than 50
   techniques" remain unavailable (`FULL_TEXT_PENDING` / `BOOK_BODY_PENDING`).
   All scenarios are `ORIGINAL` teaching schematics informed by publicly

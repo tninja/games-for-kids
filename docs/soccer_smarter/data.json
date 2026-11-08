@@ -1,0 +1,5699 @@
+{
+  "episodes": [
+    {
+      "id": "M01.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "Turning away from A uses the open exit. Look again as A2 moves.",
+              "intent": null,
+              "key": "turn",
+              "label": "Pull back, then take the side exit",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0.0,
+                      "kind": "corner",
+                      "points": [
+                        [
+                          26.0,
+                          54.0
+                        ],
+                        [
+                          26.0,
+                          58.0
+                        ],
+                        [
+                          35.0,
+                          58.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          45.0,
+                          50.0
+                        ],
+                        [
+                          35.0,
+                          54.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "corner",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      26.0,
+                      58.0
+                    ],
+                    [
+                      35.0,
+                      58.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "An open pass also escapes pressure. You do not have to use a trick.",
+              "intent": null,
+              "key": "back",
+              "label": "Pass back to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      43.0,
+                      65.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "The defender already covers that lane. Find an exit before touching forward.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    26.0,
+                    54.0
+                  ],
+                  [
+                    26.0,
+                    40.0
+                  ]
+                ]
+              },
+              "key": "forward",
+              "label": "Carry straight toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          26.0,
+                          54.0
+                        ],
+                        [
+                          26.0,
+                          49.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      26.0,
+                      47.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "A is ahead. BACK is free and the right-side exit is open.",
+          "id": "root",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  26.0,
+                  54.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  43.0,
+                  65.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  26.0,
+                  47.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  45.0,
+                  50.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              26.0,
+              54.0
+            ],
+            "control": "you"
+          },
+          "title": "Check the exit"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "The forward route is closed. A clear support lane keeps possession.",
+              "intent": null,
+              "key": "outlet",
+              "label": "Pass to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      35.0,
+                      58.0
+                    ],
+                    [
+                      43.0,
+                      65.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A2 remains in front. The clear pass is available now.",
+              "intent": null,
+              "key": "hold",
+              "label": "Pause on the ball and scan",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      35.0,
+                      58.0
+                    ],
+                    [
+                      35.0,
+                      58.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The new defender closes this route. Your first escape does not make every lane safe.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    35.0,
+                    58.0
+                  ],
+                  [
+                    35.0,
+                    44.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Carry straight toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          35.0,
+                          58.0
+                        ],
+                        [
+                          35.0,
+                          55.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      35.0,
+                      58.0
+                    ],
+                    [
+                      35.0,
+                      54.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "A2 has moved directly ahead of you. BACK remains open behind and right.",
+          "id": "adapt",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  35.0,
+                  58.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  43.0,
+                  65.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  26.0,
+                  47.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  35.0,
+                  54.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              35.0,
+              58.0
+            ],
+            "control": "you"
+          },
+          "title": "Look again after escaping"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Turn and escape"
+    },
+    {
+      "id": "M01.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "The exit is occupied. Check the side space before choosing the turn.",
+              "intent": null,
+              "key": "turn",
+              "label": "Pull back, then take the side exit",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0.0,
+                      "kind": "corner",
+                      "points": [
+                        [
+                          26.0,
+                          54.0
+                        ],
+                        [
+                          26.0,
+                          58.0
+                        ],
+                        [
+                          35.0,
+                          58.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "corner",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      26.0,
+                      58.0
+                    ],
+                    [
+                      35.0,
+                      58.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "The side exit is blocked. Your teammate gives you a clear outlet.",
+              "intent": null,
+              "key": "back",
+              "label": "Pass back to BACK",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          35.0,
+                          58.0
+                        ],
+                        [
+                          43.0,
+                          60.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "you",
+                    {
+                      "contact": 0.25,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          26.0,
+                          54.0
+                        ],
+                        [
+                          30.0,
+                          60.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      43.0,
+                      65.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "The defender already covers that lane. Find an exit before touching forward.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    26.0,
+                    54.0
+                  ],
+                  [
+                    26.0,
+                    40.0
+                  ]
+                ]
+              },
+              "key": "forward",
+              "label": "Carry straight toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          26.0,
+                          54.0
+                        ],
+                        [
+                          26.0,
+                          49.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      26.0,
+                      54.0
+                    ],
+                    [
+                      26.0,
+                      47.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "A is ahead. A2 occupies the side exit; BACK offers support.",
+          "id": "root",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  26.0,
+                  54.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  43.0,
+                  65.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  26.0,
+                  47.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  35.0,
+                  58.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              26.0,
+              54.0
+            ],
+            "control": "you"
+          },
+          "title": "Check the exit"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "The forward route is closed. A clear support lane keeps possession.",
+              "intent": null,
+              "key": "outlet",
+              "label": "Pass to YOU",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      43.0,
+                      65.0
+                    ],
+                    [
+                      30.0,
+                      60.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A2 remains in front. The clear pass is available now.",
+              "intent": null,
+              "key": "hold",
+              "label": "Pause on the ball and scan",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      43.0,
+                      65.0
+                    ],
+                    [
+                      43.0,
+                      65.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The new defender closes this route. Your first escape does not make every lane safe.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    43.0,
+                    65.0
+                  ],
+                  [
+                    43.0,
+                    51.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Carry straight toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "back",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          43.0,
+                          65.0
+                        ],
+                        [
+                          43.0,
+                          62.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      43.0,
+                      65.0
+                    ],
+                    [
+                      43.0,
+                      60.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Now play BACK. A2 is ahead; YOU are open diagonally left.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  30.0,
+                  60.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  43.0,
+                  65.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  26.0,
+                  47.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  43.0,
+                  60.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              43.0,
+              65.0
+            ],
+            "control": "back"
+          },
+          "title": "Look again after escaping"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Turn and escape"
+    },
+    {
+      "id": "M02.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "The curved route avoids the blocker and reaches your teammate.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "curve",
+                "points": [
+                  [
+                    30.0,
+                    55.0
+                  ],
+                  [
+                    42.0,
+                    31.0
+                  ],
+                  [
+                    65.0,
+                    30.0
+                  ]
+                ]
+              },
+              "key": "curve",
+              "label": "Play the curved route to CM",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          75.0,
+                          20.0
+                        ],
+                        [
+                          69.0,
+                          25.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "curve",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      42.0,
+                      31.0
+                    ],
+                    [
+                      65.0,
+                      30.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "The straight route crosses the defender. Compare both routes before passing.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    30.0,
+                    55.0
+                  ],
+                  [
+                    65.0,
+                    30.0
+                  ]
+                ]
+              },
+              "key": "straight",
+              "label": "Play the straight route to CM",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          75.0,
+                          20.0
+                        ],
+                        [
+                          69.0,
+                          25.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      47.5,
+                      42.5
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "You keep possession, but a clear route reaches the forward teammate.",
+              "intent": null,
+              "key": "back",
+              "label": "Pass back to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      28.0,
+                      68.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "CM offers a forward option; BACK offers a reset. Compare both ground-pass routes.",
+          "id": "root",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  30.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  65.0,
+                  30.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  28.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "support",
+                "label": "M",
+                "position": [
+                  56.0,
+                  38.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  47.5,
+                  42.5
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  75.0,
+                  20.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              30.0,
+              55.0
+            ],
+            "control": "you"
+          },
+          "title": "Choose the route shape"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A2 is goal-side. Your next touch moves away from pressure and toward M.",
+              "intent": null,
+              "key": "touch",
+              "label": "Touch back toward M",
+              "motion": {
+                "actors": [
+                  [
+                    "cm",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          65.0,
+                          30.0
+                        ],
+                        [
+                          60.0,
+                          34.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      60.0,
+                      34.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A2 is still nearby. A touch toward M would create more room.",
+              "intent": null,
+              "key": "shield",
+              "label": "Pause and scan for help",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      65.0,
+                      30.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "Your next touch moves toward the arriving pressure.",
+              "intent": null,
+              "key": "pressure",
+              "label": "Take a touch forward toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "cm",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          65.0,
+                          30.0
+                        ],
+                        [
+                          68.0,
+                          26.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      69.0,
+                      25.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "CM has received; you now play CM. A2 closes from goal-side; M supports behind-left.",
+          "id": "adapt",
+          "role": "receiving midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  30.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  65.0,
+                  30.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  28.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "support",
+                "label": "M",
+                "position": [
+                  56.0,
+                  38.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  47.5,
+                  42.5
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  69.0,
+                  25.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              65.0,
+              30.0
+            ],
+            "control": "cm"
+          },
+          "title": "CM's next touch"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Shape the delivery"
+    },
+    {
+      "id": "M02.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "The curved route crosses the defender. The straight lane is now clear.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "curve",
+                "points": [
+                  [
+                    30.0,
+                    55.0
+                  ],
+                  [
+                    42.0,
+                    31.0
+                  ],
+                  [
+                    65.0,
+                    30.0
+                  ]
+                ]
+              },
+              "key": "curve",
+              "label": "Play the curved route to CM",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          75.0,
+                          20.0
+                        ],
+                        [
+                          69.0,
+                          25.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "curve",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      36.0,
+                      43.0
+                    ],
+                    [
+                      44.75,
+                      36.75
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "The straight lane is clear. Use the simple route.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    30.0,
+                    55.0
+                  ],
+                  [
+                    65.0,
+                    30.0
+                  ]
+                ]
+              },
+              "key": "straight",
+              "label": "Play the straight route to CM",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          75.0,
+                          20.0
+                        ],
+                        [
+                          69.0,
+                          25.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      65.0,
+                      30.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession, but a clear route reaches the forward teammate.",
+              "intent": null,
+              "key": "back",
+              "label": "Pass back to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      30.0,
+                      55.0
+                    ],
+                    [
+                      28.0,
+                      68.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "CM offers a forward option; BACK offers a reset. Compare both ground-pass routes.",
+          "id": "root",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  30.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  65.0,
+                  30.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  28.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "support",
+                "label": "M",
+                "position": [
+                  56.0,
+                  38.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  44.75,
+                  36.75
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  75.0,
+                  20.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              30.0,
+              55.0
+            ],
+            "control": "you"
+          },
+          "title": "Choose the route shape"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A2 is goal-side. Your next touch moves away from pressure and toward M.",
+              "intent": null,
+              "key": "touch",
+              "label": "Touch back toward M",
+              "motion": {
+                "actors": [
+                  [
+                    "cm",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          65.0,
+                          30.0
+                        ],
+                        [
+                          60.0,
+                          34.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      60.0,
+                      34.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A2 is still nearby. A touch toward M would create more room.",
+              "intent": null,
+              "key": "shield",
+              "label": "Pause and scan for help",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      65.0,
+                      30.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "Your next touch moves toward the arriving pressure.",
+              "intent": null,
+              "key": "pressure",
+              "label": "Take a touch forward toward goal",
+              "motion": {
+                "actors": [
+                  [
+                    "cm",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          65.0,
+                          30.0
+                        ],
+                        [
+                          68.0,
+                          26.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      65.0,
+                      30.0
+                    ],
+                    [
+                      69.0,
+                      25.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "CM has received; you now play CM. A2 closes from goal-side; M supports behind-left.",
+          "id": "adapt",
+          "role": "receiving midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  30.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  65.0,
+                  30.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  28.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "support",
+                "label": "M",
+                "position": [
+                  56.0,
+                  38.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  44.75,
+                  36.75
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  69.0,
+                  25.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              65.0,
+              30.0
+            ],
+            "control": "cm"
+          },
+          "title": "CM's next touch"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Shape the delivery"
+    },
+    {
+      "id": "M03.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "The shooting lane is blocked. Your teammate has room to receive.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    48.0,
+                    20.0
+                  ],
+                  [
+                    64.0,
+                    23.0
+                  ]
+                ]
+              },
+              "key": "short",
+              "label": "Pass along the ground to RW",
+              "motion": {
+                "actors": [
+                  [
+                    "block",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          46.5,
+                          12.5
+                        ],
+                        [
+                          56.0,
+                          21.5
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      64.0,
+                      23.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession, but another visible route offers a better attacking chance.",
+              "intent": null,
+              "key": "back",
+              "label": "Restart backward and rebuild",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      40.0,
+                      36.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The blocker covers that route. Power cannot remove the obstacle.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    48.0,
+                    20.0
+                  ],
+                  [
+                    44.0,
+                    0.0
+                  ]
+                ]
+              },
+              "key": "shot",
+              "label": "Shoot low at the marked goal target",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      46.5,
+                      12.5
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Practice restart within your range. Receivers eligible; routes stay on the ground. Compare the marked goal target and RW.",
+          "id": "root",
+          "role": "restart taker",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  48.0,
+                  20.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "rw",
+                "label": "RW",
+                "position": [
+                  64.0,
+                  23.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  40.0,
+                  36.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  46.5,
+                  12.5
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  57.0,
+                  5.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              48.0,
+              20.0
+            ],
+            "control": "you"
+          },
+          "title": "Direct an attacking restart"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A screens the original return lane. Moving deeper opens a different passing angle.",
+              "intent": null,
+              "key": "angle",
+              "label": "Move into a clear return angle",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          48.0,
+                          20.0
+                        ],
+                        [
+                          52.0,
+                          30.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      64.0,
+                      23.0
+                    ],
+                    [
+                      64.0,
+                      23.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A stands in the return lane. Being nearby does not make you available.",
+              "intent": null,
+              "key": "stay",
+              "label": "Stay at the original restart position",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      64.0,
+                      23.0
+                    ],
+                    [
+                      64.0,
+                      23.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "A short layoff is possible here, but moving deeper would give RW more space.",
+              "intent": null,
+              "key": "crowd",
+              "label": "Offer a close layoff beside RW",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          48.0,
+                          20.0
+                        ],
+                        [
+                          60.0,
+                          27.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      64.0,
+                      23.0
+                    ],
+                    [
+                      64.0,
+                      23.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "RW has the ball. You move off the ball; A screens the original return lane.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  48.0,
+                  20.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "rw",
+                "label": "RW",
+                "position": [
+                  64.0,
+                  23.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  40.0,
+                  36.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  56.0,
+                  21.5
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  57.0,
+                  5.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              64.0,
+              23.0
+            ],
+            "control": "you"
+          },
+          "title": "Help after the restart"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Restart director"
+    },
+    {
+      "id": "M03.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "A screens the pass to RW. The marked shooting window is open.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    48.0,
+                    20.0
+                  ],
+                  [
+                    64.0,
+                    23.0
+                  ]
+                ]
+              },
+              "key": "short",
+              "label": "Pass along the ground to RW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      58.0,
+                      21.875
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "You keep possession, but another visible route offers a better attacking chance.",
+              "intent": null,
+              "key": "back",
+              "label": "Restart backward and rebuild",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      40.0,
+                      36.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 1
+            },
+            {
+              "feedback": "The marked target is within your practice range, away from A and the keeper.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    48.0,
+                    20.0
+                  ],
+                  [
+                    44.0,
+                    0.0
+                  ]
+                ]
+              },
+              "key": "shot",
+              "label": "Shoot low at the marked goal target",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      48.0,
+                      20.0
+                    ],
+                    [
+                      44.0,
+                      0.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            }
+          ],
+          "cue": "Practice restart within your range. Receivers eligible; routes stay on the ground. Compare the marked goal target and RW.",
+          "id": "root",
+          "role": "restart taker",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  48.0,
+                  20.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "rw",
+                "label": "RW",
+                "position": [
+                  64.0,
+                  23.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  40.0,
+                  36.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  58.0,
+                  21.875
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  57.0,
+                  5.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              48.0,
+              20.0
+            ],
+            "control": "you"
+          },
+          "title": "Direct an attacking restart"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "Your backward restart kept possession. The central carrying lane is now open.",
+              "intent": null,
+              "key": "carry",
+              "label": "Carry into the open midfield space",
+              "motion": {
+                "actors": [
+                  [
+                    "back",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          40.0,
+                          36.0
+                        ],
+                        [
+                          40.0,
+                          28.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      36.0
+                    ],
+                    [
+                      40.0,
+                      28.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep the ball but leave the clear carrying lane unused.",
+              "intent": null,
+              "key": "hold",
+              "label": "Hold possession and look",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      36.0
+                    ],
+                    [
+                      40.0,
+                      36.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The backward pass changed your angle. A no longer screens the route to RW.",
+              "intent": null,
+              "key": "wide",
+              "label": "Pass from the new angle to RW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      36.0
+                    ],
+                    [
+                      64.0,
+                      23.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            }
+          ],
+          "cue": "Now play BACK. The new angle opens RW; the central carrying lane is also clear.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  48.0,
+                  20.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "rw",
+                "label": "RW",
+                "position": [
+                  64.0,
+                  23.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  40.0,
+                  36.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  58.0,
+                  21.875
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  57.0,
+                  5.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              40.0,
+              36.0
+            ],
+            "control": "back"
+          },
+          "title": "Help after the restart"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Restart director"
+    },
+    {
+      "id": "M04.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "Your wider position gives M a clear pass and helps the next attack.",
+              "intent": null,
+              "key": "wide",
+              "label": "Show wide at a clear support angle",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          66.0,
+                          47.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "block",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          52.0,
+                          44.0
+                        ],
+                        [
+                          69.0,
+                          44.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      66.0,
+                      47.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "You offer a safe outlet, but the wider angle also gains space.",
+              "intent": null,
+              "key": "back",
+              "label": "Drop into a deeper support position",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          50.0,
+                          62.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      50.0,
+                      62.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The defender stands between you and the ball. Move where the passer can see you.",
+              "intent": null,
+              "key": "hide",
+              "label": "Move into the central pocket",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          58.0,
+                          39.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      40.0,
+                      50.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Create a forward support angle for M. Watch A react to the pass.",
+          "id": "root",
+          "role": "off-ball midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  55.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  40.0,
+                  50.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  60.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  52.0,
+                  44.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              40.0,
+              50.0
+            ],
+            "control": "you"
+          },
+          "title": "Offer a visible option"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "The defender follows you. The forward lane is now open.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    66.0,
+                    47.0
+                  ],
+                  [
+                    60.0,
+                    28.0
+                  ]
+                ]
+              },
+              "key": "forward",
+              "label": "Pass into the forward lane",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      60.0,
+                      28.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession but can use the newly open forward lane.",
+              "intent": null,
+              "key": "return",
+              "label": "Return the ball to the original passer",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      40.0,
+                      50.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A has followed wide and closes this channel. The forward passing lane is open.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    66.0,
+                    47.0
+                  ],
+                  [
+                    76.0,
+                    37.0
+                  ]
+                ]
+              },
+              "key": "carry",
+              "label": "Carry up the right channel",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          66.0,
+                          47.0
+                        ],
+                        [
+                          68.0,
+                          45.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      69.0,
+                      44.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "The defender followed the pass toward you. Look again before your next action.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  66.0,
+                  47.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  40.0,
+                  50.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  60.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  69.0,
+                  44.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              66.0,
+              47.0
+            ],
+            "control": "you"
+          },
+          "title": "Update your decision"
+        }
+      ],
+      "prediction": true,
+      "provenance": "ORIGINAL",
+      "reveal": "The defender followed the pass toward you.",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Prediction lab"
+    },
+    {
+      "id": "M04.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "Your wider position gives M a clear pass and helps the next attack.",
+              "intent": null,
+              "key": "wide",
+              "label": "Show wide at a clear support angle",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          66.0,
+                          47.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "block",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          52.0,
+                          44.0
+                        ],
+                        [
+                          63.0,
+                          37.5
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      66.0,
+                      47.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "You offer a safe outlet, but the wider angle also gains space.",
+              "intent": null,
+              "key": "back",
+              "label": "Drop into a deeper support position",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          50.0,
+                          62.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      50.0,
+                      62.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "The defender stands between you and the ball. Move where the passer can see you.",
+              "intent": null,
+              "key": "hide",
+              "label": "Move into the central pocket",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          55.0,
+                          55.0
+                        ],
+                        [
+                          58.0,
+                          39.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      40.0,
+                      50.0
+                    ],
+                    [
+                      40.0,
+                      50.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Create a forward support angle for M. Watch A react to the pass.",
+          "id": "root",
+          "role": "off-ball midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  55.0,
+                  55.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  40.0,
+                  50.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  60.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  52.0,
+                  44.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              40.0,
+              50.0
+            ],
+            "control": "you"
+          },
+          "title": "Offer a visible option"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "The defender held the central lane. The forward route is still blocked.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    66.0,
+                    47.0
+                  ],
+                  [
+                    60.0,
+                    28.0
+                  ]
+                ]
+              },
+              "key": "forward",
+              "label": "Pass into the forward lane",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      63.0,
+                      37.5
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "The defender held centrally. Your original passer gives you a clear return route.",
+              "intent": null,
+              "key": "return",
+              "label": "Return the ball to the original passer",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      40.0,
+                      50.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A stays central. The right channel gives you room to carry forward.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    66.0,
+                    47.0
+                  ],
+                  [
+                    76.0,
+                    37.0
+                  ]
+                ]
+              },
+              "key": "carry",
+              "label": "Carry up the right channel",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          66.0,
+                          47.0
+                        ],
+                        [
+                          76.0,
+                          37.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      66.0,
+                      47.0
+                    ],
+                    [
+                      76.0,
+                      37.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            }
+          ],
+          "cue": "The defender held the central lane. Look again before your next action.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  66.0,
+                  47.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  40.0,
+                  50.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  60.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  63.0,
+                  37.5
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              66.0,
+              47.0
+            ],
+            "control": "you"
+          },
+          "title": "Update your decision"
+        }
+      ],
+      "prediction": true,
+      "provenance": "ORIGINAL",
+      "reveal": "The defender held the central lane.",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Prediction lab"
+    },
+    {
+      "id": "M05.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "Open grass ahead lets you push a longer touch and accelerate down the wing.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    74.0,
+                    56.0
+                  ],
+                  [
+                    74.0,
+                    34.0
+                  ]
+                ]
+              },
+              "key": "surge",
+              "label": "Push a speed dribble down the wing",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          56.0
+                        ],
+                        [
+                          74.0,
+                          34.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          60.0,
+                          26.0
+                        ],
+                        [
+                          74.0,
+                          24.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      74.0,
+                      34.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "M is open, but the clear wing runway lets you gain ground fast.",
+              "intent": null,
+              "key": "pass_m",
+              "label": "Pass early inside to M",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      54.0,
+                      44.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A covers the flat inside lane. Check where defenders stand before cutting in.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    74.0,
+                    56.0
+                  ],
+                  [
+                    46.0,
+                    56.0
+                  ]
+                ]
+              },
+              "key": "inside",
+              "label": "Cut flat across into the middle",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          56.0
+                        ],
+                        [
+                          63.0,
+                          56.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      60.0,
+                      56.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "The right wing runway is open ahead; F attacks the box.",
+          "id": "root",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  74.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  54.0,
+                  44.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  38.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  64.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  60.0,
+                  56.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  60.0,
+                  26.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              74.0,
+              56.0
+            ],
+            "control": "you"
+          },
+          "title": "Read the wing runway"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A2 stepped wide to stop your speed dribble, leaving F open inside.",
+              "intent": null,
+              "key": "feed",
+              "label": "Pass across to open F",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      34.0
+                    ],
+                    [
+                      38.0,
+                      28.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep control, but F is open now before defenders recover.",
+              "intent": null,
+              "key": "hold",
+              "label": "Slow down and hold the ball",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      34.0
+                    ],
+                    [
+                      74.0,
+                      34.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A2 now closes the wing runway. Slow down and release the ball.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    74.0,
+                    34.0
+                  ],
+                  [
+                    74.0,
+                    16.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Sprint straight into A2",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          34.0
+                        ],
+                        [
+                          74.0,
+                          27.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      34.0
+                    ],
+                    [
+                      74.0,
+                      24.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "A2 slid over to stop your wing run. F is open inside.",
+          "id": "adapt",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  74.0,
+                  34.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  54.0,
+                  44.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  38.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  64.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  60.0,
+                  56.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  74.0,
+                  24.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              74.0,
+              34.0
+            ],
+            "control": "you"
+          },
+          "title": "Adapt at the end of the run"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Speed dribble and adapt"
+    },
+    {
+      "id": "M05.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "A2 already closes the wing runway. Pass early instead of sprinting into pressure.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    74.0,
+                    56.0
+                  ],
+                  [
+                    74.0,
+                    34.0
+                  ]
+                ]
+              },
+              "key": "surge",
+              "label": "Push a speed dribble down the wing",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          56.0
+                        ],
+                        [
+                          74.0,
+                          45.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      74.0,
+                      42.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "A2 blocks the wing sprint. Passing early to M beats the press.",
+              "intent": null,
+              "key": "pass_m",
+              "label": "Pass early inside to M",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0.25,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          56.0
+                        ],
+                        [
+                          70.0,
+                          32.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          42.0
+                        ],
+                        [
+                          54.0,
+                          32.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      54.0,
+                      44.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "A covers the flat inside lane. Check where defenders stand before cutting in.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    74.0,
+                    56.0
+                  ],
+                  [
+                    46.0,
+                    56.0
+                  ]
+                ]
+              },
+              "key": "inside",
+              "label": "Cut flat across into the middle",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          74.0,
+                          56.0
+                        ],
+                        [
+                          63.0,
+                          56.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      74.0,
+                      56.0
+                    ],
+                    [
+                      60.0,
+                      56.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "A2 closes the wing runway; M is open inside.",
+          "id": "root",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  74.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  54.0,
+                  44.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  38.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  64.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  60.0,
+                  56.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  74.0,
+                  42.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              74.0,
+              56.0
+            ],
+            "control": "you"
+          },
+          "title": "Read the wing runway"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "You ran past A2 into open wing space after releasing the pass.",
+              "intent": null,
+              "key": "overlap",
+              "label": "Pass wide to overlapping YOU",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      54.0,
+                      44.0
+                    ],
+                    [
+                      70.0,
+                      32.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession, but YOU and F are open ahead.",
+              "intent": null,
+              "key": "hold",
+              "label": "Hold the ball in midfield",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      54.0,
+                      44.0
+                    ],
+                    [
+                      54.0,
+                      44.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A2 stepped into the central lane. Use the wide overlap instead.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    54.0,
+                    44.0
+                  ],
+                  [
+                    54.0,
+                    22.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Carry straight forward into A2",
+              "motion": {
+                "actors": [
+                  [
+                    "m",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          54.0,
+                          44.0
+                        ],
+                        [
+                          54.0,
+                          35.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      54.0,
+                      44.0
+                    ],
+                    [
+                      54.0,
+                      32.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Now play M. A2 closes ahead; YOU overlapped wide right.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  70.0,
+                  32.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "m",
+                "label": "M",
+                "position": [
+                  54.0,
+                  44.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "forward",
+                "label": "F",
+                "position": [
+                  38.0,
+                  28.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  64.0,
+                  68.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  60.0,
+                  56.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  54.0,
+                  32.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              54.0,
+              44.0
+            ],
+            "control": "m"
+          },
+          "title": "Adapt at the end of the run"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Speed dribble and adapt"
+    },
+    {
+      "id": "M06.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "The central penalty spot is open. Checking there gives W a clear cutback.",
+              "intent": null,
+              "key": "spot",
+              "label": "Check to the central penalty spot",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          44.0,
+                          14.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "block",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          64.0,
+                          14.0
+                        ],
+                        [
+                          54.0,
+                          11.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      44.0,
+                      14.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "A stands between W and the near pocket. Find the open central spot.",
+              "intent": null,
+              "key": "pocket",
+              "label": "Check into the near-right box pocket",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          60.0,
+                          10.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      68.0,
+                      18.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "You offer a safe reset, but an open scoring position is inside the box.",
+              "intent": null,
+              "key": "edge",
+              "label": "Drop back outside the penalty box",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          50.0,
+                          24.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      50.0,
+                      24.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "W has the ball inside the box. Find an unscreened scoring position.",
+          "id": "root",
+          "role": "forward",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  50.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "w",
+                "label": "W",
+                "position": [
+                  68.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  42.0,
+                  10.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  64.0,
+                  14.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  56.0,
+                  4.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              68.0,
+              18.0
+            ],
+            "control": "you"
+          },
+          "title": "Get into a scoring position"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "The near-left target is clear of A and the goalkeeper.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    44.0,
+                    14.0
+                  ],
+                  [
+                    44.0,
+                    0.0
+                  ]
+                ]
+              },
+              "key": "shoot",
+              "label": "Shoot low into the marked target",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      44.0,
+                      14.0
+                    ],
+                    [
+                      44.0,
+                      0.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "LW is open, though your own penalty-box target is already clear.",
+              "intent": null,
+              "key": "square",
+              "label": "Pass left to LW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      44.0,
+                      14.0
+                    ],
+                    [
+                      42.0,
+                      10.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A closes from the right. Finish into the open target instead.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    44.0,
+                    14.0
+                  ],
+                  [
+                    64.0,
+                    8.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Dribble right toward A",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          44.0,
+                          14.0
+                        ],
+                        [
+                          51.0,
+                          12.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      44.0,
+                      14.0
+                    ],
+                    [
+                      54.0,
+                      11.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "You received at the penalty spot. The marked left target is open.",
+          "id": "adapt",
+          "role": "forward",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  44.0,
+                  14.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "w",
+                "label": "W",
+                "position": [
+                  68.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  42.0,
+                  10.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  54.0,
+                  11.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  56.0,
+                  4.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              44.0,
+              14.0
+            ],
+            "control": "you"
+          },
+          "title": "Finish inside the penalty box"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Penalty-box finish"
+    },
+    {
+      "id": "M06.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "A stands in that cutback lane. Check into the open near pocket instead.",
+              "intent": null,
+              "key": "spot",
+              "label": "Check to the central penalty spot",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          44.0,
+                          14.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      68.0,
+                      18.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "A screens the middle, leaving the near pocket open for the pass.",
+              "intent": null,
+              "key": "pocket",
+              "label": "Check into the near-right box pocket",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          60.0,
+                          10.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "block",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          56.0,
+                          16.0
+                        ],
+                        [
+                          52.0,
+                          5.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      60.0,
+                      10.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "You offer a safe reset, but an open scoring position is inside the box.",
+              "intent": null,
+              "key": "edge",
+              "label": "Drop back outside the penalty box",
+              "motion": {
+                "actors": [
+                  [
+                    "you",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          50.0,
+                          18.0
+                        ],
+                        [
+                          50.0,
+                          24.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      68.0,
+                      18.0
+                    ],
+                    [
+                      50.0,
+                      24.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "W has the ball inside the box. Find an unscreened scoring position.",
+          "id": "root",
+          "role": "forward",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  50.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "w",
+                "label": "W",
+                "position": [
+                  68.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  42.0,
+                  10.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  56.0,
+                  16.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  56.0,
+                  4.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              68.0,
+              18.0
+            ],
+            "control": "you"
+          },
+          "title": "Get into a scoring position"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A recovered onto the shooting line. Square the ball to open LW.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    60.0,
+                    10.0
+                  ],
+                  [
+                    44.0,
+                    0.0
+                  ]
+                ]
+              },
+              "key": "shoot",
+              "label": "Shoot low at the marked target",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      60.0,
+                      10.0
+                    ],
+                    [
+                      52.0,
+                      5.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "A and the keeper cover your shot, leaving LW an open finish.",
+              "intent": null,
+              "key": "square",
+              "label": "Square across the box to LW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      60.0,
+                      10.0
+                    ],
+                    [
+                      42.0,
+                      10.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession, though LW is unmarked in front of goal.",
+              "intent": null,
+              "key": "reset",
+              "label": "Pass back to W",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      60.0,
+                      10.0
+                    ],
+                    [
+                      68.0,
+                      18.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "A blocks the goal target; LW is unmarked across the box.",
+          "id": "adapt",
+          "role": "forward",
+          "shot_window": [
+            44.0,
+            0.0
+          ],
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  60.0,
+                  10.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "w",
+                "label": "W",
+                "position": [
+                  68.0,
+                  18.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  42.0,
+                  10.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  52.0,
+                  5.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "keeper",
+                "label": "GK",
+                "position": [
+                  56.0,
+                  4.0
+                ],
+                "team": "keeper"
+              }
+            ],
+            "ball": [
+              60.0,
+              10.0
+            ],
+            "control": "you"
+          },
+          "title": "Finish inside the penalty box"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Penalty-box finish"
+    },
+    {
+      "id": "M07.A",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "A jumped toward the wing, leaving the line-breaking pass to CM open.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    36.0,
+                    70.0
+                  ],
+                  [
+                    46.0,
+                    52.0
+                  ]
+                ]
+              },
+              "key": "split",
+              "label": "Pass forward through the line to CM",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          46.0,
+                          40.0
+                        ],
+                        [
+                          46.0,
+                          44.0
+                        ]
+                      ]
+                    }
+                  ],
+                  [
+                    "you",
+                    {
+                      "contact": 0.25,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          36.0,
+                          70.0
+                        ],
+                        [
+                          38.0,
+                          62.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      46.0,
+                      52.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "A covers the wide lane to LW. Scan the central lane first.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    36.0,
+                    70.0
+                  ],
+                  [
+                    18.0,
+                    56.0
+                  ]
+                ]
+              },
+              "key": "wide",
+              "label": "Pass wide to LW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      27.0,
+                      63.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "BACK is a safe reset, though a clear forward pass breaks the press.",
+              "intent": null,
+              "key": "switch",
+              "label": "Switch safely back to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      54.0,
+                      74.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "A covers LW; the central lane to CM is open.",
+          "id": "root",
+          "role": "defender",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  36.0,
+                  70.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  18.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  46.0,
+                  52.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  54.0,
+                  74.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  27.0,
+                  63.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  46.0,
+                  40.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              36.0,
+              70.0
+            ],
+            "control": "you"
+          },
+          "title": "Break the first press line"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "Breaking the first line changed the angle. LW is now wide open.",
+              "intent": null,
+              "key": "combine",
+              "label": "Combine wide to open LW",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      46.0,
+                      52.0
+                    ],
+                    [
+                      18.0,
+                      56.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You stepped up in support and have a clear return lane.",
+              "intent": null,
+              "key": "bounce",
+              "label": "Bounce the ball back to YOU",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      46.0,
+                      52.0
+                    ],
+                    [
+                      38.0,
+                      62.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "A2 closes the central lane ahead. Move the ball to an open teammate.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    46.0,
+                    52.0
+                  ],
+                  [
+                    46.0,
+                    36.0
+                  ]
+                ]
+              },
+              "key": "force",
+              "label": "Carry straight forward into A2",
+              "motion": {
+                "actors": [
+                  [
+                    "cm",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          46.0,
+                          52.0
+                        ],
+                        [
+                          46.0,
+                          47.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      46.0,
+                      52.0
+                    ],
+                    [
+                      46.0,
+                      44.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Now play CM. A2 closes ahead; LW is wide open and YOU support behind.",
+          "id": "adapt",
+          "role": "midfielder",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  38.0,
+                  62.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  18.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  46.0,
+                  52.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  54.0,
+                  74.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  27.0,
+                  63.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  46.0,
+                  44.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              46.0,
+              52.0
+            ],
+            "control": "cm"
+          },
+          "title": "Progress after breaking the press"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Break the press"
+    },
+    {
+      "id": "M07.B",
+      "nodes": [
+        {
+          "choices": [
+            {
+              "feedback": "A screens the central lane to CM. Use the open wide pass to LW.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    36.0,
+                    70.0
+                  ],
+                  [
+                    46.0,
+                    52.0
+                  ]
+                ]
+              },
+              "key": "split",
+              "label": "Pass forward through the line to CM",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      41.0,
+                      61.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            },
+            {
+              "feedback": "A blocks the middle. LW has clear space on the left flank.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    36.0,
+                    70.0
+                  ],
+                  [
+                    18.0,
+                    56.0
+                  ]
+                ]
+              },
+              "key": "wide",
+              "label": "Pass wide to LW",
+              "motion": {
+                "actors": [
+                  [
+                    "second",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          28.0,
+                          44.0
+                        ],
+                        [
+                          32.0,
+                          54.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      18.0,
+                      56.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": "adapt",
+              "rating": 2
+            },
+            {
+              "feedback": "BACK is a safe reset, though a clear forward pass breaks the press.",
+              "intent": null,
+              "key": "switch",
+              "label": "Switch safely back to BACK",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      36.0,
+                      70.0
+                    ],
+                    [
+                      54.0,
+                      74.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            }
+          ],
+          "cue": "A screens CM; LW is open wide.",
+          "id": "root",
+          "role": "defender",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  36.0,
+                  70.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  18.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  46.0,
+                  52.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  54.0,
+                  74.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  41.0,
+                  61.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  28.0,
+                  44.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              36.0,
+              70.0
+            ],
+            "control": "you"
+          },
+          "title": "Break the first press line"
+        },
+        {
+          "choices": [
+            {
+              "feedback": "A2 shifted inside to screen CM, leaving the wing channel open.",
+              "intent": null,
+              "key": "drive",
+              "label": "Carry forward down the open left wing",
+              "motion": {
+                "actors": [
+                  [
+                    "lw",
+                    {
+                      "contact": 0,
+                      "kind": "linear",
+                      "points": [
+                        [
+                          18.0,
+                          56.0
+                        ],
+                        [
+                          18.0,
+                          40.0
+                        ]
+                      ]
+                    }
+                  ]
+                ],
+                "ball": {
+                  "contact": 0,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      18.0,
+                      56.0
+                    ],
+                    [
+                      18.0,
+                      40.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 2
+            },
+            {
+              "feedback": "You keep possession safely, though the left wing ahead is wide open.",
+              "intent": null,
+              "key": "return_pass",
+              "label": "Pass back to YOU",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      18.0,
+                      56.0
+                    ],
+                    [
+                      36.0,
+                      70.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 1
+            },
+            {
+              "feedback": "A2 slid across to screen the pass to CM. Take the open wing space.",
+              "intent": {
+                "contact": 0.0,
+                "kind": "linear",
+                "points": [
+                  [
+                    18.0,
+                    56.0
+                  ],
+                  [
+                    46.0,
+                    52.0
+                  ]
+                ]
+              },
+              "key": "inside",
+              "label": "Pass inside toward CM",
+              "motion": {
+                "actors": [],
+                "ball": {
+                  "contact": 0.25,
+                  "kind": "linear",
+                  "points": [
+                    [
+                      18.0,
+                      56.0
+                    ],
+                    [
+                      32.0,
+                      54.0
+                    ]
+                  ]
+                },
+                "duration": 2.4
+              },
+              "next_node": null,
+              "rating": 0
+            }
+          ],
+          "cue": "Now play LW. A2 screens CM; the left wing ahead is open.",
+          "id": "adapt",
+          "role": "winger",
+          "shot_window": null,
+          "state": {
+            "actors": [
+              {
+                "key": "you",
+                "label": "YOU",
+                "position": [
+                  36.0,
+                  70.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "lw",
+                "label": "LW",
+                "position": [
+                  18.0,
+                  56.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "cm",
+                "label": "CM",
+                "position": [
+                  46.0,
+                  52.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "back",
+                "label": "BACK",
+                "position": [
+                  54.0,
+                  74.0
+                ],
+                "team": "home"
+              },
+              {
+                "key": "block",
+                "label": "A",
+                "position": [
+                  41.0,
+                  61.0
+                ],
+                "team": "away"
+              },
+              {
+                "key": "second",
+                "label": "A2",
+                "position": [
+                  32.0,
+                  54.0
+                ],
+                "team": "away"
+              }
+            ],
+            "ball": [
+              18.0,
+              56.0
+            ],
+            "control": "lw"
+          },
+          "title": "Progress after breaking the press"
+        }
+      ],
+      "prediction": false,
+      "provenance": "ORIGINAL",
+      "reveal": "",
+      "review_status": "BOOK_BODY_PENDING",
+      "source_status": "OVERVIEW_ONLY",
+      "title": "Break the press"
+    }
+  ],
+  "missions": [
+    {
+      "id": "M01",
+      "title": "Turn and escape"
+    },
+    {
+      "id": "M02",
+      "title": "Shape the delivery"
+    },
+    {
+      "id": "M03",
+      "title": "Restart director"
+    },
+    {
+      "id": "M04",
+      "title": "Prediction lab"
+    },
+    {
+      "id": "M05",
+      "title": "Speed dribble and adapt"
+    },
+    {
+      "id": "M06",
+      "title": "Penalty-box finish"
+    },
+    {
+      "id": "M07",
+      "title": "Break the press"
+    }
+  ],
+  "notebook": {
+    "X01": [
+      {
+        "key": "principle",
+        "options": [
+          "Look before my next touch",
+          "Help the teammate with the ball",
+          "Use the open route"
+        ],
+        "prompt": "Choose an idea to try. All ideas are unscored.",
+        "title": "My playing principle"
+      },
+      {
+        "key": "revision",
+        "options": [
+          "Keep this idea",
+          "Check both routes each time",
+          "Look again when pressure changes"
+        ],
+        "prompt": "Would your idea help when the picture changes?",
+        "title": "Keep or revise my idea"
+      }
+    ],
+    "X02": [
+      {
+        "key": "goal",
+        "options": [
+          "Notice the exit before turning",
+          "Compare curved and straight routes",
+          "Offer a clear return angle"
+        ],
+        "prompt": "Choose something you can notice next time.",
+        "title": "One small practice goal"
+      },
+      {
+        "key": "helper",
+        "options": [
+          "Coach",
+          "Teammate",
+          "Trusted adult",
+          "Ask later"
+        ],
+        "prompt": "Choose a helper role, or ask later. No names needed.",
+        "title": "My practice team"
+      },
+      {
+        "key": "action",
+        "options": [
+          "Let me explain the exit first",
+          "Help me compare both routes",
+          "Ask what changed after the pass"
+        ],
+        "prompt": "Make your next practice step concrete.",
+        "title": "Ask for useful help"
+      },
+      {
+        "key": "observation",
+        "options": [
+          "I looked before choosing",
+          "I want another try",
+          "I have not practiced this yet"
+        ],
+        "prompt": "After a replay or practice, choose an honest observation.",
+        "title": "What did I notice?"
+      },
+      {
+        "key": "revision",
+        "options": [
+          "Keep my plan",
+          "Change my goal next time",
+          "Ask later and rest for now"
+        ],
+        "prompt": "Change the plan when it helps. Skipping is always OK.",
+        "title": "My next step"
+      }
+    ],
+    "X03": [
+      {
+        "key": "pro",
+        "options": [
+          "Naomi Girma: calm defender build-out",
+          "Aitana Bonmati: midfield scan and turn",
+          "Christian Pulisic: wing speed and change of pace",
+          "Kylian Mbappe: forward box runs and finish"
+        ],
+        "prompt": "Choose a book-featured pro role to study.",
+        "title": "Pro role spotlight"
+      },
+      {
+        "key": "watch",
+        "options": [
+          "When the player scans before receiving",
+          "When they accelerate or play simple",
+          "How they move into open scoring space"
+        ],
+        "prompt": "When watching a game with an adult, notice one cue.",
+        "title": "Match-watch focus"
+      },
+      {
+        "key": "try_it",
+        "options": [
+          "Pull back and exit through a cone gate",
+          "Push a laces touch into space, then pass",
+          "Set a six-week goal; keep heading coach-led"
+        ],
+        "prompt": "Pick a small solo step. Keep heading coach-led.",
+        "title": "Try It solo practice and safety"
+      }
+    ]
+  },
+  "version": 1
+}

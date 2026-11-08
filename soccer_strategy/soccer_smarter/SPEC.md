@@ -131,7 +131,7 @@ for rel_path, expected_sha in SHARED_PRIMITIVES.items():
     preserved += 1
 org = Path(".ai.code.files/task_20261026_soccer_strategy_game.org").read_bytes()
 assert hashlib.sha256(org[:36858]).hexdigest() == "ef8da7192e155a417625257e443b95b792a2d33f0ac5634658439a00ef912b10", "original Org changed"
-suffix = org[36858:].decode()
+suffix = org[36858:40937].decode()
 assert suffix.startswith("\n** Design and research result\n"), "result outside target section"
 assert not re.search(r"^\* ", suffix, re.M), "unexpected top-level Org section"
 subprocess.run(["git", "diff", "--check"], check=True)
@@ -271,3 +271,37 @@ lint and boundary enforcement algorithms remain unchanged. Its previous SHA256
 was `e040526e2b4cf3052b896922fa7731ef28691e1e8d19c1e5f11759c42360d5ac`;
 the exact new checkpoint above retains the fail-closed shared-module gate.
 No Soccer Smarter gameplay, test or verifier code is changed by this refresh.
+
+## GitHub Pages Web Migration Contract - 2026-11-08
+
+The user requests converting `soccer_smarter` to the same zero-backend GitHub
+Pages web architecture (`docs/soccer_smarter/`), personalizing `"John"` /
+`"JOHN"` to `"You"` / `"YOU"` in the web build so any child can play, and
+verifying with Uncle Bob's Coding Agent Harness+. The Org slice check above
+bounds `suffix` to byte `40937` where the user's new `* Migrate the game to a
+web-based version` headline begins.
+
+```gherkin
+Feature: Zero-backend GitHub Pages web version of Soccer Smarter Lab
+
+  Scenario: Deterministic Python-to-web bundle export and sync gate (smarter_web_bundle_sync)
+    Given the canonical Python episodes (7 missions, 14 A/B episodes, 28 decision nodes, 84 choices) and 3 notebook activities
+    When build_web_payload() and export_web() generate docs/soccer_smarter/data.json and docs/soccer_smarter/data.js
+    Then verify_web_export() confirms all required web files exist, are clean ASCII without trailing whitespace, and match the live Python catalog byte-for-byte
+    And the controlled player in the web bundle is labeled "YOU" (key "you") with zero occurrences of "John" remaining in docs/
+
+  Scenario: Web track sampling, route preview, and frame geometry match Python (smarter_web_geometry_parity)
+    Given docs/soccer_smarter/app.js loaded in Node.js alongside Python model.py
+    When comparing Track.sample() across linear, corner, and curve tracks and Motion.frame() / Choice.preview() across episodes
+    Then JavaScript and Python coordinates agree within 1e-9
+
+  Scenario: All 7 missions, 14 episodes, 28 nodes, predictions, pause/step/skip, notebook, and touch controls render without overflow (smarter_web_ui_and_touch)
+    Given SoccerSmarterWebApp initialized with docs/soccer_smarter/data.json and a 1280x880 2D canvas context
+    When exercising all 7 missions, branch continuity, M04 prediction/reveal, pause/step/skip, coach demo, retry/restart score rules, X01-X03 notebook activities, basics link, and touch two-tap choice confirmation
+    Then layoutErrors remains empty on every screen and localStorage records completed first-traversal node ratings
+
+  Scenario: Local static file and HTTP server testing (smarter_local_http_serving)
+    Given the static site in docs/
+    When served over a local Python HTTP server on 127.0.0.1
+    Then /index.html, /soccer_smarter/index.html, /soccer_smarter/app.js, /soccer_smarter/data.json, and /soccer_smarter/data.js return HTTP 200
+```

@@ -19,7 +19,7 @@ from ..soccer_smart.verify import flatten, pyright_command
 PACKAGE = Path(__file__).resolve().parent
 ROOT = PACKAGE.parent.parent
 ARTIFACTS = PACKAGE / ".verification"
-RUNTIME = ("model.py", "content.py", "session.py", "notebook.py", "rendering.py", "app.py", "main.py")
+RUNTIME = ("model.py", "content.py", "session.py", "notebook.py", "rendering.py", "app.py", "main.py", "web_export.py")
 COMMANDS: list[dict[str, Any]] = []
 MUTANTS = (
     ("retry records new nodes as first attempts", "session.py",
@@ -33,6 +33,10 @@ MUTANTS = (
     ("blocked penalty-box shot graded good in B", "content.py",
      'action(end, "shoot", "Shoot low at the marked target", 0,',
      'action(end, "shoot", "Shoot low at the marked target", 2,'),
+    ("web export drops episodes", "web_export.py",
+     '"episodes": [asdict(ep) for ep in episodes()],', '"episodes": [],'),
+    ("web export leaves John unreplaced", "web_export.py",
+     '\'"john"\': \'"you"\',', '\'"john"\': \'"john"\','),
 )
 
 
@@ -64,9 +68,11 @@ def tests_and_coverage() -> dict[str, Any]:
 
 
 def static_checks() -> dict[str, Any]:
+    from .web_export import verify_web_export
+
     failures = {p.name: lint(p.read_text(), p.name) for p in PACKAGE.glob("*.py")}
     for name in RUNTIME:
-        checked_as = "model.py" if name == "notebook.py" else name
+        checked_as = "model.py" if name in ("notebook.py", "web_export.py") else name
         failures[name] += boundaries((PACKAGE / name).read_text(), checked_as)
     if any(failures.values()):
         raise RuntimeError(str({n: v for n, v in failures.items() if v}))
@@ -90,9 +96,10 @@ def static_checks() -> dict[str, Any]:
         assert "Coaching grades differ" in str(error)
     else:
         raise RuntimeError("Coaching ledger false green")
+    web_bundle = verify_web_export()
     return {"python_files": len(failures), "violations": 0, "preserved_game_files": 56,
             "complexity_limits": "60 lines / 15 decisions", "lint_boundary_controls_rejected": 2,
-            "coaching_ledger": ledger, "bad_coaching_grade_rejected": 1}
+            "coaching_ledger": ledger, "bad_coaching_grade_rejected": 1, "web_bundle": web_bundle}
 
 
 def review_ledger(source: str) -> dict[str, int]:
@@ -163,6 +170,7 @@ def mutations() -> dict[str, int]:
             for name in ("soccer_smart", "soccer_smarter"):
                 shutil.copytree(PACKAGE.parent / name, root / "soccer_strategy" / name,
                                 ignore=shutil.ignore_patterns("__pycache__", ".verification"))
+            shutil.copytree(ROOT / "docs", root / "docs")
             path = root / "soccer_strategy/soccer_smarter" / filename
             source = path.read_text()
             assert source.count(original) == 1, "Mutant is not uniquely applicable: " + label
@@ -170,7 +178,8 @@ def mutations() -> dict[str, int]:
             assert path.read_text() != source and replacement in path.read_text(), "Mutant not applied"
             run = execute([sys.executable, "-m", "unittest", "soccer_strategy.soccer_smarter.test_model",
                            "soccer_strategy.soccer_smarter.test_session",
-                           "soccer_strategy.soccer_smarter.test_coaching", "-q"], root)
+                           "soccer_strategy.soccer_smarter.test_coaching",
+                           "soccer_strategy.soccer_smarter.test_web", "-q"], root)
             killed = run.returncode == 1 and "FAIL:" in run.stdout
             records.append({"mutant": label, "applied": True, "executed": True,
                             "killed": killed, "output": run.stdout})
@@ -198,6 +207,22 @@ def real_execution() -> dict[str, Any]:
         if run.returncode or "quit passed" not in run.stdout:
             raise RuntimeError(run.stdout)
         outputs[name] = {"exit_code": 0, "output": run.stdout.strip()}
+    node = shutil.which("node")
+    assert node is not None, "node not found"
+    web_run = execute([
+        node, "-e",
+        'const fs=require("fs"),d=JSON.parse(fs.readFileSync("docs/soccer_smarter/data.json","utf8")),'
+        'w=require("./docs/soccer_smarter/app.js"),'
+        'ctx={font:"16px sans-serif",measureText:(s)=>({width:s.length*7.2}),fillText(){},'
+        'fillRect(){},strokeRect(){},beginPath(){},roundRect(){},rect(){},fill(){},stroke(){},'
+        'arc(){},ellipse(){},moveTo(){},lineTo(){},closePath(){}},'
+        'app=new w.SoccerSmarterWebApp(d,{getContext:()=>ctx},null);'
+        'app.activate("M01");app.activate("skip");app.activate("choice:0");app.activate("skip");app.draw();'
+        'if(app.layoutErrors.length)process.exit(1);console.log("web smoke passed");',
+    ])
+    if web_run.returncode or "web smoke passed" not in web_run.stdout:
+        raise RuntimeError(web_run.stdout)
+    outputs["web_smarter"] = {"exit_code": 0, "output": web_run.stdout.strip()}
     return outputs
 
 

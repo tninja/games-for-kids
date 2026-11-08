@@ -31,6 +31,28 @@ The verifier uses Python's unittest, existing quality sensors and cached or
 installed Pyright. It installs nothing and fails if a required check cannot
 run. Runtime requires no network, external videos or downloaded assets.
 
+## Web Version (GitHub Pages & Local Testing)
+
+A zero-backend static HTML5 `<canvas>` web build is committed under
+[docs/soccer_smarter/index.html](../../docs/soccer_smarter/index.html) (and
+linked from the [docs/index.html](../../docs/index.html) hub) for direct
+GitHub Pages hosting (`main` branch, `/docs` folder). In the web version, the
+controlled player is personalized as `"You"` / `"YOU"` so any child can play.
+
+To regenerate `docs/soccer_smarter/data.json` and `docs/soccer_smarter/data.js`
+after editing Python episodes or notebook steps:
+
+```sh
+python3 -c "from soccer_strategy.soccer_smarter.web_export import export_web; print(export_web())"
+```
+
+To test the web page locally in your browser:
+
+```sh
+python3 -m http.server 8000 --directory docs
+# Open http://localhost:8000/soccer_smarter/
+```
+
 ## Missions and controls
 
 Menu keys 1-7 open Turn and escape (M01), Shape the delivery (M02), Restart

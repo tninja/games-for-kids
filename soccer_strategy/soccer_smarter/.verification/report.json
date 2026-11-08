@@ -1,13 +1,13 @@
 {
   "python": "3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]",
-  "source_sha256": "3e38a469c0fbbf89943d9b16572e980c1d1611169f05e4d7378b0733d1ca6b3a",
+  "source_sha256": "7010ee7110f620a68b2cf84a205ebd57b2ab0a3dcb18e6aa4fe8a542299c92bc",
   "gates": {
     "tests_and_coverage": {
       "status": "pass",
       "result": {
-        "tests": 50,
-        "statements": 683,
-        "branch_edges": 716,
+        "tests": 55,
+        "statements": 729,
+        "branch_edges": 746,
         "missing": 0
       }
     },
@@ -20,7 +20,7 @@
     "static_checks": {
       "status": "pass",
       "result": {
-        "python_files": 16,
+        "python_files": 18,
         "violations": 0,
         "preserved_game_files": 56,
         "complexity_limits": "60 lines / 15 decisions",
@@ -29,32 +29,38 @@
           "decisions": 28,
           "choices": 84
         },
-        "bad_coaching_grade_rejected": 1
+        "bad_coaching_grade_rejected": 1,
+        "web_bundle": {
+          "web_files": 5,
+          "missions": 7,
+          "episodes": 14,
+          "notebook": 3
+        }
       }
     },
     "types": {
       "status": "pass",
       "result": {
         "version": "1.1.399",
-        "filesAnalyzed": 7,
+        "filesAnalyzed": 8,
         "errorCount": 0,
         "warningCount": 0,
         "informationCount": 0,
-        "timeInSec": 1.283,
+        "timeInSec": 0.668,
         "negative_control_rejected": 1
       }
     },
     "mutations": {
       "status": "pass",
       "result": {
-        "killed": 6,
-        "total": 6
+        "killed": 8,
+        "total": 8
       }
     },
     "suite_health": {
       "status": "pass",
       "result": {
-        "tests": 50,
+        "tests": 55,
         "failures": 0
       }
     },
@@ -76,6 +82,10 @@
         "luke": {
           "exit_code": 0,
           "output": "<frozen importlib._bootstrap>:491: RuntimeWarning: Your system is avx2 capable but pygame was not built with support for it. The performance of some of your blits could be adversely affected. Consider enabling compile time detection with environment variables like PYGAME_DETECT_AVX2=1 if you are compiling without cross compilation.\nLuke SDL smoke: menu, choice, attempt, coach, replay, retry, summary and quit passed"
+        },
+        "web_smarter": {
+          "exit_code": 0,
+          "output": "web smoke passed"
         }
       }
     }
@@ -109,6 +119,7 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -121,6 +132,7 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -133,6 +145,7 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -145,6 +158,7 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -157,6 +171,7 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -169,6 +184,33 @@
         "soccer_strategy.soccer_smarter.test_model",
         "soccer_strategy.soccer_smarter.test_session",
         "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
+        "-q"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "unittest",
+        "soccer_strategy.soccer_smarter.test_model",
+        "soccer_strategy.soccer_smarter.test_session",
+        "soccer_strategy.soccer_smarter.test_coaching",
+        "soccer_strategy.soccer_smarter.test_web",
         "-q"
       ],
       "exit_code": 1
@@ -208,6 +250,14 @@
         "-m",
         "soccer_strategy.luke",
         "--smoke"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/tninja/.nvm/versions/node/v24.21.0/bin/node",
+        "-e",
+        "const fs=require(\"fs\"),d=JSON.parse(fs.readFileSync(\"docs/soccer_smarter/data.json\",\"utf8\")),w=require(\"./docs/soccer_smarter/app.js\"),ctx={font:\"16px sans-serif\",measureText:(s)=>({width:s.length*7.2}),fillText(){},fillRect(){},strokeRect(){},beginPath(){},roundRect(){},rect(){},fill(){},stroke(){},arc(){},ellipse(){},moveTo(){},lineTo(){},closePath(){}},app=new w.SoccerSmarterWebApp(d,{getContext:()=>ctx},null);app.activate(\"M01\");app.activate(\"skip\");app.activate(\"choice:0\");app.activate(\"skip\");app.draw();if(app.layoutErrors.length)process.exit(1);console.log(\"web smoke passed\");"
       ],
       "exit_code": 0
     }
