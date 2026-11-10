@@ -1,5 +1,65 @@
 # Approved specification -- Soccer Smart Lab
 
+## Coaching correctness review - 2026-11-09
+
+The user requests checking and correcting the actual recommendations, especially
+Continuous Play. This authorizes fixes within the existing feature; no new mode
+or dependency is proposed. Additional test details are authored autonomously.
+
+- A/B/C is a layout contrast, not a rule that forces exactly one preferred
+  answer. Multiple clear, safe routes may earn full credit. The earlier
+  first-strong-choice uniqueness assertion is superseded by this correction.
+- Distinguish a held ball from a released pass. Recovery toward cover cannot
+  automatically award possession or assume a future pass is certain.
+- Existing useful support and unpressured scanning can be strong decisions;
+  an off-ball positioning error does not force a teammate to lose possession.
+- Shooting recommendations consider defenders and goalkeeper position, with
+  an available pass retained if neither corner has a clear lane.
+- Recommended routes stay clear during the actual animation. Coach comparison
+  respects any fully credited selected option in continuous scenes.
+- Preserve episode identities, selected-action continuity, scoring/retry rules,
+  original modes and sibling games. Synchronize web data and coaching behavior.
+- Add explicit regression examples, a per-node coaching ledger, source notes,
+  and run the existing verifier. Record the known HTTP/editor restrictions.
+
+## Continuous Play contract - approved 2026-11-09
+
+The user approved the concrete eight-family / three-opening plan and said
+"yes, go ahead". Add an independent eighth menu entry on desktop and web,
+preserving all existing modes and lesson data. Families: keeper outlet,
+midfield receiving, back-field pressure, wing combinations, throw-in support,
+chance creation, defending crosses and regaining-to-transition. Each has three
+meaningfully different openings and two or three decisions per traversal.
+
+Acceptance scenarios (implemented as named continuous-play tests):
+
+- `catalog_and_contrasts`: 24 original episodes, all choices with specific
+  feedback, different visible pressures and preferred opening actions per family.
+- `continuous_graph`: every node reachable, no cycles or dangling links; every
+  successor starts with exactly the previous action's actor and ball endpoints.
+  The child continues controlling John/YOU, including when offering support.
+- `selected_branch`: an actual chosen action determines the successor; loss
+  can lead to defending and a teammate's possession to off-ball support.
+- `first_run_and_practice`: first-run scores count only visited decisions;
+  retries and their alternative branches are practice and cannot inflate scores.
+- `varied_rounds`: seeded family practice uses all three openings in shuffled
+  order; mixed rounds choose four distinct families, with shuffled choice order.
+- `desktop_and_web`: all new entries, phases, choices and touch/keyboard controls
+  work; web exports exactly the same authored graph and motion as Python.
+- `preservation`: the 65 existing scenes, 31 cards, 57 book entries and original
+  section scheduling stay intact. No other game's files or Org sections change.
+
+Setup: reuse existing immutable Scenario/Choice geometry, Session phases and
+rendering. Add pure play-graph/content/session modules and desktop navigation;
+extend web export and docs/soccer_smart runtime. No new package, external asset,
+network service, installation, commit or book-body fidelity claim. Extend the
+existing verifier, tests, mutations and evidence. Shared quality algorithms and
+other game checkpoints remain untouched.
+
+Baseline limitation: this sandbox forbids binding even a localhost HTTP socket;
+the pre-existing local-serving test raises PermissionError before implementation.
+Report this explicitly rather than deleting it or claiming a clean full suite.
+
 ## GitHub Pages Web Migration Contract - 2026-11-08
 
 The user approved all Q1-Q6 architecture and scope recommendations (Q1=A Python

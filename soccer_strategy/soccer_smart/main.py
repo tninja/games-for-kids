@@ -20,7 +20,10 @@ def smoke(screenshot: str | None = None) -> None:
                    "book_category:skills", "book_entry:36", "card_replay", "card_next",
                    "book_category:tactics", "book_entry:75", "skip", "choice:1", "skip",
                    "coach", "skip", "retry", "skip", "choice:0", "skip", "book_back",
-                   "book_entry:90", "skip", "choice:0", "skip"):
+                   "book_entry:90", "skip", "choice:0", "skip", "continuous",
+                   "play_next", "play_family:7", "skip", "choice:0", "skip",
+                   "coach", "skip", "retry", "skip", "choice:1", "skip", "next",
+                   "skip", "choice:0", "skip"):
         app.activate(action)
         app.draw()
         if app.layout_errors:
@@ -29,7 +32,7 @@ def smoke(screenshot: str | None = None) -> None:
         pygame.image.save(app.canvas, str(Path(screenshot)))
     pygame.event.post(pygame.event.Event(pygame.QUIT))
     app.run()
-    print("SDL smoke: menu, choices, coach, retry, cards, book topics, offside, patterns and quit passed")
+    print("SDL smoke: menu, choices, coach, retry, cards, book topics, offside, patterns, continuous branches and quit passed")
 
 
 def main(argv: list[str] | None = None) -> None:

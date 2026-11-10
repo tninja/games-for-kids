@@ -108,10 +108,13 @@ class Session:
         if self.phase != "decide" or not 0 <= index < 3:
             return False
         self.selected = index
-        self.results.setdefault(self.scene.id, self.scene.choices[index].rating)
+        self._record_choice(index)
         self.phase = "outcome"
         self.elapsed = 0.0
         return True
+
+    def _record_choice(self, index: int) -> None:
+        self.results.setdefault(self.scene.id, self.scene.choices[index].rating)
 
     def compare_coach(self) -> bool:
         if self.phase != "feedback":

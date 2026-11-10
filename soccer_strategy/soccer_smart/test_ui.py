@@ -40,8 +40,8 @@ class UITests(unittest.TestCase):
     def key(self, key: int) -> None:
         self.app.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
 
-    def test_menu_offers_seven_cards_and_preserves_stages_and_practice_cards(self) -> None:
-        self.assertEqual(len(self.app.buttons()), 7)
+    def test_menu_offers_eight_cards_and_preserves_stages_and_practice_cards(self) -> None:
+        self.assertEqual(len(self.app.buttons()), 8)
         self.assertIn("Read and receive", self.app.buttons()[0].label)
         self.assertIn("Mixed round", self.app.buttons()[4].label)
         self.assertIn("Practice cards", self.app.buttons()[5].label)

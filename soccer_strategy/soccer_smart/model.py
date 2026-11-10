@@ -106,7 +106,8 @@ class Scenario:
     def validate(self) -> None:
         classic = 1 <= self.topic <= 12 and self.stage in SECTION_IDS
         book = self.topic in BOOK_TACTIC_PAGES and self.stage == BOOK_STAGE
-        if (not self.id or not (classic or book) or self.variant not in ("A", "B", "C") or not self.role):
+        continuous = 1 <= self.topic <= 8 and self.stage == 8
+        if (not self.id or not (classic or book or continuous) or self.variant not in ("A", "B", "C") or not self.role):
             raise ValueError("Invalid scenario identity, variant, stage, or role")
         if (not self.groups or any(g not in GROUP_IDS for g in self.groups)
                 or self.provenance != "ORIGINAL"):

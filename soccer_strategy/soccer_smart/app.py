@@ -25,10 +25,12 @@ from .drawing import (
     draw_window_marker,
     pitch_point,
 )
-from .presentation import ball_height, card_positions, positions, route_destination
+from .presentation import ball_height, card_positions, coach_choice, positions, route_destination
 from .presentation import card_height
 from .model import Choice, Scenario
 from .session import ANIMATION_SECONDS, Session
+from .play_session import ContinuousSession
+from .play_view import PlayBrowser
 
 MENU_CARDS = tuple(
     (f"{section.id:02d} / {section.title}", f"3 topics: {section.description}", f"stage:{section.id}")
@@ -37,6 +39,7 @@ MENU_CARDS = tuple(
     ("05 / Mixed round", "All 4 sections: 6 practice + 2 transfer", f"stage:{MIXED_STAGE}"),
     ("06 / Practice cards", "7 technique demos & adult activities", "cards:0"),
     ("07 / Book companion", "57 topics / original practice", "book"),
+    ("08 / Continuous Play", "24 openings / linked decisions", "continuous"),
 )
 
 
@@ -67,17 +70,22 @@ class App:
         self.hover: tuple[int, int] = (-1, -1)
         self.history: dict[str, list[str]] = {}
         self.book: BookBrowser | None = None
+        self.play_browser: PlayBrowser | None = None
 
     @property
     def layout_errors(self) -> list[str]:
         return self.painter.errors
 
     def buttons(self) -> list[Button]:
+        if self.play_browser is not None and self.session is None:
+            return self.play_browser.buttons()
         if self.book is not None and self.session is None and self.card_index is None:
             return self.book.buttons()
         result = self._content_buttons()
         if self.book is not None:
             result.append(Button(pygame.Rect(910, 30, 190, 50), "Book topics / B", "book_back"))
+        if self.play_browser is not None:
+            result.append(Button(pygame.Rect(910,30,190,50),"Play tasks / B","play_back"))
         return result
 
     def _content_buttons(self) -> list[Button]:
@@ -89,7 +97,7 @@ class App:
             ]
         s = self.session
         if s is None:
-            return [Button(pygame.Rect(814, 276 + i * 70, 410, 64),
+            return [Button(pygame.Rect(814, 264 + i * 62, 410, 58),
                            title + "\n" + subtitle, action)
                     for i, (title, subtitle, action) in enumerate(MENU_CARDS)]
         if s.phase == "decide":
@@ -99,7 +107,7 @@ class App:
             return [
                 Button(pygame.Rect(814, 612, 410, 54), "Compare coach demo  /  C", "coach"),
                 Button(pygame.Rect(814, 674, 410, 54), "Try another choice  /  R", "retry"),
-                Button(pygame.Rect(814, 736, 410, 54), "Next situation  /  N", "next"),
+                Button(pygame.Rect(814, 736, 410, 54), s.next_label if isinstance(s,ContinuousSession) else "Next situation  /  N", "next"),
             ]
         if s.phase == "summary":
             return [Button(pygame.Rect(814, 732, 410, 58), "Choose another section", "menu")]
@@ -107,24 +115,33 @@ class App:
         return [Button(pygame.Rect(814, 732, 410, 58), label, "skip")]
 
     def activate(self, action: str) -> None:
-        if action == "book":
+        if action == "continuous":
+            self.play_browser = PlayBrowser()
+            self.session, self.card_index, self.book = None, None, None
+        elif action.startswith("play_") and self.play_browser is not None:
+            self._play_action(action)
+        elif action == "book":
+            self.play_browser = None
             self.book = BookBrowser()
             self.session, self.card_index = None, None
         elif action.startswith("book_") and self.book is not None:
             self._book_action(action)
         elif action.startswith("stage:"):
+            self.play_browser = None
             self.book = None
             self.session = Session(int(action.split(":")[1]), self.seed)
             self.card_index = None
             self.seed += 1
             self.history = {}
         elif action.startswith("cards:"):
+            self.play_browser = None
             self.book = None
             self.cards = build_practice_cards()
             self.session = None
             self.card_index = int(action.split(":")[1]) % len(self.cards)
             self.card_elapsed = 0.0
         elif action == "menu":
+            self.play_browser = None
             self.book = None
             self.session = None
             self.card_index = None
@@ -132,6 +149,17 @@ class App:
             self._card_action(action)
         elif self.session is not None:
             self._session_action(action)
+
+    def _play_action(self, action: str) -> None:
+        assert self.play_browser is not None
+        if action == "play_back":
+            self.session = None
+        elif action in ("play_next","play_prev"):
+            self.play_browser.change_page(1 if action == "play_next" else -1)
+        elif action.startswith("play_family:"):
+            self.session = ContinuousSession(int(action.split(":")[1]),self.seed)
+            self.seed += 1
+            self.history = {}
 
     def _book_action(self, action: str) -> None:
         book = self.book
@@ -195,7 +223,7 @@ class App:
             self.hover = self.logical_point(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             pos = self.logical_point(event.pos)
-            if (self.session is not None or self.card_index is not None or self.book is not None) and pygame.Rect(1120, 35, 125, 40).collidepoint(pos):
+            if (self.session is not None or self.card_index is not None or self.book is not None or self.play_browser is not None) and pygame.Rect(1120, 35, 125, 40).collidepoint(pos):
                 self.activate("menu")
             else:
                 for button in self.buttons():
@@ -206,11 +234,13 @@ class App:
             self._key(event.key)
 
     def _key(self, key: int) -> None:
+        if self._play_key(key):
+            return
         if self._book_key(key):
             return
         if key == pygame.K_ESCAPE:
             self.activate("menu")
-        elif key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7):
+        elif key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8):
             number = key - pygame.K_1
             if self.session is None and self.card_index is None:
                 self.activate(MENU_CARDS[number][2])
@@ -224,6 +254,22 @@ class App:
             self.activate("card_replay" if self.card_index is not None else "retry")
         elif key == pygame.K_n:
             self.activate("card_next" if self.card_index is not None else "next")
+
+    def _play_key(self, key: int) -> bool:
+        if self.play_browser is None:
+            return False
+        if key == pygame.K_b:
+            self.activate("play_back")
+            return True
+        if self.session is None and pygame.K_1 <= key <= pygame.K_8:
+            action = self.play_browser.number_action(key-pygame.K_1)
+            if action is not None:
+                self.activate(action)
+            return True
+        if self.session is None and key in (pygame.K_LEFT,pygame.K_RIGHT):
+            self.activate("play_prev" if key == pygame.K_LEFT else "play_next")
+            return True
+        return False
 
     def _book_key(self, key: int) -> bool:
         if self.book is None:
@@ -254,7 +300,10 @@ class App:
             role = self.session.scene.role
         draw_pitch(p, role)
         p.panel(SIDE)
-        if self.card_index is not None:
+        if self.play_browser is not None and self.session is None:
+            p.text("MENU / ESC",pygame.Rect(1120,43,128,35),23,GREEN)
+            self.play_browser.draw(p)
+        elif self.card_index is not None:
             p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
             self._draw_card()
         elif self.book is not None and self.session is None:
@@ -341,9 +390,11 @@ class App:
         assert s is not None
         p = self.painter
         mode = "NEW LAYOUT" if s.scene.transfer else "PRACTICE"
-        p.text(f"{mode}  {s.index + 1}/{len(s.scenes)}  /  {s.scene.base_id}",
+        progress = (f"PLAY {s.index+1}/{len(s.plays)} / STEP {s.depth}" if isinstance(s,ContinuousSession) else
+                    f"{mode}  {s.index + 1}/{len(s.scenes)}  /  {s.scene.base_id}")
+        p.text(progress,
                pygame.Rect(814, 158, 410, 26), 23, GREEN)
-        p.text(s.scene.title, pygame.Rect(814, 190, 410, 72), 33)
+        p.text(s.play.title if isinstance(s,ContinuousSession) else s.scene.title, pygame.Rect(814, 190, 410, 72), 33)
         p.text(f"Role: {s.scene.role}  ({', '.join(s.scene.groups)})",
                pygame.Rect(814, 266, 410, 34), 23, GOLD)
         if s.phase == "feedback":
@@ -378,13 +429,15 @@ class App:
         note = "First-try result saved. Press C for coach or R to retry."
         if len(prior) > 1:
             note = "Compared with: " + prior[-2]
+        if isinstance(s,ContinuousSession) and s.practice_only:
+            note = "Practice branch: first-run scores stay saved."
         p.text(note, pygame.Rect(814, 574, 410, 34), 20, GOLD)
 
     def _feedback_overlay(self) -> None:
         s = self.session
         assert s is not None and s.feedback is not None
         choice_route(self.painter, s.scene, s.feedback, GOLD)
-        best = next(c for c in s.scene.choices if c.rating == 2)
+        best = coach_choice(s.scene,s.selected)
         distinct = route_destination(s.feedback) != route_destination(best)
         if distinct or s.phase == "coach":
             choice_route(self.painter, s.scene, best, GREEN, True)
@@ -406,11 +459,13 @@ class App:
         p.text("Strong or reasonable first tries", pygame.Rect(814, 240, 410, 34), 26)
         progress = (f"Practice: {practice} / {total}\nBook topic round" if self.book else
                     f"Practice: {practice} / {total}\nNew layouts: {transfer} / {checks}")
+        if isinstance(s,ContinuousSession):
+            progress = f"Decisions: {practice} / {total}\nFirst run / visited steps only"
         p.text(progress,
                pygame.Rect(814, 294, 410, 96), 36, GOLD)
         p.text("Soccer Smarts checklist:\nWhere is the pressure?\nWhere is the open space?\nWho has a clear passing lane?",
                pygame.Rect(814, 414, 410, 150), 25)
-        weak = [scene.title for scene in s.scenes if s.results.get(scene.id, 0) == 0]
+        weak = [scene.title for scene in s.scenes if scene.id in s.results and s.results[scene.id] == 0]
         message = ("Review next: " + "; ".join(dict.fromkeys(weak))[:110]
                    if weak else "Great scanning across roles! Try another section or Practice Cards.")
         p.text(message, pygame.Rect(814, 588, 410, 120), 24, MUTED)

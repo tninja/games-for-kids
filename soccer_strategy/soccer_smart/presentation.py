@@ -18,9 +18,15 @@ def outgoing_fraction(fraction: float, contact: float = CONTACT_FRACTION) -> flo
     return max(0.0, min(1.0, (fraction - contact) / (1.0 - contact)))
 
 
+def coach_choice(scene: Scenario, selected: int | None) -> Choice:
+    if scene.stage == 8 and selected is not None and scene.choices[selected].rating == 2:
+        return scene.choices[selected]
+    return next(c for c in scene.choices if c.rating == 2)
+
+
 def _active_choice(scene: Scenario, phase: str, selected: int | None) -> Choice | None:
     if phase == "coach":
-        return next(c for c in scene.choices if c.rating == 2)
+        return coach_choice(scene,selected)
     if phase in ("outcome", "feedback") and selected is not None:
         return scene.choices[selected]
     return None

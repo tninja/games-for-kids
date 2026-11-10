@@ -1,5 +1,11 @@
 # Soccer Smart Lab design
 
+Continuous Play, implemented 2026-11-09, adds 24 linked episodes across eight
+task families. Each path has two or three decisions, with continuous actor and
+ball geometry, selected-action branches and first-run-only scoring. See
+[the current Continuous Play design](CONTINUOUS_PLAY.md). The earlier starter
+design below remains applicable to the existing single-decision modes.
+
 Status: implemented and expanded on 2026-11-07. This document records the
 original starter design; its staged backlog is historical. The current
 [coverage audit](BOOK_COVERAGE.md) maps 57 public-index entries to the runnable

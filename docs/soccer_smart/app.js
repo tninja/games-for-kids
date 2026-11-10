@@ -78,13 +78,21 @@
     return RELEASE_KINDS.indexOf(choice.action_kind) !== -1 ? choice.ball_end : choice.target;
   }
 
+  function coachChoice(scene, selected) {
+    if (scene.stage === 8 && selected !== null && selected !== undefined && scene.choices[selected].rating === 2) {
+      return scene.choices[selected];
+    }
+    for (var i = 0; i < scene.choices.length; i++) {
+      if (scene.choices[i].rating === 2) {
+        return scene.choices[i];
+      }
+    }
+    throw new Error("Coach comparison requires a strong option");
+  }
+
   function activeChoice(scene, phase, selected) {
     if (phase === "coach") {
-      for (var i = 0; i < scene.choices.length; i++) {
-        if (scene.choices[i].rating === 2) {
-          return scene.choices[i];
-        }
-      }
+      return coachChoice(scene,selected);
     }
     if ((phase === "outcome" || phase === "feedback") && selected !== null && selected !== undefined) {
       return scene.choices[selected];
@@ -332,7 +340,7 @@
       return false;
     }
     this.selected = index;
-    if (!(this.scene.id in this.results)) {
+    if (!this.practiceOnly && !(this.scene.id in this.results)) {
       this.results[this.scene.id] = this.scene.choices[index].rating;
     }
     this.phase = "outcome";
@@ -381,6 +389,129 @@
     var pGood = practice.filter(function (s) { return self.results[s.id] > 0; }).length;
     var tGood = transfer.filter(function (s) { return self.results[s.id] > 0; }).length;
     return [pGood, practice.length, tGood, transfer.length];
+  };
+
+  function playExit(node, key) {
+    var edge = node.exits.find(function (pair) { return pair[0] === key; });
+    if (!edge) { throw new Error("Missing play exit"); }
+    return edge[1];
+  }
+
+  function ContinuousSession(data, family, seed) {
+    if (!Number.isInteger(family) || family < 0 || family > 8) {
+      throw new Error("Choose a play family from zero through eight");
+    }
+    var rng = makeRng(seed), catalog = data.plays;
+    if (family) {
+      this.plays = catalog.filter(function (p) { return p.family === family; });
+      rng.shuffle(this.plays);
+    } else {
+      this.plays = rng.sample([1,2,3,4,5,6,7,8],4).map(function (f) {
+        return rng.choice(catalog.filter(function (p) { return p.family === f; }));
+      });
+    }
+    this.plays = this.plays.map(function (p) {
+      var copy = clone(p);
+      copy.nodes.forEach(function (n) { rng.shuffle(n.scene.choices); });
+      return copy;
+    });
+    this.scenes = this.plays.reduce(function (all,p) {
+      return all.concat(p.nodes.map(function (n) { return n.scene; }));
+    },[]);
+    this.stage = 8;
+    this.index = 0;
+    this.depth = 1;
+    this.results = {};
+    this.practiceOnly = false;
+    this.nodeId = this.play.nodes[0].scene.id;
+    this._observe();
+  }
+  ContinuousSession.prototype = Object.create(Session.prototype);
+  ContinuousSession.prototype.constructor = ContinuousSession;
+  Object.defineProperty(ContinuousSession.prototype,"play", {
+    get: function () { return this.plays[this.index]; }
+  });
+  Object.defineProperty(ContinuousSession.prototype,"currentNode", {
+    get: function () {
+      var key = this.nodeId;
+      return this.play.nodes.find(function (n) { return n.scene.id === key; });
+    }
+  });
+  Object.defineProperty(ContinuousSession.prototype,"scene", {
+    get: function () { return this.currentNode.scene; }
+  });
+  Object.defineProperty(ContinuousSession.prototype,"nextLabel", {
+    get: function () {
+      if (this.feedback && playExit(this.currentNode,this.feedback.key) !== null) {
+        return "Continue this play / N";
+      }
+      return this.index+1 < this.plays.length ? "Next play / N" : "See round summary / N";
+    }
+  });
+  ContinuousSession.prototype._observe = function () {
+    this.phase = "observe";
+    this.elapsed = 0;
+    this.selected = null;
+  };
+  ContinuousSession.prototype.retry = function () {
+    if (!Session.prototype.retry.call(this)) { return false; }
+    this.practiceOnly = true;
+    return true;
+  };
+  ContinuousSession.prototype.advance = function () {
+    if (this.phase !== "feedback") { return false; }
+    var target = playExit(this.currentNode,this.feedback.key);
+    if (target !== null) {
+      this.nodeId = target;
+      this.depth += 1;
+    } else if (this.index+1 < this.plays.length) {
+      this.index += 1;
+      this.nodeId = this.play.nodes[0].scene.id;
+      this.depth = 1;
+      this.practiceOnly = false;
+    } else {
+      this.phase = "summary";
+      this.selected = null;
+      return true;
+    }
+    this._observe();
+    return true;
+  };
+  ContinuousSession.prototype.summary = function () {
+    var ratings = Object.values(this.results);
+    return [ratings.filter(function (r) { return r > 0; }).length,ratings.length,0,0];
+  };
+
+  function PlayBrowser(data) {
+    this.page = 0;
+    this.families = data.play_families;
+  }
+  Object.defineProperty(PlayBrowser.prototype,"visible", {
+    get: function () { return [0,1,2,3,4,5,6,7,8].slice(this.page*6,(this.page+1)*6); }
+  });
+  PlayBrowser.prototype.changePage = function (delta) {
+    this.page = Math.max(0,Math.min(1,this.page+delta));
+  };
+  PlayBrowser.prototype.numberAction = function (number) {
+    return number >= 0 && number < this.visible.length ? "play_family:"+this.visible[number] : null;
+  };
+  PlayBrowser.prototype.buttons = function () {
+    var titles = ["Mixed round / four different tasks"].concat(this.families);
+    return this.visible.map(function (f,i) {
+      return makeButton(814,314+i*62,410,54,titles[f],"play_family:"+f,String(i+1));
+    }).concat([
+      makeButton(814,700,195,48,"Previous / Left","play_prev",""),
+      makeButton(1024,700,200,48,"Next / Right","play_next",""),
+      makeButton(814,758,410,48,"Main menu / Esc","menu","")
+    ]);
+  };
+  PlayBrowser.prototype.draw = function (p) {
+    p.text("Continuous Play",{x:814,y:162,width:410,height:50},37,GREEN);
+    p.text("8 tasks / 24 openings / page "+(this.page+1)+" of 2\nEach play has 2-3 linked decisions.",
+      {x:814,y:224,width:410,height:90},24,MUTED);
+    p.text("PLAY\nLOOK AGAIN\nADAPT",{x:100,y:320,width:630,height:280},64,GREEN);
+    p.text("Pass, support, recover: your choice changes what comes next.\nRetry is practice; first-run scores stay saved.",
+      {x:78,y:660,width:630,height:90},23,GOLD);
   };
 
   function BookBrowser(data) {
@@ -819,6 +950,7 @@
     this.mobileMode = false;
     this.history = {};
     this.book = null;
+    this.playBrowser = null;
     this.savedResults = this._loadProgress();
     this.menuCards = data.sections.map(function (section) {
       var idStr = (section.id < 10 ? "0" : "") + section.id;
@@ -826,7 +958,8 @@
     }).concat([
       ["05 / Mixed round", "All 4 sections: 6 practice + 2 transfer", "stage:5"],
       ["06 / Practice cards", "7 technique demos & adult activities", "cards:0"],
-      ["07 / Book companion", "57 topics / original practice", "book"]
+      ["07 / Book companion", "57 topics / original practice", "book"],
+      ["08 / Continuous Play", "24 openings / linked decisions", "continuous"]
     ]);
   }
 
@@ -863,12 +996,18 @@
   };
 
   SoccerSmartWebApp.prototype.buttons = function () {
+    if (this.playBrowser !== null && this.session === null) {
+      return this.playBrowser.buttons();
+    }
     if (this.book !== null && this.session === null && this.cardIndex === null) {
       return this.book.buttons();
     }
     var result = this._contentButtons();
     if (this.book !== null) {
       result.push(makeButton(910, 30, 190, 50, "Book topics / B", "book_back", ""));
+    }
+    if (this.playBrowser !== null) {
+      result.push(makeButton(910,30,190,50,"Play tasks / B","play_back",""));
     }
     return result;
   };
@@ -884,7 +1023,7 @@
     var s = this.session;
     if (s === null) {
       return this.menuCards.map(function (item, i) {
-        return makeButton(814, 276 + i * 70, 410, 64, item[0] + "\n" + item[1], item[2], "");
+        return makeButton(814, 264 + i * 62, 410, 58, item[0] + "\n" + item[1], item[2], "");
       });
     }
     if (s.phase === "decide") {
@@ -896,7 +1035,7 @@
       return [
         makeButton(814, 612, 410, 54, "Compare coach demo  /  C", "coach", ""),
         makeButton(814, 674, 410, 54, "Try another choice  /  R", "retry", ""),
-        makeButton(814, 736, 410, 54, "Next situation  /  N", "next", "")
+        makeButton(814, 736, 410, 54, s instanceof ContinuousSession ? s.nextLabel : "Next situation  /  N", "next", "")
       ];
     }
     if (s.phase === "summary") {
@@ -908,25 +1047,36 @@
 
   SoccerSmartWebApp.prototype.activate = function (action) {
     this.touchPreviewChoice = null;
-    if (action === "book") {
+    if (action === "continuous") {
+      this.playBrowser = new PlayBrowser(this.data);
+      this.book = null;
+      this.session = null;
+      this.cardIndex = null;
+    } else if (action.indexOf("play_") === 0 && this.playBrowser !== null) {
+      this._playAction(action);
+    } else if (action === "book") {
+      this.playBrowser = null;
       this.book = new BookBrowser(this.data);
       this.session = null;
       this.cardIndex = null;
     } else if (action.indexOf("book_") === 0 && this.book !== null) {
       this._bookAction(action);
     } else if (action.indexOf("stage:") === 0) {
+      this.playBrowser = null;
       this.book = null;
       this.session = new Session(this.data, parseInt(action.split(":")[1], 10), this.seed);
       this.cardIndex = null;
       this.seed += 1;
       this.history = {};
     } else if (action.indexOf("cards:") === 0) {
+      this.playBrowser = null;
       this.book = null;
       this.cards = this.data.starter_cards.slice();
       this.session = null;
       this.cardIndex = parseInt(action.split(":")[1], 10) % this.cards.length;
       this.cardElapsed = 0.0;
     } else if (action === "menu") {
+      this.playBrowser = null;
       this.book = null;
       this.session = null;
       this.cardIndex = null;
@@ -934,6 +1084,18 @@
       this._cardAction(action);
     } else if (this.session !== null) {
       this._sessionAction(action);
+    }
+  };
+
+  SoccerSmartWebApp.prototype._playAction = function (action) {
+    if (action === "play_back") {
+      this.session = null;
+    } else if (action === "play_next" || action === "play_prev") {
+      this.playBrowser.changePage(action === "play_next" ? 1 : -1);
+    } else if (action.indexOf("play_family:") === 0) {
+      this.session = new ContinuousSession(this.data,parseInt(action.split(":")[1],10),this.seed);
+      this.seed += 1;
+      this.history = {};
     }
   };
 
@@ -989,7 +1151,7 @@
           this.history[s.scene.id] = [];
         }
         this.history[s.scene.id].push(s.scene.choices[index].label);
-        this._saveProgress(baseId(s.scene), s.results[s.scene.id]);
+        if (!s.practiceOnly) { this._saveProgress(baseId(s.scene), s.results[s.scene.id]); }
       }
     } else if (action === "coach") {
       s.compareCoach();
@@ -1011,7 +1173,7 @@
 
   SoccerSmartWebApp.prototype.handlePointerDown = function (logicalPos, pointerType) {
     var menuRect = { x: 1120, y: 35, width: 125, height: 40 };
-    if ((this.session !== null || this.cardIndex !== null || this.book !== null) && collidePoint(menuRect, logicalPos)) {
+    if ((this.session !== null || this.cardIndex !== null || this.book !== null || this.playBrowser !== null) && collidePoint(menuRect, logicalPos)) {
       this.activate("menu");
       return;
     }
@@ -1038,12 +1200,13 @@
   };
 
   SoccerSmartWebApp.prototype.handleKeyDown = function (key) {
+    if (this._playKey(key)) { return; }
     if (this._bookKey(key)) {
       return;
     }
     if (key === "Escape") {
       this.activate("menu");
-    } else if (key >= "1" && key <= "7") {
+    } else if (key >= "1" && key <= "8") {
       var number = parseInt(key, 10) - 1;
       if (this.session === null && this.cardIndex === null) {
         this.activate(this.menuCards[number][2]);
@@ -1059,6 +1222,24 @@
     } else if (key === "n" || key === "N") {
       this.activate(this.cardIndex !== null ? "card_next" : "next");
     }
+  };
+
+  SoccerSmartWebApp.prototype._playKey = function (key) {
+    if (this.playBrowser === null) { return false; }
+    if (key === "b" || key === "B") {
+      this.activate("play_back");
+      return true;
+    }
+    if (this.session === null && key >= "1" && key <= "8") {
+      var action = this.playBrowser.numberAction(parseInt(key,10)-1);
+      if (action !== null) { this.activate(action); }
+      return true;
+    }
+    if (this.session === null && (key === "ArrowLeft" || key === "ArrowRight")) {
+      this.activate(key === "ArrowLeft" ? "play_prev" : "play_next");
+      return true;
+    }
+    return false;
   };
 
   SoccerSmartWebApp.prototype._bookKey = function (key) {
@@ -1107,6 +1288,11 @@
         previewed: self.touchPreviewChoice !== null && b.action === "choice:" + self.touchPreviewChoice
       };
     });
+    if (this.playBrowser !== null && this.session === null) {
+      return {badge:"CONTINUOUS PLAY",title:"Choose a match task",subtitle:"8 tasks / 24 openings",
+        body:"Each play has 2-3 linked decisions. Pass, support and recover as the picture changes.",
+        note:"Page "+(this.playBrowser.page+1)+" of 2. Retry is practice; first-run scores stay saved.",buttons:btns};
+    }
     if (this.cardIndex !== null) {
       var card = this.cards[this.cardIndex];
       var loc = card.groups.map(function (gid) {
@@ -1166,6 +1352,9 @@
       var progress = this.book !== null
         ? "Practice: " + counts[0] + " / " + counts[1] + " (Book topic round)"
         : "Practice: " + counts[0] + " / " + counts[1] + " | New layouts: " + counts[2] + " / " + counts[3];
+      if (s instanceof ContinuousSession) {
+        progress = "First-run decisions: "+counts[0]+" / "+counts[1]+" (visited steps only)";
+      }
       return {
         badge: "SESSION COMPLETE",
         title: "Session complete!",
@@ -1177,16 +1366,17 @@
     }
     var mode = s.scene.transfer ? "NEW LAYOUT" : "PRACTICE";
     var badge = mode + " " + (s.index + 1) + "/" + s.scenes.length + " / " + baseId(s.scene);
+    if (s instanceof ContinuousSession) { badge = "PLAY "+(s.index+1)+"/"+s.plays.length+" / STEP "+s.depth; }
     var sub = "Role: " + s.scene.role + " (" + s.scene.groups.join(", ") + ")";
     if (s.phase === "feedback") {
       var c = s.feedback;
       var ratingLabel = ["Notice the risk", "A reasonable option", "Good fit for this picture"][c.rating];
       return {
         badge: badge + " - " + ratingLabel.toUpperCase(),
-        title: s.scene.title,
+        title: s instanceof ContinuousSession ? s.play.title : s.scene.title,
         subtitle: ratingLabel + " (" + sub + ")",
         body: c.outcome + "\n\n" + c.explanation,
-        note: s.scene.coach_note,
+        note: s.practiceOnly ? "Practice branch: first-run scores stay saved." : s.scene.coach_note,
         buttons: btns
       };
     }
@@ -1200,7 +1390,7 @@
     };
     return {
       badge: badge,
-      title: s.scene.title,
+      title: s instanceof ContinuousSession ? s.play.title : s.scene.title,
       subtitle: sub,
       body: s.scene.cue,
       note: (statusMap[s.phase] || "") + "\n" + s.scene.rules,
@@ -1229,7 +1419,10 @@
     if (!this.mobileMode) {
       p.panel(SIDE, PANEL, 18);
     }
-    if (this.cardIndex !== null) {
+    if (this.playBrowser !== null && this.session === null) {
+      p.text("MENU / ESC",{x:1120,y:43,width:128,height:35},23,GREEN);
+      this.playBrowser.draw(p);
+    } else if (this.cardIndex !== null) {
       if (!this.mobileMode) {
         p.text("MENU / ESC", { x: 1120, y: 43, width: 128, height: 35 }, 23, GREEN);
       }
@@ -1371,8 +1564,10 @@
     var s = this.session;
     var p = this.painter;
     var mode = s.scene.transfer ? "NEW LAYOUT" : "PRACTICE";
-    p.text(mode + "  " + (s.index + 1) + "/" + s.scenes.length + "  /  " + baseId(s.scene), { x: 814, y: 158, width: 410, height: 26 }, 23, GREEN);
-    p.text(s.scene.title, { x: 814, y: 190, width: 410, height: 72 }, 33, INK);
+    var progress = s instanceof ContinuousSession ? "PLAY "+(s.index+1)+"/"+s.plays.length+" / STEP "+s.depth
+      : mode + "  " + (s.index + 1) + "/" + s.scenes.length + "  /  " + baseId(s.scene);
+    p.text(progress, { x: 814, y: 158, width: 410, height: 26 }, 23, GREEN);
+    p.text(s instanceof ContinuousSession ? s.play.title : s.scene.title, { x: 814, y: 190, width: 410, height: 72 }, 33, INK);
     p.text("Role: " + s.scene.role + "  (" + s.scene.groups.join(", ") + ")", { x: 814, y: 266, width: 410, height: 34 }, 23, GOLD);
     if (s.phase === "feedback") {
       this._feedbackText();
@@ -1411,6 +1606,7 @@
     if (prior.length > 1) {
       note = "Compared with: " + prior[prior.length - 2];
     }
+    if (s.practiceOnly) { note = "Practice branch: first-run scores stay saved."; }
     p.text(note, { x: 814, y: 574, width: 410, height: 34 }, 20, GOLD);
   };
 
@@ -1418,13 +1614,7 @@
     var s = this.session;
     var p = this.painter;
     choiceRoute(p, s.scene, s.feedback, GOLD, false);
-    var best = null;
-    for (var i = 0; i < s.scene.choices.length; i++) {
-      if (s.scene.choices[i].rating === 2) {
-        best = s.scene.choices[i];
-        break;
-      }
-    }
+    var best = coachChoice(s.scene,s.selected);
     var fbDest = routeDestination(s.feedback);
     var bestDest = routeDestination(best);
     var distinct = fbDest[0] !== bestDest[0] || fbDest[1] !== bestDest[1];
@@ -1451,6 +1641,9 @@
     var progress = this.book !== null
       ? "Practice: " + counts[0] + " / " + counts[1] + "\nBook topic round"
       : "Practice: " + counts[0] + " / " + counts[1] + "\nNew layouts: " + counts[2] + " / " + counts[3];
+    if (s instanceof ContinuousSession) {
+      progress = "Decisions: "+counts[0]+" / "+counts[1]+"\nFirst run / visited steps only";
+    }
     p.text(progress, { x: 814, y: 294, width: 410, height: 96 }, 36, GOLD);
     p.text(
       "Soccer Smarts checklist:\nWhere is the pressure?\nWhere is the open space?\nWho has a clear passing lane?",
@@ -1460,7 +1653,7 @@
     );
     var weak = [];
     s.scenes.forEach(function (scene) {
-      if ((s.results[scene.id] || 0) === 0 && weak.indexOf(scene.title) === -1) {
+      if (s.results[scene.id] === 0 && weak.indexOf(scene.title) === -1) {
         weak.push(scene.title);
       }
     });
@@ -1619,6 +1812,8 @@
     ANIMATION_SECONDS: ANIMATION_SECONDS,
     SoccerSmartWebApp: SoccerSmartWebApp,
     Session: Session,
+    ContinuousSession: ContinuousSession,
+    PlayBrowser: PlayBrowser,
     BookBrowser: BookBrowser,
     positions: positions,
     cardPositions: cardPositions,

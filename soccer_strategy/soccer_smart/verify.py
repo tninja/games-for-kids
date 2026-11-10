@@ -21,12 +21,12 @@ from typing import Any, Callable
 from .quality import Coverage, RUNTIME, boundaries, lint
 
 PACKAGE = Path(__file__).resolve().parent
-CHECKED_MODULES = (*RUNTIME, "web_export.py")
+CHECKED_MODULES = (*RUNTIME, "web_export.py", "play_model.py", "play_content.py", "play_session.py", "play_view.py")
 ROOT = PACKAGE.parent.parent
 ARTIFACTS = PACKAGE / ".verification"
 COMMANDS: list[dict[str, Any]] = []
 DOCS = ("README.md", "DESIGN.md", "CURRICULUM.md", "SCENARIOS.md",
-        "SOURCES.md", "SPEC.md", "EVIDENCE.md", "BOOK_COVERAGE.md")
+        "SOURCES.md", "SPEC.md", "EVIDENCE.md", "BOOK_COVERAGE.md", "CONTINUOUS_PLAY.md", "COACHING_REVIEW.md")
 MUTANTS = (
     ("every choice rated strong", "catalog.py",
      "Choice(c.key, c.label, c.target, c.rating, c.explanation,",
@@ -64,6 +64,33 @@ MUTANTS = (
     ("web export skips You personalization", "web_export.py",
      "personalized = JOHN_PATTERN.sub(_replace_match, json.dumps(raw_payload))",
      "personalized = json.dumps(raw_payload)"),
+    ("continuous ignores selected branch", "play_session.py",
+     'destination = dict(self.play.node(self.node_id).exits)[self.feedback.key]',
+     'destination = dict(self.play.node(self.node_id).exits)[self.scene.choices[0].key]'),
+    ("continuous practice inflates first-run scores", "play_session.py",
+     'if not self.practice_only:', 'if True:'),
+    ("continuous permits teleporting links", "play_model.py",
+     'raise ValueError("Play link teleports actors or ball")', 'pass'),
+    ("continuous loses third opening", "play_content.py",
+     'for family in range(1,9) for v in "ABC"', 'for family in range(1,9) for v in "AB"'),
+    ("web continuous returns to root", "../../docs/soccer_smart/app.js",
+     'this.nodeId = target;', 'this.nodeId = this.play.nodes[0].scene.id;'),
+    ("web practice scores unvisited branch", "../../docs/soccer_smart/app.js",
+     'if (!this.practiceOnly && !(this.scene.id in this.results)) {',
+     'if (!(this.scene.id in this.results)) {'),
+    ("safe opening alternative loses credit", "play_content.py",
+     'rating = 0 if bad else 2', 'rating = 0 if bad else 1 if key == "left" else 2'),
+    ("recovery awards an unreleased ball", "play_content.py",
+     'option("recover","Recover toward goal-side cover",2,target,ball,"move",',
+     'option("recover","Recover toward goal-side cover",2,target,target,"intercept",'),
+    ("shot corner ignores keeper", "play_content.py",
+     'corner = max(((44.,0.),(56.,0.)),key=lambda p:clearance(ball,p,people,keepers=True))',
+     'corner = max(((44.,0.),(56.,0.)),key=lambda p:clearance(ball,p,people,keepers=False))'),
+    ("coach replaces a correct chosen route", "presentation.py",
+     'if scene.stage == 8 and selected is not None and scene.choices[selected].rating == 2:', 'if False:'),
+    ("web coach replaces a correct chosen route", "../../docs/soccer_smart/app.js",
+     'if (scene.stage === 8 && selected !== null && selected !== undefined && scene.choices[selected].rating === 2) {',
+     'if (false) {'),
 )
 
 
@@ -161,12 +188,14 @@ def static_checks() -> dict[str, int]:
     files = list(PACKAGE.glob("*.py"))
     failures = {p.name: lint(p.read_text(), p.name) for p in files}
     for name in CHECKED_MODULES:
-        failures[name].extend(boundaries((PACKAGE / name).read_text(), "model.py" if name == "web_export.py" else name))
+        pure = name in ("web_export.py","play_model.py","play_content.py","play_session.py")
+        failures[name].extend(boundaries((PACKAGE / name).read_text(), "model.py" if pure else name))
     bad = {name: messages for name, messages in failures.items() if messages}
     if bad:
         raise RuntimeError(str(bad))
     doc_stats = _check_docs_and_preservation()
     web_stats = verify_web_export()
+    coaching_stats = coaching_checks()
     ledger = (PACKAGE / "BOOK_COVERAGE.md").read_text()
     coverage_stats = check_book_ledger(ledger)
     broken = ledger.replace("bk008", "missing-card", 1)
@@ -180,7 +209,39 @@ def static_checks() -> dict[str, int]:
     else:
         raise RuntimeError("Coverage ledger accepted a wrong destination")
     return {"files": len(files), "violations": 0, "max_function_lines": 60,
-            "max_decisions": 15, **doc_stats, **web_stats, **coverage_stats, "bad_coverage_row_rejected": 1}
+            "max_decisions": 15, **doc_stats, **web_stats, **coverage_stats, **coaching_stats, "bad_coverage_row_rejected": 1}
+
+
+def check_coaching_ledger(source: str) -> dict[str,int]:
+    from .play_content import build_plays, owner
+
+    expected = {}
+    for play in build_plays():
+        for node in play.nodes:
+            holder = owner(node.scene.actors,node.scene.ball)
+            grades = "; ".join(f"{c.key}={c.rating}" for c in node.scene.choices)
+            expected[node.scene.id] = ("loose" if holder is None else holder.key,grades)
+    rows = re.findall(r"^\| (P\d{2}\.[ABC]\.[^ |]+) \| ([^|]+) \| ([^|]+) \|$",source,re.M)
+    if len(rows) != len(expected) or {r[0] for r in rows} != set(expected):
+        raise ValueError("Missing or duplicate coaching rows")
+    for ident,holder,grades in rows:
+        if (holder.strip(),grades.strip()) != expected[ident]:
+            raise ValueError("Coaching grades or possession differ: "+ident)
+    return {"coaching_nodes":len(rows),"coaching_choices":len(rows)*3}
+
+
+def coaching_checks() -> dict[str,int]:
+    source = (PACKAGE / "COACHING_REVIEW.md").read_text()
+    stats = check_coaching_ledger(source)
+    bad = source.replace("carry=2","carry=0",1)
+    assert bad != source,"Coaching negative control not applied"
+    try:
+        check_coaching_ledger(bad)
+    except ValueError as error:
+        assert "Coaching grades" in str(error)
+    else:
+        raise RuntimeError("Coaching ledger false green")
+    return {**stats,"bad_coaching_grade_rejected":1}
 
 
 def check_book_ledger(source: str) -> dict[str, int]:
@@ -267,6 +328,10 @@ def mutations() -> dict[str, Any]:
                 "soccer_strategy.soccer_smart.test_book",
                 "soccer_strategy.soccer_smart.test_book_ui",
                 "soccer_strategy.soccer_smart.test_web",
+                "soccer_strategy.soccer_smart.test_play",
+                "soccer_strategy.soccer_smart.test_play_ui",
+                "soccer_strategy.soccer_smart.test_play_web",
+                "soccer_strategy.soccer_smart.test_play_coaching",
                 "-q",
             ], root)
             killed = run.returncode == 1 and "FAIL:" in run.stdout

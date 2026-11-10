@@ -33,7 +33,7 @@ class BookUITests(unittest.TestCase):
         self.app.handle_event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=point))
 
     def test_separate_seventh_menu_entry_preserves_original_six_actions(self):
-        self.assertEqual(len(self.app.buttons()), 7)
+        self.assertEqual(len(self.app.buttons()), 8)
         self.key(pygame.K_7)
         self.assertIsNotNone(self.app.book)
         self.fits()

@@ -12,6 +12,7 @@ from .book_tactics import build_book_scenes
 from .book_view import CATEGORIES
 from .catalog import build_catalog, build_practice_cards
 from .curriculum import GROUPS, SECTIONS
+from .play_content import FAMILIES, build_plays
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_DOCS = ROOT / "docs"
@@ -86,6 +87,8 @@ def build_web_payload() -> dict[str, Any]:
         "starter_cards": [asdict(c) for c in build_practice_cards()],
         "book_cards": [asdict(c) for c in build_book_cards()],
         "lessons": [asdict(entry) for entry in lessons()],
+        "plays": [asdict(play) for play in build_plays()],
+        "play_families": list(FAMILIES),
     }
     personalized = JOHN_PATTERN.sub(_replace_match, json.dumps(raw_payload))
     return json.loads(personalized)
@@ -111,6 +114,8 @@ def export_web(docs_dir: Path = DEFAULT_DOCS) -> dict[str, int]:
         "starter_cards": len(payload["starter_cards"]),
         "book_cards": len(payload["book_cards"]),
         "lessons": len(payload["lessons"]),
+        "continuous_plays": len(payload["plays"]),
+        "continuous_nodes": sum(len(p["nodes"]) for p in payload["plays"]),
     }
 
 
@@ -130,6 +135,8 @@ def verify_web_export(docs_dir: Path = DEFAULT_DOCS) -> dict[str, int]:
         raise ValueError("Web data bundle is out of sync with Python catalog")
     return {
         "web_files": len(REQUIRED_WEB_FILES),
+        "continuous_plays": len(payload["plays"]),
+        "continuous_nodes": sum(len(p["nodes"]) for p in payload["plays"]),
         "scenes": len(payload["starter_scenes"]) + len(payload["book_scenes"]),
         "cards": len(payload["starter_cards"]) + len(payload["book_cards"]),
         "lessons": len(payload["lessons"]),

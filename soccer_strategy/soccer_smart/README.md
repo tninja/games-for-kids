@@ -10,6 +10,30 @@ access limitations, and evidence labels. [SPEC.md](SPEC.md) records the
 approved executable specification; [EVIDENCE.md](EVIDENCE.md) reports the
 reproducible verification gauntlet results.
 
+## New: Continuous Play
+
+Choose **8 / Continuous Play** for match sequences where your choice determines
+the next picture. Eight task families have three different openings each:
+**24 episodes with 166 decision nodes**, and two or three decisions per path.
+Pass and offer a return angle, carry and react to closing pressure, or recover
+after losing the ball. You keep controlling John (YOU on the web).
+
+Pick a task to practice its three shuffled openings, or a mixed round with four
+different tasks. `N` continues the selected branch; `B` returns to the task list.
+Left/Right pages through tasks. Coach comparison and `R` retry remain available.
+Retries and their follow-up branches are practice; only visited first-run
+decisions count in the round summary. Unvisited branches are never penalized.
+
+The original 65 single-decision scenes, 31 cards and 57 book entries remain in
+their existing modes. New episodes are original small-sided no-offside training
+pictures, separate from claims about unseen book text. See
+[Continuous Play design and review](CONTINUOUS_PLAY.md).
+
+The [coaching audit](COACHING_REVIEW.md) records every linked node. Multiple
+good routes can earn full credit. Recovery does not invent a regain, and useful
+stationary support or time to scan is recognized. Shot routes consider the
+keeper; coach comparison respects the child's selected good option.
+
 ## Does it cover the whole book?
 
 The original 36-scene release did not. The new Book companion adapts the public
@@ -44,7 +68,7 @@ PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart --smoke
 ```
 
 Run the full verification gauntlet (tests, 100% statement and branch coverage,
-AST lint/boundaries, Pyright static types, 13/13 mutants, shuffled repeat,
+AST lint/boundaries, Pyright static types, 24/24 mutants, shuffled repeat,
 existing-game preservation, SDL smoke, and GitHub Pages web bundle sync/smoke):
 
 ```sh
@@ -70,7 +94,7 @@ second tap.
 
 ## Controls and game structure
 
-- **Menu (`1`-`7` or mouse click)**:
+- **Menu (`1`-`8` or mouse click)**:
   - `1` Read and receive (topics `T01`-`T03`)
   - `2` Pass, carry, support (topics `T04`-`T06`)
   - `3` Find attacking space (topics `T07`-`T09`)
@@ -79,6 +103,7 @@ second tap.
   - `6` Practice cards (7 unscored technique demonstrations and adult-led activities)
   - `7` Book companion (57 indexed topics across Skills, Tactics, Watch a player,
     For adults and Getting started)
+  - `8` Continuous Play (8 match tasks, 24 openings, selected-action branches)
 - **Book companion**:
   - Choose a category, then `1`-`6` or click a topic. Left/Right changes pages.
   - `B` or Book topics returns to the same topic page. Esc opens the main menu.

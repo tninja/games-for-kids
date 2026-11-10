@@ -1,5 +1,10 @@
 # Curriculum and indexed-topic coverage
 
+Continuous Play adds 24 original episodes / 166 linked decision nodes alongside
+the starter and Book companion inventory below. Its eight task families and
+scoring boundaries are documented in [CONTINUOUS_PLAY.md](CONTINUOUS_PLAY.md).
+These are practice adaptations, not additional verified book chapters.
+
 Current implementation: the original 36 scenes and seven cards are retained,
 and Book companion adds 29 scenes and 24 cards. The leaf-level
 [coverage audit](BOOK_COVERAGE.md) is the current runtime inventory: 56 original

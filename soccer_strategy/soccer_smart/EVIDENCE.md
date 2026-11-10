@@ -66,7 +66,304 @@ implementation reports are preserved below.
   edit and returned `no_baseline`, with open buffer `README.md` reporting
   `flycheck` state `ready`).
 
-# Evidence Report -- 2016 Public-index Coverage Expansion (Tier 2)
+# Evidence Report -- Coaching Correctness Review (Tier 2, 2026-11-09)
+
+The user requested checking and correcting the actual choices, particularly
+continuous cases. The review covers all 24 episodes / 166 nodes / 498 choices,
+with concrete counterexamples and a complete grade/possession ledger in
+`COACHING_REVIEW.md`. The 65 standalone scenes were screened and their existing
+coaching/book checks rerun; their authored data is unchanged. Earlier reports
+below are historical.
+
+Scope authorization: the user explicitly requested this correction. Detailed
+policy and test amendments were authored autonomously, without separate approval
+of each grade. `SPEC.md` visibly records the amendment allowing multiple valid
+answers rather than enforcing the old first-preferred-choice uniqueness rule.
+
+## Corrected behavior
+
+- Unblocked opening alternatives receive full credit. Useful stationary support
+  and unpressured scanning can also be good decisions.
+- Held-ball recovery preserves opponent possession. It no longer assumes an
+  unreleased pass will happen or grants a guaranteed interception. Defensive C
+  shows M actually close enough to pressure A; central cover is also credited.
+- The poor off-ball alternative has a demonstrably screened return lane. The
+  teammate keeps the ball, rather than being forced to pass to an opponent.
+- Both shooting corners are checked against defenders and goalkeeper. A pass
+  remains available if neither shooting corridor is clear.
+- Coach comparison respects a fully credited selected option, consistently in
+  animation and route overlays on desktop and web.
+
+These judgments are original small-sided teaching interpretations, informed by
+the FIFA/FA references in the review document. They do not establish a unique
+optimal action for every real match or assess physical execution.
+
+## Reproduce
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest discover -s soccer_strategy/soccer_smart -t . -q
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest soccer_strategy.soccer_smart.test_play_coaching -q
+node --check docs/soccer_smart/app.js
+node --check soccer_strategy/soccer_smart/test_play_web.js
+git diff --check
+```
+
+The complete verifier recorded all six gate results. Tests and shuffled-repeat
+gates fail only on the pre-existing localhost socket restriction:
+`test_local_http_serving_delivers_all_static_assets` raises
+`PermissionError: [Errno 1] Operation not permitted`. That test remains active.
+The long-running tool session returned 143 after producing the complete report;
+no normal or green overall exit is claimed. A separate full unittest run is
+recorded as an independent check of the same sole environment error.
+
+## Final source fingerprints
+
+- Package, excluding this report, bytecode and `.verification`:
+  `6598b991b4cc3988591f70c4ba5885d3abcf7fd96c0ae8453762460c0c56ccdd`.
+- `docs/soccer_smart/app.js`:
+  `9bf2b098e5977d02c46d4a5c6d66504430db32373eb8870a5d53a709e72c6290`.
+- `docs/soccer_smart/index.html` (unchanged in this review):
+  `8fb9aa66bdac3067fb0e0f10f3208a02c9202079fe0dc882e6ef69c800caf371`.
+- `docs/soccer_smart/data.js`:
+  `b4007a4d18b84e46ce72d238be054df5802fd5d529998dfcd6f20120f5966d74`.
+- `docs/soccer_smart/data.json`:
+  `6834ebe63f6fef446e0a9497c2d585d3bb329b66bdafa4cecd81f37ad544ed7e`.
+
+Package fingerprint matches the final `.verification/report.json`. Toolchain:
+Python 3.14.4, existing Pygame 2.6.1, cached Pyright 1.1.399 and existing Node.
+No dependency, service, installation, runtime capability or commit was added.
+
+## Final verification results
+
+| Gate or sensor | Actual result | Status |
+| --- | --- | --- |
+| Complete tests | 85 run / 84 passed / zero assertion failures / one pre-existing HTTP socket error | environment failure |
+| Coaching regressions | 10/10 passed; eight of the initial nine examples failed before the fixes | clean |
+| Related targeted suite | 44/44 passed: coaching, continuous graph/UI/web, existing coaching and book tests | clean |
+| Runtime coverage snapshot | 1434/1434 statements, 1452/1452 conditional edges across 18 modules; independent completeness check and corrupted-edge negative control executed | complete |
+| Lint, boundaries, complexity | 37 Python files, zero violations; <=60 lines / <=15 decisions per function | clean |
+| Docs, export and coaching ledger | 10 docs / 52 local links; five web files synchronized; 166 nodes / 498 grades match; corrupted grade and book-row controls rejected | clean |
+| Static types | 18 files / zero errors / zero warnings; bad-type control rejected | clean |
+| Scripted mutation | 24/24 applied, executed and assertion-killed | clean |
+| Shuffled repeat | 85 run / zero assertion failures / same one HTTP socket error | environment failure |
+| Real execution | Smart SDL, John SDL and Node web smoke all exit 0 | clean |
+| JavaScript syntax and whitespace | Both Node syntax commands and `git diff --check` exit 0 | clean |
+| Editor diagnostics | Baseline and per-edit MCP calls return HTTP 401 | UNAVAILABLE |
+
+The full-test gate stops before its final coverage enforcement because of the
+HTTP error. Fresh `coverage.json` was separately asserted complete against all
+`CHECKED_MODULES`; deliberately reducing a recorded covered-edge count was
+rejected. This does not turn the complete-test gate green. The reproducible
+snapshot-check code is retained in the historical Continuous Play report below.
+
+Every new coaching mutant has a behavioral assertion witness, beyond export
+drift: alternative credit, held-ball possession, keeper-dependent corner choice,
+Python coach route and the real Node UI/route test. The alternative-credit mutant
+changes only a safe M pass to partial credit, preserving valid scenes so the
+assertion tests the recommendation instead of failing during construction.
+
+## Review method and maintainability
+
+`test_play_coaching.py` uses explicit counterexamples for the reported defects,
+including keeper-left/keeper-right and blocked-corner fixtures. It also samples
+the actual moving-defender geometry for every fully credited carry, pass,
+receive and shot. Static state alone is not counted as animation evidence.
+The full ledger is checked with a known-bad grade control; it is a consistency
+check, not independent proof of tactical quality.
+
+The corrected content retains all episode/node identities and choice-keyed
+transitions. Existing graph/session validation, first-run scoring and retry
+behavior are unchanged. A single pure coach-selection helper is reused by
+desktop animation and overlays; the browser mirrors that helper and checks all
+fully credited choices against their selected outcome geometry. No new engine
+or UI mode was introduced. Pure modules keep their existing dependency direction.
+
+The earlier assertion demanding three different first-best keys was explicitly
+superseded by the correctness contract. Contrasts still require different usable
+route sets, and the new independent tests require full credit for clear
+alternatives. No failing assertion was simply deleted to force a green result.
+
+Nine actual SDL review screens in `/tmp/smart-coaching-review-screens` were
+rendered and inspected: alternative credit, matching coach route, held-ball
+recovery/continuation, real teammate pressure, useful existing support, screened
+support without a forced turnover, and keeper-aware finishing.
+
+Preservation: 80 sibling files match the review-start snapshot. Original
+standalone scene/card/index data, graph/session rules and shared drawing/quality
+primitives are unchanged. Org was not edited. John/Luke preservation gates pass.
+
+Remaining limits: the locality socket test and editor diagnostics are unavailable
+in this managed environment. Native browser/device testing remains unavailable;
+Node runs the real web application at a canvas boundary, supplemented by SDL
+visual review. Existing AST checks, deterministic path/seed invariants and
+scripted mutants substitute for Ruff/Hypothesis/mutmut with their documented
+blind spots. No dependency or concurrency gate applies. Soccer decisions remain
+contextual; the credited routes are supported by the visible practice picture,
+not guaranteed outcomes or a universal match optimum.
+
+## Historical Continuous Play implementation evidence
+
+The user approved the concrete eight-task / three-opening / two-to-three-decision
+plan for desktop and web, then explicitly said "yes, go ahead". The approved
+contract is appended in `SPEC.md`; task contrasts and boundaries are documented
+in `CONTINUOUS_PLAY.md`. Earlier evidence below is historical.
+
+Delivered: a separate eighth menu entry, 24 original episodes, 166 linked decision
+nodes and 498 choices. Chosen actions determine successors; passing leads to
+support, losses to recovery and regains to using possession. Actor/ball endpoints
+are continuous. Existing 65 standalone scenes, 31 cards, 57 indexed topics and
+the first seven modes remain available. The child keeps controlling John/YOU.
+
+## Reproduce
+
+```sh
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify
+PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest soccer_strategy.soccer_smart.test_play soccer_strategy.soccer_smart.test_play_ui soccer_strategy.soccer_smart.test_play_web -q
+node --check docs/soccer_smart/app.js
+node --check soccer_strategy/soccer_smart/test_play_web.js
+git diff --check
+```
+
+The persisted verifier runs every applicable gate and correctly exits **1** in
+this sandbox. The pre-existing test
+`WebExportTests.test_local_http_serving_delivers_all_static_assets` cannot bind
+`127.0.0.1`: `PermissionError: [Errno 1] Operation not permitted`. This is the
+only error in both the pre-change 58-test run and final 75-test run. It also
+causes the shuffled-repeat gate to fail. The test is retained, not skipped;
+the full gauntlet is not represented as green.
+
+## Final source state
+
+- Python package SHA256: `d9b7e54b1afc4d9910ff7d7f6262715bd19eb5cbb4ac7ba50c9f9d6f66dfb5b3`.
+  Reproduce with `verify.source_hash()`: sorted package-relative paths and bytes,
+  excluding this report, bytecode and `.verification` artifacts.
+- Web runtime `docs/soccer_smart/app.js`:
+  `edd4b490ff1b5eb5a92feff04d8abdaa42250ef8d1afcb2f0898bb0a962215c9`.
+- Web page `docs/soccer_smart/index.html`:
+  `8fb9aa66bdac3067fb0e0f10f3208a02c9202079fe0dc882e6ef69c800caf371`.
+- Generated `docs/soccer_smart/data.js`:
+  `ae958890880982d91fcd7b452463518f9abefbfa501709b926bc91513702b535`.
+- Generated `docs/soccer_smart/data.json`:
+  `d0bcf428d5fa6cf9bb1cab70f08a6c3a469abc8eae92c19d28896ee0112f8d16`.
+- Toolchain: Python 3.14.4, Pygame 2.6.1, cached Pyright 1.1.399, existing Node.
+  No package installation, dependency, service, asset download or commit added.
+
+## Contract to tests
+
+| Approved behavior | Executable evidence | Result |
+| --- | --- | --- |
+| Eight families / three contrasting openings; genuinely different spacing | `test_catalog_and_contrasts`, `test_task_families_have_different_relative_spacing_not_just_new_titles` | pass |
+| Every path has two or three decisions and exact actor/ball continuity | `test_continuous_graph_all_paths_have_two_or_three_decisions` | pass |
+| Real selected branch despite shuffled choices | `test_all_branches_follow_choice_keys_despite_shuffle`, Node equivalent | pass |
+| No missing exits, unknown destinations, duplicate identities, teleports, cycles, unreachable or overlong plays | three graph-validation tests; continuation rejects unknown holders | pass |
+| Recommended delivery lanes are clear; a cross starts wide and is reachable | `test_strong_deliveries_have_clear_lanes`, `test_cross_starts_wide_and_released_interception_is_reachable` | pass |
+| Mixed rounds have four distinct tasks; family practice has all A/B/C openings | `test_varied_rounds_choose_distinct_families_and_all_family_openings` over 12 seeds | pass |
+| Retry branches never inflate first-run scores; unvisited steps not penalized | `test_selected_branch_and_first_run_practice`, `test_complete_continuous_round_and_retry_do_not_score_unvisited_nodes` | pass |
+| All 166 nodes / 498 choices render; keyboard, task pages, top menu and practice labels work | three `ContinuousUITests`, actual SDL | pass |
+| Same graph exported to web; every exit, touch confirmation, mobile text and progress behavior work | two `ContinuousWebTests` and `test_play_web.js`, actual web runtime with canvas boundary | pass |
+| Existing content and games preserved | original tests, content/John/Luke fingerprints and independent before/after snapshot | pass |
+
+## Fresh gauntlet and sensor results
+
+Numbers are from one complete final-source verifier run, with detailed commands
+and outcomes in `.verification/report.json`, `coverage.json` and `mutations.json`.
+The package fingerprint was independently checked against the report afterward.
+
+| Layer / sensor | Actual result | Status |
+| --- | --- | --- |
+| Full suite | 75 run; 74 passed, zero assertion failures, one pre-existing HTTP socket error. Baseline: 58 run / 57 passed / same one error | FAIL: environment |
+| New feature suite | 17/17 passed via the exact unittest command above | clean |
+| Coverage snapshot | 1416/1416 statements, 1426/1426 conditional edges, 18 modules; zero missing lines or edges | complete, independently checked |
+| Lint / formatting / complexity / boundaries | 36 Python files, zero violations; <=60 function lines / <=15 decisions; pure play modules checked without Pygame/network imports | clean |
+| Docs / exports / book ledger | Nine docs, 50 local links; five web files synchronized; 24 plays / 166 nodes; original 65 scenes / 31 cards / 57 indexed entries; bad-row control rejected | clean |
+| Pyright | 18 files; zero errors and warnings; known-bad assignment rejected | clean |
+| Mutation | 19/19 applied, executed and assertion-killed; includes wrong branches, score inflation, teleporting links, missing openings and both web defects | clean |
+| Shuffled repeat | 75 run / 74 passed / zero assertion failures / same one HTTP socket error | FAIL: environment |
+| Real execution | Smart SDL, John SDL and Node web smoke exit 0 | clean |
+| JavaScript syntax | Both `node --check` commands exit 0 | clean |
+| Whitespace | `git diff --check` exit 0 | clean |
+| Editor MCP baseline / per-file diagnostics | HTTP 401 transport failure before editing and after each touched file; no baseline or diagnostic regression result obtainable | UNAVAILABLE |
+
+The test gate stops before `Coverage.require_complete()` because of the HTTP
+error. To avoid counting an unenforced report as a coverage pass, this separate
+fail-closed check was executed against the fresh snapshot, including a known-bad
+negative control. It does not change the full-suite failure:
+
+```sh
+python3 - <<'PY'
+import copy, json
+from pathlib import Path
+from soccer_strategy.soccer_smart.verify import CHECKED_MODULES, source_hash
+base = Path('soccer_strategy/soccer_smart/.verification')
+assert json.loads((base / 'report.json').read_text())['source_sha256'] == source_hash()
+def require_complete(rows):
+    assert set(rows) == set(CHECKED_MODULES)
+    assert all(r['covered'] == r['statements'] and r['covered_edges'] == r['branch_edges']
+               and not r['missing_lines'] and not r['missing_edges'] for r in rows.values())
+rows = json.loads((base / 'coverage.json').read_text())
+require_complete(rows)
+bad = copy.deepcopy(rows)
+bad['play_model.py']['covered_edges'] -= 1
+try:
+    require_complete(bad)
+except AssertionError:
+    print('Coverage negative control rejected')
+else:
+    raise AssertionError('False green coverage control')
+PY
+```
+
+All mutation artifacts were also checked for applied/executed/killed flags and
+an actual `FAIL:` assertion. The baseline has zero assertion failures, so its
+unrelated HTTP error cannot count as a kill. Geometry control examples returned
+clearance 0 for a blocked segment, 3 for a parallel offset and 5 for a stationary
+point; the blocked route correctly fails the 2.5-space threshold.
+
+## Maintainability, preservation and limitations
+
+- Play graphs own links and continuity; content owns authored pictures;
+  ContinuousSession reuses existing Session timing, feedback and coach phases.
+  The only base-session change is a score-recording hook. Navigation uses the
+  established painter, controls and resizing. No second animation engine added.
+- Domain/content/session remain independent of Pygame. Play validation calls
+  the pure presentation geometry already used to animate actions, avoiding
+  duplicate endpoint calculations. Possession is computed once per continuation
+  and passed to the appropriate support/recovery builder.
+- Python authors the graph once. Web export personalizes John to YOU; the browser
+  reuses its existing rendering/session primitives. Mirrored traversal code is
+  necessary for the existing offline JavaScript port; every authored exit is
+  exercised in Node to guard against divergence.
+- The eight-family limit and small three-choice nodes are intentional. Reused
+  continuation patterns teach support/pressure/recovery without pretending that
+  each of the 166 branch pictures is an unrelated soccer problem.
+- Independent snapshot: 81 existing other-game/Org files unchanged. Original
+  Smart lesson/card/index data, shared `drawing.py` and `quality.py` unchanged.
+  No sibling-game checkpoint or Org section edited. The 54-file John/Luke
+  preservation gate also passes in the verifier.
+- RED evidence included absent episodes/menu/export, blocked recommended shot
+  routes, title-only spacing, non-wide crosses, stationary receiving runs,
+  duplicate exits and the task browser's nonfunctional top-menu click. These
+  were corrected while retaining assertions and the full existing suite.
+- SUBSTITUTED: existing AST lint for standalone Ruff, deterministic seed/path
+  invariants for Hypothesis and scripted mutants for mutmut. Their known-bad
+  controls ran; they do not prove all formatting rules, inputs or possible bugs.
+- Real visual review: 12 actual SDL screens in `/tmp/smart-continuous-screens`
+  cover both task pages, keeper delivery/support, loss recovery, cross interception,
+  the next decision, combined-play shooting and a visited-step summary. All 166
+  nodes and 498 choices pass automated layout checks in SDL and Node.
+- UNAVAILABLE: local HTTP serving because socket creation is sandbox-blocked;
+  editor diagnostics because MCP returns HTTP 401; native browser/device testing
+  because the installed Firefox wrapper refuses to start under its Snap confinement.
+  Node executes the real web application with a canvas boundary, not a real browser.
+- N/A: new-dependency/license changes, remote services, database, concurrency,
+  benchmark and heading-safety behavior changes. No such capability was added.
+- Soccer feedback describes authored small-sided practice, not guaranteed match
+  outcomes or a universal optimum. Real child playtesting is still needed.
+  The book's unseen chapter bodies remain unverified; this expansion is original
+  match practice and does not alter the existing source-evidence boundary.
+
+## Historical public-index coverage expansion evidence
 
 Current report: 2026-11-08. Earlier implementation evidence below is historical.
 The public index was compared with the actual previous 36-scene / seven-card
