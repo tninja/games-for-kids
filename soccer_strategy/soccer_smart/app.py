@@ -394,8 +394,9 @@ class App:
                     f"{mode}  {s.index + 1}/{len(s.scenes)}  /  {s.scene.base_id}")
         p.text(progress,
                pygame.Rect(814, 158, 410, 26), 23, GREEN)
-        p.text(s.play.title if isinstance(s,ContinuousSession) else s.scene.title, pygame.Rect(814, 190, 410, 72), 33)
-        p.text(f"Role: {s.scene.role}  ({', '.join(s.scene.groups)})",
+        p.text(s.scene.title, pygame.Rect(814, 190, 410, 72), 33)
+        label = "Task: "+s.play.title if isinstance(s,ContinuousSession) else f"Role: {s.scene.role}  ({', '.join(s.scene.groups)})"
+        p.text(label,
                pygame.Rect(814, 266, 410, 34), 23, GOLD)
         if s.phase == "feedback":
             self._feedback_text()

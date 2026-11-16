@@ -12,9 +12,14 @@ reproducible verification gauntlet results.
 
 ## New: Continuous Play
 
+The latest update adds task-specific keeper recycling, midfield layoffs,
+overlaps/cutbacks, throw-in combinations, one-twos and counterattacks. Good
+second-step alternatives lead to different third-step pictures. Opening action
+recipes increased from two to eight; useful follow-up recipes from four to 13.
+
 Choose **8 / Continuous Play** for match sequences where your choice determines
 the next picture. Eight task families have three different openings each:
-**24 episodes with 166 decision nodes**, and two or three decisions per path.
+**24 episodes with 197 decision nodes**, and two or three decisions per path.
 Pass and offer a return angle, carry and react to closing pressure, or recover
 after losing the ball. You keep controlling John (YOU on the web).
 
@@ -68,7 +73,7 @@ PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart --smoke
 ```
 
 Run the full verification gauntlet (tests, 100% statement and branch coverage,
-AST lint/boundaries, Pyright static types, 24/24 mutants, shuffled repeat,
+AST lint/boundaries, Pyright static types, 28/28 mutants, shuffled repeat,
 existing-game preservation, SDL smoke, and GitHub Pages web bundle sync/smoke):
 
 ```sh

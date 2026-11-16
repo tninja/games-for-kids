@@ -1,6 +1,6 @@
 # Curriculum and indexed-topic coverage
 
-Continuous Play adds 24 original episodes / 166 linked decision nodes alongside
+Continuous Play adds 24 original episodes / 197 linked decision nodes alongside
 the starter and Book companion inventory below. Its eight task families and
 scoring boundaries are documented in [CONTINUOUS_PLAY.md](CONTINUOUS_PLAY.md).
 These are practice adaptations, not additional verified book chapters.

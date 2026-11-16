@@ -21,7 +21,7 @@ from typing import Any, Callable
 from .quality import Coverage, RUNTIME, boundaries, lint
 
 PACKAGE = Path(__file__).resolve().parent
-CHECKED_MODULES = (*RUNTIME, "web_export.py", "play_model.py", "play_content.py", "play_session.py", "play_view.py")
+CHECKED_MODULES = (*RUNTIME, "web_export.py", "play_model.py", "play_content.py", "play_session.py", "play_view.py", "play_geometry.py", "play_patterns.py")
 ROOT = PACKAGE.parent.parent
 ARTIFACTS = PACKAGE / ".verification"
 COMMANDS: list[dict[str, Any]] = []
@@ -91,6 +91,15 @@ MUTANTS = (
     ("web coach replaces a correct chosen route", "../../docs/soccer_smart/app.js",
      'if (scene.stage === 8 && selected !== null && selected !== undefined && scene.choices[selected].rating === 2) {',
      'if (false) {'),
+    ("continuous falls back to generic followups", "play_content.py",
+     'authored = bespoke_followup(source,people,ball,key)', 'authored = None'),
+    ("second good alternative cannot continue", "play_content.py",
+     'action.rating == 2 and action.action_kind != "shoot" and changed',
+     'action.rating == 2 and action.action_kind != "shoot" and changed and action.key == second.choices[0].key'),
+    ("throw and clearance lose their flight", "play_patterns.py",
+     'return replace(choice,loft=loft)', 'return replace(choice,loft=0)'),
+    ("keeper outlet ignores blocked route", "play_content.py",
+     'bad = key == blocked', 'bad = False'),
 )
 
 
@@ -188,7 +197,7 @@ def static_checks() -> dict[str, int]:
     files = list(PACKAGE.glob("*.py"))
     failures = {p.name: lint(p.read_text(), p.name) for p in files}
     for name in CHECKED_MODULES:
-        pure = name in ("web_export.py","play_model.py","play_content.py","play_session.py")
+        pure = name in ("web_export.py","play_model.py","play_content.py","play_session.py","play_geometry.py","play_patterns.py")
         failures[name].extend(boundaries((PACKAGE / name).read_text(), "model.py" if pure else name))
     bad = {name: messages for name, messages in failures.items() if messages}
     if bad:
@@ -332,6 +341,7 @@ def mutations() -> dict[str, Any]:
                 "soccer_strategy.soccer_smart.test_play_ui",
                 "soccer_strategy.soccer_smart.test_play_web",
                 "soccer_strategy.soccer_smart.test_play_coaching",
+                "soccer_strategy.soccer_smart.test_play_diversity",
                 "-q",
             ], root)
             killed = run.returncode == 1 and "FAIL:" in run.stdout

@@ -1367,13 +1367,13 @@
     var mode = s.scene.transfer ? "NEW LAYOUT" : "PRACTICE";
     var badge = mode + " " + (s.index + 1) + "/" + s.scenes.length + " / " + baseId(s.scene);
     if (s instanceof ContinuousSession) { badge = "PLAY "+(s.index+1)+"/"+s.plays.length+" / STEP "+s.depth; }
-    var sub = "Role: " + s.scene.role + " (" + s.scene.groups.join(", ") + ")";
+    var sub = s instanceof ContinuousSession ? "Task: "+s.play.title : "Role: " + s.scene.role + " (" + s.scene.groups.join(", ") + ")";
     if (s.phase === "feedback") {
       var c = s.feedback;
       var ratingLabel = ["Notice the risk", "A reasonable option", "Good fit for this picture"][c.rating];
       return {
         badge: badge + " - " + ratingLabel.toUpperCase(),
-        title: s instanceof ContinuousSession ? s.play.title : s.scene.title,
+        title: s.scene.title,
         subtitle: ratingLabel + " (" + sub + ")",
         body: c.outcome + "\n\n" + c.explanation,
         note: s.practiceOnly ? "Practice branch: first-run scores stay saved." : s.scene.coach_note,
@@ -1390,7 +1390,7 @@
     };
     return {
       badge: badge,
-      title: s instanceof ContinuousSession ? s.play.title : s.scene.title,
+      title: s.scene.title,
       subtitle: sub,
       body: s.scene.cue,
       note: (statusMap[s.phase] || "") + "\n" + s.scene.rules,
@@ -1567,8 +1567,9 @@
     var progress = s instanceof ContinuousSession ? "PLAY "+(s.index+1)+"/"+s.plays.length+" / STEP "+s.depth
       : mode + "  " + (s.index + 1) + "/" + s.scenes.length + "  /  " + baseId(s.scene);
     p.text(progress, { x: 814, y: 158, width: 410, height: 26 }, 23, GREEN);
-    p.text(s instanceof ContinuousSession ? s.play.title : s.scene.title, { x: 814, y: 190, width: 410, height: 72 }, 33, INK);
-    p.text("Role: " + s.scene.role + "  (" + s.scene.groups.join(", ") + ")", { x: 814, y: 266, width: 410, height: 34 }, 23, GOLD);
+    p.text(s.scene.title, { x: 814, y: 190, width: 410, height: 72 }, 33, INK);
+    var label = s instanceof ContinuousSession ? "Task: "+s.play.title : "Role: " + s.scene.role + "  (" + s.scene.groups.join(", ") + ")";
+    p.text(label, { x: 814, y: 266, width: 410, height: 34 }, 23, GOLD);
     if (s.phase === "feedback") {
       this._feedbackText();
     } else {

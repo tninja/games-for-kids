@@ -1,5 +1,32 @@
 # Approved specification -- Soccer Smart Lab
 
+## Continuous-case diversity amendment - 2026-11-11
+
+The user requests materially more diversity, especially in continuous cases.
+Retain the approved eight tasks, three openings and two-to-three decisions,
+but replace shared decision recipes with task-specific openings and follow-ups.
+These detailed criteria are authored autonomously under that request.
+
+- Eight families have different opening action sets; three variants change
+  possession, direction of pressure, receiver movement or threat, not just text.
+- Good paths include keeper recycling/switching, receiving/layoffs/shielding,
+  pressure release/lofted clearance, overlaps/crosses/cutbacks, legal throw-in
+  choices, combinations/finishing and defensive/counterattacking decisions.
+- At least eight distinct useful follow-up action sets must remain across the
+  catalog; generic support/recovery is fallback, not the entire curriculum.
+- Every good second-step action with a changed state can have its own third
+  snapshot. Unchanged waiting may end the segment rather than repeat a question.
+- Preserve multiple valid answers, realistic possession, animated route safety,
+  exact selected-action endpoints, first-run scoring, menus and original modes.
+- A carried opponent ball may move with its holder; recovery must not invent
+  a regain. Lofted and two-leg routes are checked as those routes, not as a
+  single ground segment. Update desktop/web data and the complete coaching ledger.
+- Existing hard-coded task-key/geometry assertions may be revised only where
+  they describe superseded authored cases; retain independent safety/scoring
+  counterexamples and add structural diversity regressions.
+- No dependencies or sibling-game changes. Use the existing verification
+  command and record the known localhost/editor restrictions honestly.
+
 ## Coaching correctness review - 2026-11-09
 
 The user requests checking and correcting the actual recommendations, especially

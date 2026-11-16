@@ -1,3 +1,133 @@
+# Evidence Report -- Continuous-case diversity (Tier 2, 2026-11-11)
+
+This is the current report. All reports below it are historical. The user asked
+for less repetitive continuous cases. The game retains 24 episodes, now with
+197 decision nodes / 591 choices, eight opening action recipes (previously two)
+and 13 good follow-up recipes (previously four). These are action-set counts,
+not claims of 197 unrelated tactical situations.
+
+- Authorization: explicit user request, with the previously approved eight
+  families / three openings / two-to-three decisions preserved. The detailed
+  diversity amendment in [SPEC.md](SPEC.md) was authored autonomously and was
+  not separately approved; this limits the approval claim.
+- Source SHA256, using `verify.source_hash()` and excluding this report,
+  bytecode and `.verification`:
+  `ebc59c99422701b5642dcacc92477da9d6ce48ebfc7c11aa002e715015819b6a`
+- Toolchain: Python 3.14.4, Pygame 2.6.1, Node v24.21.0, Pyright 1.1.399.
+- Reproducible entry point:
+  `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m soccer_strategy.soccer_smart.verify`
+- Final run log: `/tmp/smart-variety-final-complete.log`. Machine reports:
+  `.verification/report.json`, `coverage.json`, `types.json`, `mutations.json`.
+  The entry point correctly exits 1; the full gate is **not green**.
+
+## Specification to executable checks
+
+| Behavior | Tests / gate | Result |
+| --- | --- | --- |
+| Different tasks and useful follow-up recipes | `PlayDiversityTests.test_each_family_has_its_own_opening_decisions`, `test_good_followups_have_at_least_eight_different_decision_recipes` | 8 opening / 13 follow-up recipes |
+| Thrower at touchline, lofted clearance, two-leg combination, action ownership | `test_repertoire_contains_actual_keeper_throw_cross_combination_and_clearance`, `test_releasing_actions_are_made_by_the_controlled_player` | pass |
+| Each good changed second alternative has its own third state | `test_good_second_step_alternatives_have_their_own_continuations`, graph/selected-branch tests in `test_play.py` | pass |
+| Different transition possession, correct holder cues and directional labels | `test_transition_variants_start_from_different_possession_situations`, `test_followup_cues_name_the_actual_receiver`, `test_named_switches_and_cutbacks_match_their_directions` | pass |
+| Covered wide lanes allow waiting; one-two run clears the defender | `test_waiting_is_good_when_both_wide_delivery_zones_are_covered`, `test_one_two_run_goes_around_the_defender` | pass |
+| Exact endpoint continuity, bounded paths, score/retry behavior | `test_play.py`, `test_play_web.js` | pass |
+| Multiple valid choices, held opponent possession, actual motion, keeper-aware finishing | `test_play_coaching.py` and existing standalone coaching checks | pass |
+| Desktop and web render every continuous node/choice/phase | `test_play_ui.py`, `test_play_web.py` | 197 nodes / 591 choices, zero layout errors |
+| Original lessons, sibling games, export sync and coaching ledger | `verify.static_checks`, existing web export checks | pass |
+
+RED evidence: the new structural tests initially rejected two opening recipes
+and four good follow-up recipes. The independent second-alternative test caught
+an uncontinued valid keeper outlet. The animated one-two regression caught a
+run through the marker, fixed by routing the return around him. Later regressions
+caught incorrect M/N ownership wording and a same-side pass labeled as a switch.
+Switch targets now select the opposite flank; a pass to a winger ahead is no
+longer described as a cutback. These tests failed on behavior before their fixes.
+
+The append-only specification explicitly permits replacing superseded catalog
+key/position assertions. Their safety constraints remain: good stationary
+receiving is allowed, both legs of a combination are checked, airborne routes
+are checked at ground proximity/landing, and original support, scanning and
+keeper examples remain as independent fixtures. The shared `quality.py`
+checker was not edited.
+
+## Fresh final verification results
+
+| Layer | Command or entry-point gate | Actual result |
+| --- | --- | --- |
+| Full suite | Entry point, `tests_and_coverage` | 95 tests in 117.907s; 94 pass, 0 assertion failures, 1 environment error |
+| Shuffled-order repeat | Entry point, `suite_health` | 95 tests in 13.911s; same single HTTP error, no assertion failure |
+| Static / architecture / complexity | Entry point, `lint_boundaries_complexity` | 40 Python files, 0 violations; <=60 lines/function, <=15 decisions; 10 docs, 54 links; 5 web assets synchronized |
+| Type checker and bad-type control | Entry point, `types` | 20 files, 0 errors, 0 warnings; bad control rejected |
+| Coverage snapshot | `coverage.json` from the final traced suite; independently asserted complete | 1600/1600 statements, 1576/1576 conditional edges, 20/20 modules; no missing lines/edges |
+| Mutation checks | Entry point, `mutation` | 28/28 uniquely applied, executed and assertion-killed; original 24 retained plus 4 diversity/branch/flight/outlet mutants |
+| Real execution | Entry point, `real_execution` | Smart SDL, John SDL and Node web smoke all exit 0 |
+| Focused behavior suite | `PYGAME_HIDE_SUPPORT_PROMPT=1 python3 -m unittest soccer_strategy.soccer_smart.test_play soccer_strategy.soccer_smart.test_play_coaching soccer_strategy.soccer_smart.test_play_diversity` | 32 tests pass |
+| JavaScript syntax | `node --check docs/soccer_smart/app.js` and `node --check docs/soccer_smart/data.js` | both exit 0 |
+| Whitespace | `git diff --check` | exit 0 |
+
+The integrated test/coverage gate stops before `Coverage.require_complete()`
+because the HTTP test errors. Coverage numbers above describe the actual saved
+trace, independently checked for the exact 20 expected module names and empty
+missing-line/edge lists; they do not turn that failed gate into a pass. The
+existing `test_quality.py` control rejects an unexecuted branch and accepts
+both branches. Static ledger, type and export controls also reject bad inputs.
+The final report source hash was checked against the current source, and all
+28 mutation records were checked for applied/executed/killed flags and actual
+assertion failures.
+
+After this report-only edit, `verify.static_checks()` was rerun: 40 files,
+0 violations, 10 docs, 55 links, all preservation/export/ledger checks pass.
+`git diff --check` and both JavaScript syntax checks also exit 0. The source
+hash is unchanged because the evidence file is excluded by definition.
+
+An additional actual App/ContinuousSession walkthrough produced 31 SDL images
+in `/tmp/smart-variety-screens`, with zero layout errors, including throw and
+clearance flights, keeper recycling, overlap/cutback, one-two and counters.
+Representative throw, wing third-step and one-two images were visually inspected.
+Node tests exercise the real JavaScript runtime with a canvas/DOM boundary;
+this substitutes for native browser/device testing, not for content logic.
+
+## Final sensors, preservation and modularity
+
+- Tests/suite health: **failed, unchanged environment restriction**.
+  `test_local_http_serving_delivers_all_static_assets` raises exactly
+  `PermissionError: [Errno 1] Operation not permitted` in `socket.socket` before
+  a local server can start. The test remains enabled. Real local HTTP serving
+  needs verification outside this sandbox.
+- Editor diagnostics: **UNAVAILABLE**. `diagnostics_baseline` and per-file
+  `get_diagnostics(since="baseline")` return HTTP 401, including final changes.
+  No claim of editor diagnostic cleanliness is made; types/static checks pass.
+- Native browser/device: **UNAVAILABLE / SUBSTITUTED** by Node geometry, UI,
+  touch and mobile-state checks plus real SDL rendering. Firefox Snap cannot
+  run here and Playwright is absent. Real child/device playtesting remains useful.
+- Types, static boundaries, complexity, web sync, mutation and real execution:
+  **clean** on the final implementation. No dependency, asset, network service,
+  installation or new capability was introduced.
+- Preservation: all 80 hashed source/doc files outside Smart/web scope match
+  the pre-edit snapshot. The native gate also preserves 54 John/Luke files.
+  Existing web starter/book scenes, cards, lessons, categories, groups,
+  sections and version compare equal to HEAD. Org and Smarter are unchanged.
+- Responsibility/dependencies: reusable pure geometry lives in
+  `play_geometry.py`; task-specific content in `play_patterns.py`; graph
+  construction/policies in `play_content.py`. Existing graph/session/scoring
+  contracts are unchanged. The UI only shows phase-specific titles and task
+  labels. Domain modules remain independent of Pygame, network and subprocess.
+- Duplication/change radius: delivery grading and geometry are shared, while
+  different tactical choices are authored per family. Existing support and
+  pressure policies remain available and independently checked. Python is the
+  only authored data source; the larger generated web diff is regenerated data.
+  Shared drawing/quality code and other games are untouched.
+- Limits: synthetic diagram clearances and authored outcomes are coaching
+  approximations. The new small-sided, no-offside exercises are ORIGINAL;
+  this change adds no claim of verified unseen book-body coverage.
+
+Web artifact SHA256:
+
+- `app.js`: `d3bfddd8396f15c11c98e4669b8cb50c4b1a3ca5b16df7ba7b0306a2939f39ea`
+- `data.json`: `b2d0ffff7efbc3f347dd81cb827a430bfe9f9f4db2c1b5530a733302425d0e53`
+- `data.js`: `d5d6a88db92a61ea9c8c330a36c8ce7509b0293a2739febd5b000c2af9568017`
+
+---
+
 # Evidence Report -- GitHub Pages Web Migration (Tier 2)
 
 Current report: 2026-11-08. Historical coverage expansion and initial

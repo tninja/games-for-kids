@@ -1,90 +1,33 @@
 """Original basic match sequences, distinct from the advanced Smarter missions."""
 
-from dataclasses import replace
 from math import hypot
 
 from .model import Actor, Choice, Point, Scenario, bounded, lerp
 from .play_model import Play, PlayNode
-from .presentation import positions
+from .play_geometry import actor, actor_point, after, clearance, option, owner, picture
+from .play_patterns import bespoke_followup, bespoke_opening
 
 FAMILIES = (
     "Keeper outlet", "Receive in midfield", "Escape back-field pressure", "Combine on the wing",
     "Support a throw-in", "Create a chance", "Defend a cross", "Regain and transition",
 )
-STARTS = ((38.,80.), (48.,57.), (51.,75.), (23.,47.), (18.,56.), (50.,34.), (46.,81.), (47.,62.))
-SPACING = (((-16.,-12.),(25.,-34.),(0.,-12.)), ((-16.,7.),(15.,-9.),(-5.,-14.)),
-           ((-17.,8.),(22.,-12.),(2.,-12.)), ((20.,-5.),(3.,-20.),(-5.,-12.)),
-           ((-18.,6.),(20.,-4.),(7.,-12.)), ((-14.,-6.),(16.,4.),(-3.,-12.)))
-RULES = "Small-sided practice: attack up; no offside. Outcomes illustrate this play."
-
-
-def actor(key: str, team: str, point: Point) -> Actor:
-    return Actor(key, key.upper(), team, point, point, point)
-
-
-def clearance(start: Point, end: Point, people: tuple[Actor, ...], keepers: bool = False) -> float:
-    dx, dy = end[0]-start[0], end[1]-start[1]
-    def distance(point: Point) -> float:
-        t = max(0., min(1., ((point[0]-start[0])*dx+(point[1]-start[1])*dy)/max(.01, dx*dx+dy*dy)))
-        near = lerp(start, end, t)
-        return hypot(point[0]-near[0], point[1]-near[1])
-    return min((distance(a.position) for a in people if a.team == "away" or keepers and a.team == "keeper"),default=100.)
-
-
-def owner(people: tuple[Actor, ...], ball: Point) -> Actor | None:
-    return next((a for a in people if hypot(a.position[0]-ball[0], a.position[1]-ball[1]) < .1), None)
-
-
-def actor_point(people: tuple[Actor, ...], key: str) -> Point:
-    return {a.key:a.position for a in people}[key]
-
-
-def option(key: str, label: str, rating: int, target: Point, ball: Point, kind: str,
-           reason: str, moves: tuple[tuple[str, Point], ...] = (), aim: Point | None = None) -> Choice:
-    outcome = {"pass": "The delivery reaches the illustrated endpoint.",
-               "dribble": "You carry into the selected space.", "receive": "The pass follows your receiving run.",
-               "move": "You hold or adjust your position.", "intercept": "You meet the illustrated passing lane.",
-               "shoot": "Your shot follows the selected route."}[kind]
-    return Choice(key, label, target, rating, reason, outcome, ball, kind, moves, aim=aim)
-
-
-def picture(ident: str, family: int, variant: str, title: str, cue: str,
-            people: tuple[Actor, ...], ball: Point, choices: tuple[Choice, ...],
-            ball_from: Point | None = None) -> Scenario:
-    holder = owner(people, ball)
-    state = "loose" if holder is None else "controlled" if holder.key == "john" else "teammate" if holder.team == "home" else "opponent"
-    return Scenario(ident, family, variant, title, 8, "defender" if family >= 7 else "midfielder",
-                    ("G13", "G14", "G18"), title, cue, people, ball, ball if ball_from is None else ball_from,
-                    choices, RULES, "Several actions can work. Read the visible pressure and space.", ball_state=state)
-
-
-def after(scene: Scenario, choice: Choice) -> tuple[tuple[Actor, ...], Point]:
-    actors, ball = positions(scene, "outcome", 1, scene.choices.index(choice))
-    people = tuple(replace(a, position=actors[a.key], approach=actors[a.key], run_to=actors[a.key]) for a in scene.actors)
-    return people, ball
 
 
 def opening(family: int, variant: str) -> Scenario:
+    authored = bespoke_opening(family,variant,FAMILIES[family-1])
+    if authored is not None:
+        return authored
     if family >= 7:
         return defensive_opening(family, variant)
-    x, y = STARTS[family-1]
-    john = (x,y)
-    left, right, forward = tuple((x+dx,y+dy) for dx,dy in SPACING[family-1])
-    blocked = {"A": "right", "B": "carry", "C": "left"}[variant]
+    john,left,right,forward = (38.,80.),(22.,68.),(63.,46.),(38.,68.)
+    blocked = "right"
     block = lerp(john, {"carry": forward, "left": left, "right": right}[blocked], .65)
     people = (actor("john","home",john), actor("m","home",left), actor("n","home",right),
-              actor("a","away",block), actor("a2","away",(x+12,y-21) if family == 4 else (x+5,y-22)),
-              actor("gk","keeper",(50.,94.) if family == 1 else (50.,5.)))
+              actor("a","away",block), actor("a2","away",(43.,58.)),actor("gk","home",(50.,94.)))
     choices = tuple(opening_choice(key, john, point, people, blocked, family)
                     for key, point in (("carry",forward),("left",left),("right",right)))
-    cue = {"A":"A tracks N. Your carrying route is free; M also supports.",
-           "B":"A blocks your carrying route. M has a clear passing lane; N also supports.",
-           "C":"A tracks M. N has a clear passing lane; A2 waits beyond your carrying route."}[variant]
-    intro = {1:"Keeper's rollout received. ", 2:"Midfield pass received. ", 3:"You are deep in your half. ",
-             4:"You have the ball on the wing. ", 5:"Throw-in received at your feet. ", 6:"You approach the box. "}[family]
-    incoming = (50.,94.) if family == 1 else (0.,y+6) if family == 5 else john
-    return picture(f"P{family:02d}.{variant}.root", family, variant, FAMILIES[family-1], intro+cue,
-                   people, john, choices, incoming)
+    return picture(f"P{family:02d}.{variant}.root",family,variant,FAMILIES[family-1],
+                   "Keeper's rollout received. A tracks N. Your carrying route is free; M also supports.",people,john,choices,(50.,94.))
 
 
 def opening_choice(key: str, john: Point, point: Point, people: tuple[Actor, ...],
@@ -95,9 +38,7 @@ def opening_choice(key: str, john: Point, point: Point, people: tuple[Actor, ...
     carry = key == "carry"
     target = lerp(john, ball, .55) if bad and carry else point if carry else (john[0],john[1]-3)
     response = bounded((ball[0]+6,ball[1]+5)) if not carry else bounded((target[0],target[1]-7))
-    if carry and family == 6:
-        response = bounded((target[0]-7,target[1]-4))
-    label = "Carry down the wing" if carry and family == 4 else "Carry into the grass" if carry else "Pass to M" if key == "left" else "Pass to N"
+    label = "Carry into the grass" if carry else "Pass to M" if key == "left" else "Pass to N"
     reason = ("A already covers this route and reaches the ball. Recover instead of assuming possession continues." if bad else
               "Use the available grass, then check A2's response." if carry else
               f"{'M' if key == 'left' else 'N'} has an open passing lane. This is a good option too; support the receiver afterward.")
@@ -105,15 +46,14 @@ def opening_choice(key: str, john: Point, point: Point, people: tuple[Actor, ...
 
 
 def defensive_opening(family: int, variant: str) -> Scenario:
-    x, y = STARTS[family-1]
-    john, passer, receiver = (x,y), (18.,y-8) if family == 7 else (x-6,y-10), (x+14,y+8)
+    x,y = 46.,81.
+    john,passer,receiver = (x,y),(18.,73.),(60.,89.)
     released = variant == "A"
-    ball = lerp(passer, receiver, .55 if family == 7 else .15) if released else passer
+    ball = lerp(passer,receiver,.55) if released else passer
     support_at = lerp(passer,john,.22) if variant == "C" else (x-12,y+4)
     people = (actor("john","home",john), actor("m","home",support_at), actor("n","home",(x+16,y-12)),
               actor("a","away",passer), actor("a2","away",receiver))
-    targets = {"step":lerp(passer,receiver,.68 if family == 7 else .4),
-               "delay":(x-2,y+4) if family == 7 else (passer[0],passer[1]+6), "recover":(x-7,y+3)}
+    targets = {"step":lerp(passer,receiver,.68),"delay":(x-2,y+4),"recover":(x-7,y+3)}
     choices = defensive_choices(ball,receiver,targets,released)
     cue = {"A":"A's slow diagonal pass is already released and crosses beside you.",
            "B":"A keeps the ball and feints. Stay goal-side; no pass has been released.",
@@ -200,13 +140,14 @@ def recovery(people: tuple[Actor, ...], ball: Point, holder: Actor) -> tuple[str
 
 def continuation(source: Scenario, chosen: Choice, key: str) -> Scenario:
     people, ball = after(source,chosen)
+    authored = bespoke_followup(source,people,ball,key)
+    if authored is not None:
+        return authored
     holder = owner(people,ball)
     if holder is None:
         raise ValueError("Continuation needs a known ball holder")
     if holder.key == "john":
         cue, choices = pressure(source,people,ball)
-    elif holder.team == "home":
-        cue, choices = support(people,ball,holder)
     else:
         cue, choices = recovery(people,ball,holder)
     return picture(key,source.topic,source.variant,"Look again" if key.endswith("next") else "Finish this play",cue,people,ball,choices)
@@ -219,13 +160,17 @@ def episode(family: int, variant: str) -> Play:
     nodes.append(PlayNode(root,root_exits))
     for choice in root.choices:
         second = continuation(root,choice,dict(root_exits)[choice.key])
-        good = max(second.choices,key=lambda c:c.rating)
-        terminal = good.action_kind == "shoot"
-        third_id = None if terminal else second.id+".last"
-        nodes.append(PlayNode(second,tuple((c.key,third_id if c.key == good.key else None) for c in second.choices)))
-        if third_id is not None:
-            third = continuation(second,good,third_id)
-            nodes.append(PlayNode(third,tuple((c.key,None) for c in third.choices)))
+        exits: list[tuple[str,str | None]] = []
+        following: list[PlayNode] = []
+        for action in second.choices:
+            changed = action.ball_end != second.ball or action.target != second.john.position or bool(action.actor_targets)
+            third_id = second.id+".last."+action.key if action.rating == 2 and action.action_kind != "shoot" and changed else None
+            exits.append((action.key,third_id))
+            if third_id is not None:
+                third = continuation(second,action,third_id)
+                following.append(PlayNode(third,tuple((c.key,None) for c in third.choices)))
+        nodes.append(PlayNode(second,tuple(exits)))
+        nodes.extend(following)
     return Play(f"P{family:02d}.{variant}",family,FAMILIES[family-1],tuple(nodes))
 
 

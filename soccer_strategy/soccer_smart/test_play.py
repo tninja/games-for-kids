@@ -2,6 +2,7 @@
 
 import unittest
 from dataclasses import replace
+from math import dist
 
 from soccer_strategy.soccer_smart.play_content import build_plays, clearance, continuation
 from soccer_strategy.soccer_smart.presentation import positions
@@ -49,11 +50,15 @@ class PlayTests(unittest.TestCase):
         for play in build_plays():
             for node in play.nodes:
                 for choice in node.scene.choices:
-                    if choice.rating == 2 and choice.action_kind in ('pass','receive','shoot'):
-                        self.assertGreaterEqual(clearance(node.scene.ball,choice.ball_end,node.scene.actors),
-                                                2.5,(node.scene.id,choice.key))
+                    if choice.rating == 2 and choice.action_kind in ('pass','receive','shoot','clear'):
+                        points = (node.scene.ball,choice.ball_end) if choice.ball_via is None else (node.scene.ball,choice.ball_via,choice.ball_end)
+                        if choice.loft:
+                            gap = min(dist(a.position,choice.ball_end) for a in node.scene.actors if a.team=='away')
+                        else:
+                            gap = min(clearance(a,b,node.scene.actors) for a,b in zip(points,points[1:]))
+                        self.assertGreaterEqual(gap,2.5,(node.scene.id,choice.key))
                         if choice.action_kind == 'receive':
-                            self.assertNotEqual(choice.target,node.scene.john.position,node.scene.id)
+                            self.assertEqual(choice.target,choice.ball_end,node.scene.id)
 
     def test_cross_starts_wide_and_released_interception_is_reachable(self):
         play = next(p for p in build_plays() if p.id == 'P07.A')
@@ -196,7 +201,7 @@ class PlayTests(unittest.TestCase):
     def test_graph_validation_rejects_cycles_overlong_and_one_step_plays(self):
         p = build_plays()[3]
         root = p.nodes[0]
-        still = replace(root.scene,choices=tuple(replace(c,target=root.scene.john.position,
+        still = replace(root.scene,ball_from=root.scene.ball,choices=tuple(replace(c,target=root.scene.john.position,
                         ball_end=root.scene.ball,actor_targets=()) for c in root.scene.choices))
         cycle = replace(root,scene=still,exits=tuple((c.key,still.id) for c in still.choices))
         with self.assertRaisesRegex(ValueError,'cycle'):
