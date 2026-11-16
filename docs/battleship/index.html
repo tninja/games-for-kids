@@ -15,6 +15,8 @@
       --muted: rgb(157, 181, 190);
       --green: rgb(159, 235, 164);
       --gold: rgb(255, 207, 107);
+      --coral: rgb(249, 143, 121);
+      --blue: rgb(96, 190, 247);
     }
     * {
       box-sizing: border-box;
@@ -53,6 +55,13 @@
     .topbar a:hover {
       text-decoration: underline;
     }
+    .mobile-title-tag {
+      display: none;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--green);
+      font-size: 0.95rem;
+    }
     .stage-wrap {
       flex: 1;
       width: 100%;
@@ -72,6 +81,171 @@
       box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
       touch-action: manipulation;
       cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #mobile-status-bar {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
+    #mobile-status-text {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+      line-height: 1.3;
+    }
+    #mobile-status-sub {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    #mobile-panel {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px 0 12px 0;
+    }
+    #mobile-buttons {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mobile-btn {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      text-align: center;
+    }
+    .mobile-btn:active:not(:disabled) {
+      border-color: var(--green);
+      background: rgb(48, 77, 86);
+    }
+    .mobile-btn:disabled {
+      opacity: 0.48;
+      cursor: default;
+    }
+    .mobile-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .mobile-card-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      margin: 0 0 8px 0;
+    }
+    .mobile-roster-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .mobile-roster-col h4 {
+      margin: 0 0 6px 0;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      color: var(--blue);
+    }
+    .mobile-roster-col.enemy h4 {
+      color: var(--gold);
+    }
+    .mobile-ship-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 3px 0;
+      gap: 6px;
+    }
+    .mobile-ship-row.sunk {
+      color: var(--coral);
+    }
+    .mobile-pips {
+      display: inline-flex;
+      gap: 3px;
+    }
+    .mobile-pip {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--green);
+    }
+    .mobile-pip.hit {
+      background: var(--gold);
+    }
+    .mobile-pip.sunk {
+      background: var(--coral);
+    }
+    #mobile-logs {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre-line;
+    }
+    @media (max-width: 900px), (orientation: portrait) {
+      html, body {
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+      }
+      body {
+        padding: max(4px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      }
+      .topbar {
+        max-width: 520px;
+        padding: 8px 2px 6px 2px;
+        font-size: 0.94rem;
+      }
+      #status-hint {
+        display: none;
+      }
+      .mobile-title-tag {
+        display: inline-block;
+      }
+      .stage-wrap {
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 0;
+      }
+      #mobile-status-bar {
+        display: block;
+      }
+      #mobile-buttons {
+        display: grid;
+      }
+      canvas#game-canvas {
+        width: 100%;
+        max-width: 520px;
+        max-height: none;
+        aspect-ratio: 560 / 1120;
+      }
+      #mobile-panel {
+        display: flex;
+      }
     }
   </style>
 </head>
@@ -80,10 +254,26 @@
     <div>
       <a href="../index.html">&lt;- All Games</a>
     </div>
-    <span id="status-hint">Keys: Arrows / WASD (aim), Enter / Space (fire), F (re-roll fleet), G (7x7 / 10x10), R (new game) | Mouse: click Enemy Fleet</span>
+    <span class="mobile-title-tag">BATTLESHIP</span>
+    <span id="status-hint">Keys: Arrows / WASD (aim), Enter / Space (fire), F (re-roll), G (7x7 / 10x10), M (mute), R (new game) | Mouse: click Enemy Fleet</span>
   </header>
   <div class="stage-wrap">
+    <div id="mobile-status-bar" aria-live="polite">
+      <div id="mobile-status-text">Your turn! Tap Enemy Fleet to fire.</div>
+      <div id="mobile-status-sub">Board: 7x7 | Shots: 0</div>
+    </div>
+    <div id="mobile-buttons"></div>
     <canvas id="game-canvas" width="1280" height="880" aria-label="Battleship game boards and controls"></canvas>
+    <section id="mobile-panel" aria-live="polite">
+      <div class="mobile-card">
+        <div class="mobile-card-title">FLEET STATUS</div>
+        <div class="mobile-roster-grid" id="mobile-roster"></div>
+      </div>
+      <div class="mobile-card">
+        <div class="mobile-card-title">BATTLE LOG</div>
+        <div id="mobile-logs"></div>
+      </div>
+    </section>
   </div>
   <script src="app.js"></script>
 </body>

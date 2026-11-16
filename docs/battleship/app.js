@@ -9,6 +9,8 @@
 
   var WIDTH = 1280;
   var HEIGHT = 880;
+  var MOBILE_WIDTH = 560;
+  var MOBILE_HEIGHT = 1120;
   var INK = "rgb(231, 241, 244)";
   var MUTED = "rgb(157, 181, 190)";
   var NAVY = "rgb(14, 29, 40)";
@@ -42,6 +44,8 @@
 
   var PLAYER_PANEL = { x: 34, y: 118, width: 590, height: 526 };
   var ENEMY_PANEL = { x: 656, y: 118, width: 590, height: 526 };
+  var MOBILE_ENEMY_PANEL = { x: 10, y: 10, width: 540, height: 544 };
+  var MOBILE_PLAYER_PANEL = { x: 10, y: 566, width: 540, height: 544 };
   var ROSTER_PANEL = { x: 34, y: 660, width: 590, height: 196 };
   var LOG_PANEL = { x: 656, y: 660, width: 590, height: 196 };
 
@@ -489,6 +493,116 @@
       pt[1] >= rect.y && pt[1] <= rect.y + rect.height;
   }
 
+  function SoundEffects() {
+    this.muted = false;
+    this.played = [];
+    this.ctx = null;
+  }
+
+  SoundEffects.prototype._ensureContext = function () {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+      return null;
+    }
+    if (!this.ctx) {
+      try {
+        this.ctx = new AudioCtx();
+      } catch (e) {
+        return null;
+      }
+    }
+    if (this.ctx.state === "suspended" && this.ctx.resume) {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  };
+
+  SoundEffects.prototype.toggle = function () {
+    this.muted = !this.muted;
+    return this.muted;
+  };
+
+  SoundEffects.prototype._tone = function (ctx, freqStart, freqEnd, duration, type, volume, delay) {
+    var start = ctx.currentTime + (delay || 0);
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(freqStart, start);
+    if (freqEnd !== freqStart) {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), start + duration);
+    }
+    gain.gain.setValueAtTime(volume || 0.14, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start + duration);
+  };
+
+  SoundEffects.prototype._noise = function (ctx, duration, cutoffHz, volume, delay) {
+    var start = ctx.currentTime + (delay || 0);
+    var sampleCount = Math.max(1, Math.floor(ctx.sampleRate * duration));
+    var buffer = ctx.createBuffer(1, sampleCount, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < sampleCount; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+    }
+    var src = ctx.createBufferSource();
+    src.buffer = buffer;
+    var filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(cutoffHz || 900, start);
+    var gain = ctx.createGain();
+    gain.gain.setValueAtTime(volume || 0.16, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(start);
+  };
+
+  SoundEffects.prototype.play = function (kind) {
+    if (this.muted) {
+      return false;
+    }
+    this.played.push(kind);
+    if (this.played.length > 64) {
+      this.played.shift();
+    }
+    var ctx = this._ensureContext();
+    if (!ctx) {
+      return true;
+    }
+    if (kind === "launch") {
+      this._tone(ctx, 520, 170, 0.14, "triangle", 0.12, 0);
+    } else if (kind === "miss") {
+      this._tone(ctx, 300, 110, 0.16, "sine", 0.12, 0);
+      this._noise(ctx, 0.18, 1200, 0.1, 0.02);
+    } else if (kind === "hit") {
+      this._tone(ctx, 180, 46, 0.24, "sawtooth", 0.16, 0);
+      this._noise(ctx, 0.22, 850, 0.18, 0);
+    } else if (kind === "sunk") {
+      this._tone(ctx, 140, 34, 0.42, "sawtooth", 0.2, 0);
+      this._tone(ctx, 220, 55, 0.28, "square", 0.1, 0.08);
+      this._noise(ctx, 0.38, 650, 0.22, 0);
+    } else if (kind === "win") {
+      this._tone(ctx, 523.25, 523.25, 0.14, "triangle", 0.14, 0);
+      this._tone(ctx, 659.25, 659.25, 0.14, "triangle", 0.14, 0.11);
+      this._tone(ctx, 783.99, 783.99, 0.14, "triangle", 0.14, 0.22);
+      this._tone(ctx, 1046.5, 1046.5, 0.28, "triangle", 0.16, 0.33);
+    } else if (kind === "lose") {
+      this._tone(ctx, 392.0, 392.0, 0.18, "sawtooth", 0.1, 0);
+      this._tone(ctx, 311.13, 311.13, 0.18, "sawtooth", 0.1, 0.16);
+      this._tone(ctx, 261.63, 220.0, 0.34, "sawtooth", 0.12, 0.32);
+    } else if (kind === "click") {
+      this._tone(ctx, 640, 480, 0.05, "sine", 0.08, 0);
+    }
+    return true;
+  };
+
   function Painter(ctx) {
     this.ctx = ctx;
     this.errors = [];
@@ -571,15 +685,27 @@
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.painter = new Painter(this.ctx);
+    this.sound = new SoundEffects();
     this.layoutErrors = [];
     this.baseSeed = opts.seed;
     this.gameCount = 0;
     this.boardSize = opts.boardSize === 10 ? 10 : 7;
+    this.mobileMode = false;
     this.hover = [-1, -1];
     this.hoverCell = null;
     this.cursor = [0, 0];
     this.statusMessage = "";
     this.statusColor = GREEN;
+    this.clock = 0;
+    this.projectiles = [];
+    this.particles = [];
+    this.ripples = [];
+    this.pendingEvents = [];
+    this.pendingEnemyKeys = {};
+    this.pendingPlayerKeys = {};
+    this.shakeTime = 0;
+    this.shakeDuration = 0.35;
+    this.shakeIntensity = 0;
     this._startNewGame(this.boardSize);
   }
 
@@ -591,7 +717,19 @@
     return undefined;
   };
 
+  BattleshipWebApp.prototype._clearVisuals = function () {
+    this.projectiles = [];
+    this.particles = [];
+    this.ripples = [];
+    this.pendingEvents = [];
+    this.pendingEnemyKeys = {};
+    this.pendingPlayerKeys = {};
+    this.shakeTime = 0;
+    this.shakeIntensity = 0;
+  };
+
   BattleshipWebApp.prototype._startNewGame = function (boardSize) {
+    this._clearVisuals();
     this.boardSize = boardSize === 10 ? 10 : 7;
     this.game = new BattleshipGame({
       boardSize: this.boardSize,
@@ -603,9 +741,21 @@
     this.statusColor = GREEN;
   };
 
+  BattleshipWebApp.prototype.setMobileMode = function (enabled) {
+    this.mobileMode = Boolean(enabled);
+  };
+
+  BattleshipWebApp.prototype.playerPanelRect = function () {
+    return this.mobileMode ? MOBILE_PLAYER_PANEL : PLAYER_PANEL;
+  };
+
+  BattleshipWebApp.prototype.enemyPanelRect = function () {
+    return this.mobileMode ? MOBILE_ENEMY_PANEL : ENEMY_PANEL;
+  };
+
   BattleshipWebApp.prototype.gridMetrics = function (panel) {
     var n = this.boardSize;
-    var cellSize = n === 10 ? 42 : 58;
+    var cellSize = this.mobileMode ? (n === 10 ? 46 : 66) : (n === 10 ? 42 : 58);
     var gridPx = n * cellSize;
     var originX = panel.x + Math.round((panel.width - gridPx) / 2) + 12;
     var originY = panel.y + 72;
@@ -617,8 +767,174 @@
     };
   };
 
+  BattleshipWebApp.prototype.playerCellCenter = function (row, col) {
+    var m = this.gridMetrics(this.playerPanelRect());
+    return [m.originX + (col + 0.5) * m.cellSize, m.originY + (row + 0.5) * m.cellSize];
+  };
+
+  BattleshipWebApp.prototype.enemyCellCenter = function (row, col) {
+    var m = this.gridMetrics(this.enemyPanelRect());
+    return [m.originX + (col + 0.5) * m.cellSize, m.originY + (row + 0.5) * m.cellSize];
+  };
+
+  BattleshipWebApp.prototype.isEnemyCellRevealed = function (row, col) {
+    return Boolean(this.game.player.hitRecordAt(row, col)) && !this.pendingEnemyKeys[row + "," + col];
+  };
+
+  BattleshipWebApp.prototype.isPlayerCellRevealed = function (row, col) {
+    return this.game.player.wasHitAt(row, col) && !this.pendingPlayerKeys[row + "," + col];
+  };
+
+  BattleshipWebApp.prototype._spawnImpact = function (center, kind) {
+    var isHit = kind === "hit" || kind === "sunk";
+    var ringColor = isHit ? (kind === "sunk" ? GOLD : CORAL) : BLUE;
+    this.ripples.push({
+      x: center[0],
+      y: center[1],
+      life: kind === "sunk" ? 0.55 : 0.4,
+      maxLife: kind === "sunk" ? 0.55 : 0.4,
+      maxRadius: kind === "sunk" ? 44 : 28,
+      color: ringColor,
+      lineWidth: kind === "sunk" ? 4 : 3
+    });
+    if (kind === "sunk") {
+      this.ripples.push({
+        x: center[0],
+        y: center[1],
+        life: 0.7,
+        maxLife: 0.7,
+        maxRadius: 62,
+        color: CORAL,
+        lineWidth: 2
+      });
+    }
+    var count = kind === "sunk" ? 20 : (isHit ? 12 : 8);
+    for (var i = 0; i < count; i++) {
+      var angle = (Math.PI * 2 * i) / count + (i % 2) * 0.2;
+      var speed = (kind === "sunk" ? 130 : (isHit ? 95 : 55)) * (0.5 + (i % 3) * 0.25);
+      this.particles.push({
+        x: center[0],
+        y: center[1],
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (isHit ? 25 : 15),
+        life: kind === "sunk" ? 0.65 : 0.45,
+        maxLife: kind === "sunk" ? 0.65 : 0.45,
+        color: isHit ? (i % 2 === 0 ? CORAL : GOLD) : BLUE,
+        size: kind === "sunk" ? 5 : 4
+      });
+    }
+  };
+
+  BattleshipWebApp.prototype._spawnVictoryConfetti = function () {
+    var colors = [GREEN, GOLD, BLUE, CORAL];
+    var ep = this.enemyPanelRect();
+    for (var i = 0; i < 36; i++) {
+      var angle = -Math.PI + (Math.PI * i) / 36;
+      var speed = 140 + (i % 5) * 45;
+      this.particles.push({
+        x: ep.x + ep.width / 2,
+        y: ep.y + 180,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1.1,
+        maxLife: 1.1,
+        color: colors[i % colors.length],
+        size: 5
+      });
+    }
+  };
+
+  BattleshipWebApp.prototype._triggerShake = function (intensity) {
+    this.shakeDuration = 0.35;
+    this.shakeTime = this.shakeDuration;
+    this.shakeIntensity = intensity || 7;
+  };
+
+  BattleshipWebApp.prototype.flushVisualQueue = function () {
+    while (this.pendingEvents.length > 0 || this.projectiles.length > 0) {
+      for (var i = 0; i < this.projectiles.length; i++) {
+        var proj = this.projectiles[i];
+        if (!proj.resolved && proj.onImpact) {
+          proj.resolved = true;
+          proj.onImpact(true);
+        }
+      }
+      this.projectiles = [];
+      if (this.pendingEvents.length > 0) {
+        var evts = this.pendingEvents.splice(0, this.pendingEvents.length);
+        for (var j = 0; j < evts.length; j++) {
+          evts[j].fn(true);
+        }
+      }
+    }
+    this.pendingEnemyKeys = {};
+    this.pendingPlayerKeys = {};
+    this.particles = [];
+    this.ripples = [];
+    this.shakeTime = 0;
+  };
+
+  BattleshipWebApp.prototype.tick = function (seconds) {
+    var dt = Math.max(0, seconds);
+    this.clock += dt;
+
+    var remainingEvents = [];
+    for (var e = 0; e < this.pendingEvents.length; e++) {
+      var evt = this.pendingEvents[e];
+      evt.delay -= dt;
+      if (evt.delay <= 0) {
+        evt.fn(false);
+      } else {
+        remainingEvents.push(evt);
+      }
+    }
+    this.pendingEvents = remainingEvents;
+
+    var activeProj = [];
+    for (var i = 0; i < this.projectiles.length; i++) {
+      var p = this.projectiles[i];
+      p.elapsed += dt;
+      if (p.elapsed >= p.duration) {
+        if (!p.resolved && p.onImpact) {
+          p.resolved = true;
+          p.onImpact(false);
+        }
+      } else {
+        activeProj.push(p);
+      }
+    }
+    this.projectiles = activeProj;
+
+    var activeParticles = [];
+    for (var j = 0; j < this.particles.length; j++) {
+      var pt = this.particles[j];
+      pt.life -= dt;
+      if (pt.life > 0) {
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.vy += 140 * dt;
+        activeParticles.push(pt);
+      }
+    }
+    this.particles = activeParticles;
+
+    var activeRipples = [];
+    for (var k = 0; k < this.ripples.length; k++) {
+      var rp = this.ripples[k];
+      rp.life -= dt;
+      if (rp.life > 0) {
+        activeRipples.push(rp);
+      }
+    }
+    this.ripples = activeRipples;
+
+    if (this.shakeTime > 0) {
+      this.shakeTime = Math.max(0, this.shakeTime - dt);
+    }
+  };
+
   BattleshipWebApp.prototype.enemyCellRect = function (row, col) {
-    var m = this.gridMetrics(ENEMY_PANEL);
+    var m = this.gridMetrics(this.enemyPanelRect());
     return {
       x: m.originX + col * m.cellSize,
       y: m.originY + row * m.cellSize,
@@ -628,7 +944,7 @@
   };
 
   BattleshipWebApp.prototype.enemyCellAtPoint = function (pt) {
-    var m = this.gridMetrics(ENEMY_PANEL);
+    var m = this.gridMetrics(this.enemyPanelRect());
     var col = Math.floor((pt[0] - m.originX) / m.cellSize);
     var row = Math.floor((pt[1] - m.originY) / m.cellSize);
     if (row >= 0 && row < this.boardSize && col >= 0 && col < this.boardSize) {
@@ -641,19 +957,25 @@
     var canReroll = this.game.shotsFired === 0 && !this.game.gameOver;
     return [
       {
-        rect: { x: 660, y: 28, width: 190, height: 48 },
-        label: "Re-roll Fleet (F)",
+        rect: { x: 528, y: 28, width: 162, height: 48 },
+        label: this.sound.muted ? "Sound: Off (M)" : "Sound: On (M)",
+        action: "toggle_sound",
+        disabled: false
+      },
+      {
+        rect: { x: 702, y: 28, width: 164, height: 48 },
+        label: "Re-roll (F)",
         action: "reroll",
         disabled: !canReroll
       },
       {
-        rect: { x: 864, y: 28, width: 196, height: 48 },
+        rect: { x: 878, y: 28, width: 190, height: 48 },
         label: "Board: " + this.boardSize + "x" + this.boardSize + " (G)",
         action: "toggle_size",
         disabled: false
       },
       {
-        rect: { x: 1074, y: 28, width: 172, height: 48 },
+        rect: { x: 1080, y: 28, width: 166, height: 48 },
         label: "New Game (R)",
         action: "new_game",
         disabled: false
@@ -662,8 +984,19 @@
   };
 
   BattleshipWebApp.prototype.activate = function (action) {
+    if (action === "toggle_sound") {
+      var muted = this.sound.toggle();
+      if (!muted) {
+        this.sound.play("click");
+      }
+      this.statusMessage = muted ? "Sound muted." : "Sound enabled.";
+      this.statusColor = MUTED;
+      return;
+    }
     if (action === "reroll") {
+      this.flushVisualQueue();
       if (this.game.rerollPlayerFleet()) {
+        this.sound.play("click");
         this.statusMessage = "Re-rolled your fleet positions.";
         this.statusColor = GOLD;
       } else {
@@ -675,44 +1008,132 @@
     if (action === "toggle_size") {
       var nextSize = this.boardSize === 7 ? 10 : 7;
       this._startNewGame(nextSize);
+      this.sound.play("click");
       return;
     }
     if (action === "new_game") {
       this._startNewGame(this.boardSize);
+      this.sound.play("click");
     }
   };
 
   BattleshipWebApp.prototype.fireAt = function (row, col) {
+    if (this.game.gameOver) {
+      this.flushVisualQueue();
+      this.statusMessage = this.game.winner + " won! Press R or New Game to play again.";
+      this.statusColor = this.game.winner === "You" ? GREEN : CORAL;
+      return { accepted: false, reason: "game_over" };
+    }
+    if (this.game.player.hasTried(row, col)) {
+      this.statusMessage = "Already fired at " + encodeLoc(row, col) + ". Pick another cell.";
+      this.statusColor = GOLD;
+      return { accepted: false, reason: "already_fired", coord: encodeLoc(row, col) };
+    }
+
+    this.flushVisualQueue();
     var res = this.game.playerFire(row, col);
     if (!res.accepted) {
-      if (res.reason === "already_fired") {
-        this.statusMessage = "Already fired at " + res.coord + ". Pick another cell.";
-        this.statusColor = GOLD;
-      } else if (res.reason === "game_over") {
-        this.statusMessage = this.game.winner + " won! Press R or New Game to play again.";
-        this.statusColor = this.game.winner === "You" ? GREEN : CORAL;
+      return res;
+    }
+
+    var self = this;
+    var enemyKey = row + "," + col;
+    this.pendingEnemyKeys[enemyKey] = true;
+    var targetCenter = this.enemyCellCenter(row, col);
+    var pp = this.playerPanelRect();
+    var launchCenter = [pp.x + pp.width / 2, pp.y + pp.height / 2];
+
+    if (res.computerShot) {
+      this.pendingPlayerKeys[res.computerShot.row + "," + res.computerShot.col] = true;
+    }
+
+    this.sound.play("launch");
+    this.statusMessage = "Firing at " + res.coord + "...";
+    this.statusColor = GOLD;
+
+    this.projectiles.push({
+      from: launchCenter,
+      to: targetCenter,
+      elapsed: 0,
+      duration: 0.22,
+      color: GOLD,
+      resolved: false,
+      onImpact: function (fastForward) {
+        delete self.pendingEnemyKeys[enemyKey];
+        var kind = res.sunk ? "sunk" : (res.hit ? "hit" : "miss");
+        if (!fastForward) {
+          self._spawnImpact(targetCenter, kind);
+          self.sound.play(kind);
+          if (res.sunk) {
+            self._triggerShake(8);
+          }
+        }
+        if (res.gameOver && res.winner === "You") {
+          self.statusMessage = "VICTORY! You sank all enemy ships!";
+          self.statusColor = GREEN;
+          if (!fastForward) {
+            self._spawnVictoryConfetti();
+            self.sound.play("win");
+          }
+        } else if (res.sunk) {
+          self.statusMessage = "Direct hit at " + res.coord + "! Enemy " + FLEET_LABELS[res.sunk] + " sunk!";
+          self.statusColor = GREEN;
+        } else if (res.hit) {
+          self.statusMessage = "Hit at " + res.coord + "! (" + FLEET_LABELS[res.hit] + ")";
+          self.statusColor = GOLD;
+        } else {
+          self.statusMessage = "Miss at " + res.coord + ". Incoming fire...";
+          self.statusColor = BLUE;
+        }
       }
-      return res;
+    });
+
+    if (res.computerShot) {
+      var comp = res.computerShot;
+      var compKey = comp.row + "," + comp.col;
+      var compTargetCenter = this.playerCellCenter(comp.row, comp.col);
+      var ep = this.enemyPanelRect();
+      var compOrigin = [ep.x + ep.width / 2, ep.y + ep.height / 2];
+
+      this.pendingEvents.push({
+        delay: 0.28,
+        fn: function (fastForward) {
+          if (!fastForward) {
+            self.sound.play("launch");
+          }
+          self.projectiles.push({
+            from: compOrigin,
+            to: compTargetCenter,
+            elapsed: 0,
+            duration: 0.22,
+            color: CORAL,
+            resolved: false,
+            onImpact: function (ffImpact) {
+              delete self.pendingPlayerKeys[compKey];
+              var compKind = comp.sunk ? "sunk" : (comp.hit ? "hit" : "miss");
+              if (!ffImpact && !fastForward) {
+                self._spawnImpact(compTargetCenter, compKind);
+                self.sound.play(compKind);
+                if (comp.sunk) {
+                  self._triggerShake(8);
+                }
+              }
+              if (res.gameOver && res.winner === "Computer") {
+                self.statusMessage = "DEFEAT! Computer sank all your ships.";
+                self.statusColor = CORAL;
+                if (!ffImpact && !fastForward) {
+                  self.sound.play("lose");
+                }
+              } else if (!res.sunk && !res.hit) {
+                self.statusMessage = "Miss at " + res.coord + ". Your turn!";
+                self.statusColor = BLUE;
+              }
+            }
+          });
+        }
+      });
     }
 
-    if (res.gameOver) {
-      this.statusMessage = res.winner === "You"
-        ? "VICTORY! You sank all enemy ships!"
-        : "DEFEAT! Computer sank all your ships.";
-      this.statusColor = res.winner === "You" ? GREEN : CORAL;
-      return res;
-    }
-
-    if (res.sunk) {
-      this.statusMessage = "Direct hit at " + res.coord + "! Enemy " + FLEET_LABELS[res.sunk] + " sunk!";
-      this.statusColor = GREEN;
-    } else if (res.hit) {
-      this.statusMessage = "Hit at " + res.coord + "! (" + FLEET_LABELS[res.hit] + ")";
-      this.statusColor = GOLD;
-    } else {
-      this.statusMessage = "Miss at " + res.coord + ". Your turn!";
-      this.statusColor = BLUE;
-    }
     return res;
   };
 
@@ -723,11 +1144,13 @@
 
   BattleshipWebApp.prototype.handlePointerDown = function (pt) {
     this.hover = pt;
-    var btns = this.buttons();
-    for (var i = 0; i < btns.length; i++) {
-      if (collidePoint(btns[i].rect, pt)) {
-        this.activate(btns[i].action);
-        return;
+    if (!this.mobileMode) {
+      var btns = this.buttons();
+      for (var i = 0; i < btns.length; i++) {
+        if (collidePoint(btns[i].rect, pt)) {
+          this.activate(btns[i].action);
+          return;
+        }
       }
     }
     var cell = this.enemyCellAtPoint(pt);
@@ -765,6 +1188,10 @@
     }
     if (key === "g" || key === "G") {
       this.activate("toggle_size");
+      return true;
+    }
+    if (key === "m" || key === "M") {
+      this.activate("toggle_sound");
       return true;
     }
     if (key === "r" || key === "R") {
@@ -818,8 +1245,8 @@
     var ctx = this.ctx;
     p.panel(panel, PANEL, 16);
     p.strokeRoundRect(panel, BORDER, 2, 16);
-    p.text(title, { x: panel.x + 22, y: panel.y + 14, width: 280, height: 30 }, 26, isPlayer ? BLUE : GOLD, "left", "700");
-    p.text(subtitle, { x: panel.x + 250, y: panel.y + 17, width: 316, height: 26 }, 20, MUTED, "right");
+    p.text(title, { x: panel.x + 22, y: panel.y + 14, width: 230, height: 30 }, 26, isPlayer ? BLUE : GOLD, "left", "700");
+    p.text(subtitle, { x: panel.x + 220, y: panel.y + 17, width: panel.width - 242, height: 26 }, 20, MUTED, "right");
 
     var m = this.gridMetrics(panel);
     var n = this.boardSize;
@@ -854,18 +1281,19 @@
 
         if (isPlayer) {
           var myFleet = this.game.player.fleetGroup.findAt(r, c);
+          var revealedPlayerHit = this.isPlayerCellRevealed(r, c);
           if (myFleet) {
-            if (myFleet.hasHit(r, c)) {
+            if (myFleet.hasHit(r, c) && revealedPlayerHit) {
               fill = SHIP_SUNK;
               marker = "hit";
             } else {
               fill = SHIP_FILL;
             }
-          } else if (this.game.player.wasHitAt(r, c)) {
+          } else if (revealedPlayerHit) {
             marker = "miss";
           }
         } else {
-          var rec = this.game.player.hitRecordAt(r, c);
+          var rec = this.isEnemyCellRevealed(r, c) ? this.game.player.hitRecordAt(r, c) : null;
           var isHover = this.hoverCell && this.hoverCell[0] === r && this.hoverCell[1] === c;
           if (rec) {
             if (rec[2]) {
@@ -892,8 +1320,9 @@
         }
 
         if (!isPlayer && !this.game.gameOver && this.cursor[0] === r && this.cursor[1] === c) {
+          var pulse = 2.5 + 1.1 * Math.sin(this.clock * 6);
           ctx.strokeStyle = GOLD;
-          ctx.lineWidth = 3;
+          ctx.lineWidth = pulse;
           ctx.strokeRect(cell.x + 2, cell.y + 2, cell.width - 4, cell.height - 4);
         }
       }
@@ -904,6 +1333,48 @@
     ctx.strokeRect(m.originX, m.originY, m.gridPx, m.gridPx);
   };
 
+  BattleshipWebApp.prototype._revealedHitCount = function (fleet, isPlayerSide) {
+    var revealedHits = 0;
+    for (var h = 0; h < fleet.hits.length; h++) {
+      var hc = fleet.hits[h];
+      var rev = isPlayerSide ? this.isPlayerCellRevealed(hc[0], hc[1]) : this.isEnemyCellRevealed(hc[0], hc[1]);
+      if (rev) {
+        revealedHits += 1;
+      }
+    }
+    return revealedHits;
+  };
+
+  BattleshipWebApp.prototype.mobileState = function () {
+    var self = this;
+    function mapFleets(fleets, isPlayerSide) {
+      return fleets.map(function (f) {
+        var hits = self._revealedHitCount(f, isPlayerSide);
+        return {
+          name: f.name,
+          label: FLEET_LABELS[f.name],
+          size: f.size,
+          revealedHits: hits,
+          sunk: hits === f.size
+        };
+      });
+    }
+    return {
+      statusMessage: this.statusMessage,
+      statusColor: this.statusColor,
+      boardSize: this.boardSize,
+      shotsFired: this.game.shotsFired,
+      gameOver: this.game.gameOver,
+      winner: this.game.winner,
+      buttons: this.buttons().map(function (b) {
+        return { label: b.label.replace(/ \([A-Z]\)$/, ""), action: b.action, disabled: b.disabled };
+      }),
+      playerFleets: mapFleets(this.game.player.fleetGroup.fleets, true),
+      enemyFleets: mapFleets(this.game.computer.fleetGroup.fleets, false),
+      logs: this.game.logs.slice(0, 5)
+    };
+  };
+
   BattleshipWebApp.prototype._drawRoster = function () {
     var p = this.painter;
     var ctx = this.ctx;
@@ -912,11 +1383,13 @@
     p.text("YOUR SHIPS", { x: ROSTER_PANEL.x + 20, y: ROSTER_PANEL.y + 12, width: 250, height: 24 }, 21, BLUE, "left", "700");
     p.text("ENEMY SHIPS", { x: ROSTER_PANEL.x + 310, y: ROSTER_PANEL.y + 12, width: 250, height: 24 }, 21, GOLD, "left", "700");
 
-    var drawCol = function (fleets, startX) {
+    var self = this;
+    var drawCol = function (fleets, startX, isPlayerSide) {
       for (var i = 0; i < fleets.length; i++) {
         var f = fleets[i];
         var y = ROSTER_PANEL.y + 44 + i * 28;
-        var sunk = f.isSunk();
+        var revealedHits = self._revealedHitCount(f, isPlayerSide);
+        var sunk = revealedHits === f.size;
         p.text(
           FLEET_LABELS[f.name],
           { x: startX, y: y, width: 120, height: 22 },
@@ -926,11 +1399,11 @@
         for (var pip = 0; pip < f.size; pip++) {
           var px = startX + 126 + pip * 16;
           var py = y + 4;
-          ctx.fillStyle = sunk ? CORAL : (pip < f.hits.length ? GOLD : GREEN);
+          ctx.fillStyle = sunk ? CORAL : (pip < revealedHits ? GOLD : GREEN);
           ctx.fillRect(px, py, 11, 11);
         }
         p.text(
-          sunk ? "SUNK" : (f.size - f.hits.length) + "/" + f.size,
+          sunk ? "SUNK" : (f.size - revealedHits) + "/" + f.size,
           { x: startX + 214, y: y, width: 52, height: 22 },
           17,
           sunk ? CORAL : MUTED,
@@ -939,8 +1412,8 @@
       }
     };
 
-    drawCol(this.game.player.fleetGroup.fleets, ROSTER_PANEL.x + 20);
-    drawCol(this.game.computer.fleetGroup.fleets, ROSTER_PANEL.x + 310);
+    drawCol(this.game.player.fleetGroup.fleets, ROSTER_PANEL.x + 20, true);
+    drawCol(this.game.computer.fleetGroup.fleets, ROSTER_PANEL.x + 310, false);
   };
 
   BattleshipWebApp.prototype._drawBattleLog = function () {
@@ -975,33 +1448,112 @@
     );
   };
 
+  BattleshipWebApp.prototype._drawEffects = function () {
+    var ctx = this.ctx;
+    for (var i = 0; i < this.ripples.length; i++) {
+      var rp = this.ripples[i];
+      var frac = 1 - rp.life / rp.maxLife;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, rp.life / rp.maxLife);
+      ctx.strokeStyle = rp.color;
+      ctx.lineWidth = rp.lineWidth;
+      ctx.beginPath();
+      ctx.arc(rp.x, rp.y, 6 + frac * rp.maxRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    for (var j = 0; j < this.projectiles.length; j++) {
+      var p = this.projectiles[j];
+      var t = Math.min(1, p.elapsed / p.duration);
+      var arcLift = Math.sin(Math.PI * t) * 58;
+      var px = p.from[0] + (p.to[0] - p.from[0]) * t;
+      var py = p.from[1] + (p.to[1] - p.from[1]) * t - arcLift;
+      var tailT = Math.max(0, t - 0.14);
+      var tailLift = Math.sin(Math.PI * tailT) * 58;
+      var tx = p.from[0] + (p.to[0] - p.from[0]) * tailT;
+      var ty = p.from[1] + (p.to[1] - p.from[1]) * tailT - tailLift;
+      ctx.save();
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(px, py);
+      ctx.stroke();
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    for (var k = 0; k < this.particles.length; k++) {
+      var pt = this.particles[k];
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+      ctx.restore();
+    }
+  };
+
   BattleshipWebApp.prototype.draw = function () {
     this.painter.errors = [];
+    var cw = this.mobileMode ? MOBILE_WIDTH : WIDTH;
+    var ch = this.mobileMode ? MOBILE_HEIGHT : HEIGHT;
     this.ctx.fillStyle = NAVY;
-    this.ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.ctx.fillRect(0, 0, cw, ch);
 
-    this.painter.text("BATTLESHIP", { x: 34, y: 20, width: 300, height: 42 }, 42, GREEN, "left", "800");
-    this.painter.text(
-      "Sink all 5 enemy warships before Computer sinks yours.",
-      { x: 34, y: 68, width: 600, height: 28 },
-      21,
-      MUTED
-    );
-
-    var btns = this.buttons();
-    for (var i = 0; i < btns.length; i++) {
-      this._drawButton(btns[i]);
+    var shaking = this.shakeTime > 0;
+    if (shaking && this.ctx.save && this.ctx.translate) {
+      var ratio = this.shakeTime / this.shakeDuration;
+      var dx = Math.sin(this.clock * 70) * this.shakeIntensity * ratio;
+      var dy = Math.cos(this.clock * 85) * this.shakeIntensity * ratio;
+      this.ctx.save();
+      this.ctx.translate(dx, dy);
     }
 
-    this._drawBoard(PLAYER_PANEL, "YOUR FLEET", "Ships & incoming hits", true);
-    this._drawBoard(
-      ENEMY_PANEL,
-      "ENEMY FLEET",
-      "Target: " + encodeLoc(this.cursor[0], this.cursor[1]),
-      false
-    );
-    this._drawRoster();
-    this._drawBattleLog();
+    if (this.mobileMode) {
+      this._drawBoard(
+        this.enemyPanelRect(),
+        "ENEMY FLEET",
+        "Tap a square to fire",
+        false
+      );
+      this._drawBoard(
+        this.playerPanelRect(),
+        "YOUR FLEET",
+        "Ships & incoming hits",
+        true
+      );
+      this._drawEffects();
+    } else {
+      this.painter.text("BATTLESHIP", { x: 34, y: 20, width: 300, height: 42 }, 42, GREEN, "left", "800");
+      this.painter.text(
+        "Sink all 5 enemy warships before Computer sinks yours.",
+        { x: 34, y: 68, width: 480, height: 28 },
+        21,
+        MUTED
+      );
+
+      var btns = this.buttons();
+      for (var i = 0; i < btns.length; i++) {
+        this._drawButton(btns[i]);
+      }
+
+      this._drawBoard(PLAYER_PANEL, "YOUR FLEET", "Ships & incoming hits", true);
+      this._drawBoard(
+        ENEMY_PANEL,
+        "ENEMY FLEET",
+        "Target: " + encodeLoc(this.cursor[0], this.cursor[1]),
+        false
+      );
+      this._drawRoster();
+      this._drawBattleLog();
+      this._drawEffects();
+    }
+
+    if (shaking && this.ctx.restore) {
+      this.ctx.restore();
+    }
 
     this.layoutErrors = this.painter.errors.slice();
   };
@@ -1017,10 +1569,21 @@
     var app = new BattleshipWebApp(canvas);
     window.battleshipApp = app;
 
-    function syncDpr() {
+    var mobileStatusText = document.getElementById("mobile-status-text");
+    var mobileStatusSub = document.getElementById("mobile-status-sub");
+    var mobileButtons = document.getElementById("mobile-buttons");
+    var mobileRoster = document.getElementById("mobile-roster");
+    var mobileLogs = document.getElementById("mobile-logs");
+    var lastMobileKey = "";
+
+    function syncViewport() {
+      var isMobile = window.innerWidth <= 900 || window.innerHeight > window.innerWidth;
       var dpr = Math.min(window.devicePixelRatio || 1, 3);
-      var w = Math.round(WIDTH * dpr);
-      var h = Math.round(HEIGHT * dpr);
+      var logW = isMobile ? MOBILE_WIDTH : WIDTH;
+      var logH = isMobile ? MOBILE_HEIGHT : HEIGHT;
+      app.setMobileMode(isMobile);
+      var w = Math.round(logW * dpr);
+      var h = Math.round(logH * dpr);
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -1031,34 +1594,115 @@
       app.draw();
     }
 
+    function syncMobileDom() {
+      if (!app.mobileMode || !mobileButtons) {
+        return;
+      }
+      var st = app.mobileState();
+      var key = JSON.stringify(st);
+      if (key === lastMobileKey) {
+        return;
+      }
+      lastMobileKey = key;
+      if (mobileStatusText) {
+        mobileStatusText.textContent = st.statusMessage;
+        mobileStatusText.style.color = st.statusColor;
+      }
+      if (mobileStatusSub) {
+        mobileStatusSub.textContent = "Board: " + st.boardSize + "x" + st.boardSize + " | Shots: " + st.shotsFired;
+      }
+      mobileButtons.innerHTML = "";
+      st.buttons.forEach(function (b) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mobile-btn";
+        btn.textContent = b.label;
+        btn.disabled = b.disabled;
+        btn.addEventListener("click", function () {
+          app.activate(b.action);
+          app.draw();
+          syncMobileDom();
+        });
+        mobileButtons.appendChild(btn);
+      });
+      if (mobileRoster) {
+        mobileRoster.innerHTML = "";
+        var buildCol = function (title, fleets, isEnemy) {
+          var col = document.createElement("div");
+          col.className = "mobile-roster-col" + (isEnemy ? " enemy" : "");
+          var h4 = document.createElement("h4");
+          h4.textContent = title;
+          col.appendChild(h4);
+          fleets.forEach(function (f) {
+            var row = document.createElement("div");
+            row.className = "mobile-ship-row" + (f.sunk ? " sunk" : "");
+            var name = document.createElement("span");
+            name.textContent = f.label;
+            var pips = document.createElement("span");
+            pips.className = "mobile-pips";
+            for (var p = 0; p < f.size; p++) {
+              var pip = document.createElement("span");
+              pip.className = "mobile-pip" + (f.sunk ? " sunk" : (p < f.revealedHits ? " hit" : ""));
+              pips.appendChild(pip);
+            }
+            row.appendChild(name);
+            row.appendChild(pips);
+            col.appendChild(row);
+          });
+          return col;
+        };
+        mobileRoster.appendChild(buildCol("YOUR SHIPS", st.playerFleets, false));
+        mobileRoster.appendChild(buildCol("ENEMY SHIPS", st.enemyFleets, true));
+      }
+      if (mobileLogs) {
+        mobileLogs.textContent = st.logs.join("\n");
+      }
+    }
+
     function logicalFromEvent(evt) {
       var rect = canvas.getBoundingClientRect();
-      var x = Math.round(((evt.clientX - rect.left) * WIDTH) / rect.width);
-      var y = Math.round(((evt.clientY - rect.top) * HEIGHT) / rect.height);
+      var logW = app.mobileMode ? MOBILE_WIDTH : WIDTH;
+      var logH = app.mobileMode ? MOBILE_HEIGHT : HEIGHT;
+      var x = Math.round(((evt.clientX - rect.left) * logW) / rect.width);
+      var y = Math.round(((evt.clientY - rect.top) * logH) / rect.height);
       return [x, y];
     }
 
     canvas.addEventListener("pointermove", function (evt) {
       app.handlePointerMove(logicalFromEvent(evt));
-      app.draw();
     });
 
     canvas.addEventListener("pointerdown", function (evt) {
       evt.preventDefault();
       app.handlePointerDown(logicalFromEvent(evt));
-      app.draw();
+      syncMobileDom();
     });
 
     window.addEventListener("keydown", function (evt) {
       var handled = app.handleKeyDown(evt.key);
       if (handled) {
         evt.preventDefault();
-        app.draw();
+        syncMobileDom();
       }
     });
 
-    window.addEventListener("resize", syncDpr);
-    syncDpr();
+    window.addEventListener("resize", function () {
+      syncViewport();
+      syncMobileDom();
+    });
+    syncViewport();
+    syncMobileDom();
+
+    var lastTime = performance.now();
+    function frame(now) {
+      var dt = Math.min((now - lastTime) / 1000.0, 0.1);
+      lastTime = now;
+      app.tick(dt);
+      app.draw();
+      syncMobileDom();
+      window.requestAnimationFrame(frame);
+    }
+    window.requestAnimationFrame(frame);
   }
 
   if (typeof window !== "undefined") {
@@ -1072,6 +1716,8 @@
   return {
     WIDTH: WIDTH,
     HEIGHT: HEIGHT,
+    MOBILE_WIDTH: MOBILE_WIDTH,
+    MOBILE_HEIGHT: MOBILE_HEIGHT,
     FLEET_NAMES: FLEET_NAMES,
     FLEET_SIZES: FLEET_SIZES,
     encodeLoc: encodeLoc,

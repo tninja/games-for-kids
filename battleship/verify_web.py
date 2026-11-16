@@ -47,6 +47,21 @@ MUTANTS = (
         "if (this.gameOver) {\n      return { accepted: false, reason: \"game_over\" };\n    }",
         "if (false) {\n      return { accepted: false, reason: \"game_over\" };\n    }",
     ),
+    (
+        "muted sound still triggers playback",
+        "SoundEffects.prototype.play = function (kind) {\n    if (this.muted) {\n      return false;\n    }",
+        "SoundEffects.prototype.play = function (kind) {\n    if (false) {\n      return false;\n    }",
+    ),
+    (
+        "enemy reveal ignores pending projectile",
+        "BattleshipWebApp.prototype.isEnemyCellRevealed = function (row, col) {\n    return Boolean(this.game.player.hitRecordAt(row, col)) && !this.pendingEnemyKeys[row + \",\" + col];\n  };",
+        "BattleshipWebApp.prototype.isEnemyCellRevealed = function (row, col) {\n    return Boolean(this.game.player.hitRecordAt(row, col));\n  };",
+    ),
+    (
+        "mobile mode keeps desktop cell size",
+        "var cellSize = this.mobileMode ? (n === 10 ? 46 : 66) : (n === 10 ? 42 : 58);",
+        "var cellSize = n === 10 ? 42 : 58;",
+    ),
 )
 
 
@@ -144,14 +159,14 @@ def run_real_execution() -> dict[str, object]:
         raise RuntimeError("node is required")
     script = (
         'const bs = require("./docs/battleship/app.js");'
-        'const ctx = {font:"16px sans-serif",measureText:(s)=>({width:String(s).length*7.2}),'
+        'const ctx = {font:"16px sans-serif",globalAlpha:1,measureText:(s)=>({width:String(s).length*7.2}),'
         'fillText(){},fillRect(){},strokeRect(){},beginPath(){},roundRect(){},rect(){},fill(){},stroke(){},'
-        'arc(){},moveTo(){},lineTo(){},closePath(){},setLineDash(){}};'
+        'arc(){},moveTo(){},lineTo(){},closePath(){},setLineDash(){},save(){},restore(){},translate(){}};'
         'const app = new bs.BattleshipWebApp({getContext:()=>ctx},{seed:123});'
         'app.handleKeyDown("f");app.handleKeyDown("ArrowRight");app.handleKeyDown("Enter");'
-        'app.draw();'
+        'app.tick(0.3);app.draw();app.tick(0.5);app.draw();'
         'if(app.layoutErrors.length) process.exit(1);'
-        'console.log(JSON.stringify({shots:app.game.shotsFired,compShots:app.game.computer.hitHistory.length}));'
+        'console.log(JSON.stringify({shots:app.game.shotsFired,compShots:app.game.computer.hitHistory.length,sounds:app.sound.played}));'
     )
     res = subprocess.run([node, "-e", script], cwd=ROOT, capture_output=True, text=True, check=True)
     return json.loads(res.stdout.strip())
