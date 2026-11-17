@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Flappy Bird - Arcade Web Game</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: rgb(14, 29, 40);
+      --panel: rgb(24, 44, 57);
+      --card: rgb(34, 59, 73);
+      --border: rgb(67, 95, 107);
+      --ink: rgb(231, 241, 244);
+      --muted: rgb(157, 181, 190);
+      --green: rgb(159, 235, 164);
+      --gold: rgb(255, 207, 107);
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100dvh;
+      background: var(--navy);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    body {
+      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+    .topbar {
+      width: 100%;
+      max-width: 520px;
+      padding: 4px 2px 6px 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--muted);
+      gap: 10px;
+    }
+    .topbar a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .topbar a:hover {
+      text-decoration: underline;
+    }
+    #score-readout {
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .stage-wrap {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-banner {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--ink);
+      text-align: center;
+    }
+    canvas#game-canvas {
+      width: min(100%, 360px);
+      height: auto;
+      aspect-ratio: 288 / 512;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      image-rendering: pixelated;
+      touch-action: manipulation;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .controls {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .ctrl-btn {
+      min-height: 44px;
+      padding: 8px 6px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .ctrl-btn.active {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .ctrl-btn:active {
+      background: rgb(48, 77, 86);
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a href="../index.html">&lt;- All Games</a>
+    <span id="score-readout">Score: 0 | Best: 0</span>
+  </header>
+  <main class="stage-wrap">
+    <div id="status-badge" class="status-banner" aria-live="polite">Tap screen or choose 1P / 2P</div>
+    <canvas id="game-canvas" width="288" height="512" aria-label="Flappy Bird arcade canvas"></canvas>
+    <div class="controls">
+      <button type="button" id="btn-1p" class="ctrl-btn">1P Start</button>
+      <button type="button" id="btn-2p" class="ctrl-btn">2P Start</button>
+      <button type="button" id="btn-sound" class="ctrl-btn">Sound: ON</button>
+      <button type="button" id="btn-ai1" class="ctrl-btn">AI 1: OFF</button>
+      <button type="button" id="btn-ai2" class="ctrl-btn">AI 2: OFF</button>
+      <button type="button" id="btn-restart" class="ctrl-btn">Restart</button>
+    </div>
+    <div class="hint">
+      Keys: Space / Up / W (P1 flap), Shift (2P start &amp; P2 flap), 1 / 2 (AI toggle), M (mute), R (restart)
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

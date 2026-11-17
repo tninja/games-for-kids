@@ -5,7 +5,9 @@
   "description": "Client-side strategy games for kids",
   "scripts": {
     "typecheck:battleship": "tsc --noEmit",
-    "build:battleship": "node battleship/ts/build.mjs"
+    "build:battleship": "node battleship/ts/build.mjs",
+    "typecheck:flappybird": "tsc --noEmit",
+    "build:flappybird": "node flappybird/ts/build.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["battleship/ts/**/*.ts"]
+  "include": ["battleship/ts/**/*.ts", "flappybird/ts/**/*.ts"]
 }
