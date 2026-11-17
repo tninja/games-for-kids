@@ -377,6 +377,29 @@ class BattleshipWebTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+    def test_typescript_sources_typecheck_and_build_sync(self) -> None:
+        ts_dir = ROOT / "battleship/ts"
+        expected_ts = ("types.ts", "fleet.ts", "game.ts", "sound.ts", "painter.ts", "app.ts", "build.mjs")
+        for name in expected_ts:
+            path = ts_dir / name
+            self.assertTrue(path.is_file(), f"Missing TypeScript file: battleship/ts/{name}")
+            text = path.read_text(encoding="utf-8")
+            self.assertTrue(text.isascii(), f"Non-ASCII content in battleship/ts/{name}")
+            for idx, line in enumerate(text.splitlines(), 1):
+                self.assertNotIn("\t", line, f"Tab character in battleship/ts/{name}:{idx}")
+                self.assertEqual(line, line.rstrip(), f"Trailing whitespace in battleship/ts/{name}:{idx}")
+
+        tsc = ROOT / "node_modules/.bin/tsc"
+        self.assertTrue(tsc.is_file(), "tsc binary not found in node_modules/.bin/tsc")
+        tc = subprocess.run([str(tsc), "--noEmit"], cwd=ROOT, capture_output=True, text=True, check=False)
+        self.assertEqual(tc.returncode, 0, f"tsc --noEmit failed:\n{tc.stdout}\n{tc.stderr}")
+
+        node = shutil.which("node")
+        self.assertIsNotNone(node)
+        assert node is not None
+        chk = subprocess.run([node, "battleship/ts/build.mjs", "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
+        self.assertEqual(chk.returncode, 0, f"build.mjs --check failed:\n{chk.stdout}\n{chk.stderr}")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,14 @@
+{
+  "name": "games-for-kids",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Client-side strategy games for kids",
+  "scripts": {
+    "typecheck:battleship": "tsc --noEmit",
+    "build:battleship": "node battleship/ts/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

@@ -6,3 +6,4 @@ GPATH
 __pycache__/
 *.elc
 flycheck_*
+node_modules/
