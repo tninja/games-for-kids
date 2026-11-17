@@ -400,6 +400,16 @@ class BattleshipWebTests(unittest.TestCase):
         chk = subprocess.run([node, "battleship/ts/build.mjs", "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
         self.assertEqual(chk.returncode, 0, f"build.mjs --check failed:\n{chk.stdout}\n{chk.stderr}")
 
+        build_sh = ROOT / "battleship/build_web.sh"
+        self.assertTrue(build_sh.is_file(), "Missing shell script: battleship/build_web.sh")
+        sh_text = build_sh.read_text(encoding="utf-8")
+        self.assertTrue(sh_text.isascii(), "Non-ASCII content in battleship/build_web.sh")
+        for idx, line in enumerate(sh_text.splitlines(), 1):
+            self.assertNotIn("\t", line, f"Tab character in battleship/build_web.sh:{idx}")
+            self.assertEqual(line, line.rstrip(), f"Trailing whitespace in battleship/build_web.sh:{idx}")
+        sh_chk = subprocess.run([str(build_sh), "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
+        self.assertEqual(sh_chk.returncode, 0, f"build_web.sh --check failed:\n{sh_chk.stdout}\n{sh_chk.stderr}")
+
 
 if __name__ == "__main__":
     unittest.main()
