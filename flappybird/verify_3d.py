@@ -50,8 +50,14 @@ MUTANTS = (
     (
         "chase camera sits in front of bird instead of behind",
         "scene3d.ts",
-        "position: [bx - 4.8, Math.max(1.15, by + 1.1), bz + 0.55],",
-        "position: [bx + 9.0, Math.max(1.15, by + 1.1), bz + 0.55],",
+        "position: [bx - 4.2, Math.max(1.25, by + 1.15), bz + 2.35],",
+        "position: [bx + 9.0, Math.max(1.25, by + 1.15), bz + 2.35],",
+    ),
+    (
+        "flap does not spawn 3D particles",
+        "app3d.ts",
+        'if (key === "wing") {\n            this.scene3d.spawnFlapBurst(this.game.bird1, Boolean(this.game.bird2));\n          }',
+        'if (key === "wing") {\n          }',
     ),
 )
 

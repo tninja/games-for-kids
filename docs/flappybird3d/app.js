@@ -13114,6 +13114,167 @@ var __FlappyBird3DBundle = (() => {
       return new _FrustumArray().copy(this);
     }
   };
+  var PointsMaterial = class extends Material {
+    /**
+     * Constructs a new points material.
+     *
+     * @param {Object} [parameters] - An object with one or more properties
+     * defining the material's appearance. Any property of the material
+     * (including any property from inherited materials) can be passed
+     * in here. Color values can be passed any type of value accepted
+     * by {@link Color#set}.
+     */
+    constructor(parameters) {
+      super();
+      this.isPointsMaterial = true;
+      this.type = "PointsMaterial";
+      this.color = new Color(16777215);
+      this.map = null;
+      this.alphaMap = null;
+      this.size = 1;
+      this.sizeAttenuation = true;
+      this.fog = true;
+      this.setValues(parameters);
+    }
+    copy(source) {
+      super.copy(source);
+      this.color.copy(source.color);
+      this.map = source.map;
+      this.alphaMap = source.alphaMap;
+      this.size = source.size;
+      this.sizeAttenuation = source.sizeAttenuation;
+      this.fog = source.fog;
+      return this;
+    }
+  };
+  var _inverseMatrix = /* @__PURE__ */ new Matrix4();
+  var _ray = /* @__PURE__ */ new Ray();
+  var _sphere = /* @__PURE__ */ new Sphere();
+  var _position$3 = /* @__PURE__ */ new Vector3();
+  var Points = class extends Object3D {
+    /**
+     * Constructs a new point cloud.
+     *
+     * @param {BufferGeometry} [geometry] - The points geometry.
+     * @param {Material|Array<Material>} [material] - The points material.
+     */
+    constructor(geometry = new BufferGeometry(), material = new PointsMaterial()) {
+      super();
+      this.isPoints = true;
+      this.type = "Points";
+      this.geometry = geometry;
+      this.material = material;
+      this.morphTargetDictionary = void 0;
+      this.morphTargetInfluences = void 0;
+      this.updateMorphTargets();
+    }
+    copy(source, recursive) {
+      super.copy(source, recursive);
+      if (source.morphTargetInfluences !== void 0) {
+        this.morphTargetInfluences = source.morphTargetInfluences.slice();
+      } else {
+        this.morphTargetInfluences = void 0;
+      }
+      if (source.morphTargetDictionary !== void 0) {
+        this.morphTargetDictionary = Object.assign({}, source.morphTargetDictionary);
+      } else {
+        this.morphTargetDictionary = void 0;
+      }
+      this.material = Array.isArray(source.material) ? source.material.slice() : source.material;
+      this.geometry = source.geometry;
+      return this;
+    }
+    /**
+     * Returns `true` if this point cloud intersects the given frustum.
+     *
+     * @param {Frustum|FrustumArray} frustum - The frustum to test.
+     * @return {boolean} Whether this point cloud intersects the given frustum or not.
+     */
+    intersectsFrustum(frustum) {
+      return frustum.intersectsObject(this);
+    }
+    /**
+     * Computes intersection points between a casted ray and this point cloud.
+     *
+     * @param {Raycaster} raycaster - The raycaster.
+     * @param {Array<Object>} intersects - The target array that holds the intersection points.
+     */
+    raycast(raycaster, intersects) {
+      const geometry = this.geometry;
+      const matrixWorld = this.matrixWorld;
+      const threshold = raycaster.params.Points.threshold;
+      const drawRange = geometry.drawRange;
+      if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+      _sphere.copy(geometry.boundingSphere);
+      _sphere.applyMatrix4(matrixWorld);
+      _sphere.radius += threshold;
+      if (raycaster.ray.intersectsSphere(_sphere) === false) return;
+      _inverseMatrix.copy(matrixWorld).invert();
+      _ray.copy(raycaster.ray).applyMatrix4(_inverseMatrix);
+      const localThreshold = threshold / ((this.scale.x + this.scale.y + this.scale.z) / 3);
+      const localThresholdSq = localThreshold * localThreshold;
+      const index = geometry.index;
+      const attributes = geometry.attributes;
+      const positionAttribute = attributes.position;
+      if (index !== null) {
+        const start = Math.max(0, drawRange.start);
+        const end = Math.min(index.count, drawRange.start + drawRange.count);
+        for (let i = start, il = end; i < il; i++) {
+          const a = index.getX(i);
+          _position$3.fromBufferAttribute(positionAttribute, a);
+          testPoint(_position$3, a, localThresholdSq, matrixWorld, raycaster, intersects, this);
+        }
+      } else {
+        const start = Math.max(0, drawRange.start);
+        const end = Math.min(positionAttribute.count, drawRange.start + drawRange.count);
+        for (let i = start, l = end; i < l; i++) {
+          _position$3.fromBufferAttribute(positionAttribute, i);
+          testPoint(_position$3, i, localThresholdSq, matrixWorld, raycaster, intersects, this);
+        }
+      }
+    }
+    /**
+     * Sets the values of {@link Points#morphTargetDictionary} and {@link Points#morphTargetInfluences}
+     * to make sure existing morph targets can influence this 3D object.
+     */
+    updateMorphTargets() {
+      const geometry = this.geometry;
+      const morphAttributes = geometry.morphAttributes;
+      const keys = Object.keys(morphAttributes);
+      if (keys.length > 0) {
+        const morphAttribute = morphAttributes[keys[0]];
+        if (morphAttribute !== void 0) {
+          this.morphTargetInfluences = [];
+          this.morphTargetDictionary = {};
+          for (let m = 0, ml = morphAttribute.length; m < ml; m++) {
+            const name = morphAttribute[m].name || String(m);
+            this.morphTargetInfluences.push(0);
+            this.morphTargetDictionary[name] = m;
+          }
+        }
+      }
+    }
+  };
+  function testPoint(point, index, localThresholdSq, matrixWorld, raycaster, intersects, object) {
+    const rayPointDistanceSq = _ray.distanceSqToPoint(point);
+    if (rayPointDistanceSq < localThresholdSq) {
+      const intersectPoint = new Vector3();
+      _ray.closestPointToPoint(point, intersectPoint);
+      intersectPoint.applyMatrix4(matrixWorld);
+      const distance = raycaster.ray.origin.distanceTo(intersectPoint);
+      if (distance < raycaster.near || distance > raycaster.far) return;
+      intersects.push({
+        distance,
+        distanceToRay: Math.sqrt(rayPointDistanceSq),
+        point: intersectPoint,
+        index,
+        face: null,
+        faceIndex: null,
+        barycoord: null,
+        object
+      });
+    }
+  }
   var CubeTexture = class extends Texture {
     /**
      * Constructs a new cube texture.
@@ -13144,6 +13305,26 @@ var __FlappyBird3DBundle = (() => {
     }
     set images(value) {
       this.image = value;
+    }
+  };
+  var CanvasTexture = class extends Texture {
+    /**
+     * Constructs a new texture.
+     *
+     * @param {HTMLCanvasElement} [canvas] - The HTML canvas element.
+     * @param {number} [mapping=Texture.DEFAULT_MAPPING] - The texture mapping.
+     * @param {number} [wrapS=ClampToEdgeWrapping] - The wrapS value.
+     * @param {number} [wrapT=ClampToEdgeWrapping] - The wrapT value.
+     * @param {number} [magFilter=LinearFilter] - The mag filter value.
+     * @param {number} [minFilter=LinearMipmapLinearFilter] - The min filter value.
+     * @param {number} [format=RGBAFormat] - The texture format.
+     * @param {number} [type=UnsignedByteType] - The texture type.
+     * @param {number} [anisotropy=Texture.DEFAULT_ANISOTROPY] - The anisotropy value.
+     */
+    constructor(canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
+      super(canvas, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
+      this.isCanvasTexture = true;
+      this.needsUpdate = true;
     }
   };
   var DepthTexture = class extends Texture {
@@ -13523,6 +13704,252 @@ var __FlappyBird3DBundle = (() => {
      */
     static fromJSON(data) {
       return new _ConeGeometry(data.radius, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
+    }
+  };
+  var PolyhedronGeometry = class _PolyhedronGeometry extends BufferGeometry {
+    /**
+     * Constructs a new polyhedron geometry.
+     *
+     * @param {Array<number>} [vertices] - A flat array of vertices describing the base shape.
+     * @param {Array<number>} [indices] - A flat array of indices describing the base shape.
+     * @param {number} [radius=1] - The radius of the shape.
+     * @param {number} [detail=0] - How many levels to subdivide the geometry. The more detail, the smoother the shape.
+     */
+    constructor(vertices = [], indices = [], radius = 1, detail = 0) {
+      super();
+      this.type = "PolyhedronGeometry";
+      this.parameters = {
+        vertices,
+        indices,
+        radius,
+        detail
+      };
+      const vertexBuffer = [];
+      const uvBuffer = [];
+      subdivide(detail);
+      applyRadius(radius);
+      generateUVs();
+      this.setAttribute("position", new Float32BufferAttribute(vertexBuffer, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(vertexBuffer.slice(), 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvBuffer, 2));
+      if (detail === 0) {
+        this.computeVertexNormals();
+      } else {
+        this.normalizeNormals();
+      }
+      function subdivide(detail2) {
+        const a = new Vector3();
+        const b = new Vector3();
+        const c = new Vector3();
+        for (let i = 0; i < indices.length; i += 3) {
+          getVertexByIndex(indices[i + 0], a);
+          getVertexByIndex(indices[i + 1], b);
+          getVertexByIndex(indices[i + 2], c);
+          subdivideFace(a, b, c, detail2);
+        }
+      }
+      function subdivideFace(a, b, c, detail2) {
+        const cols = detail2 + 1;
+        const v = [];
+        for (let i = 0; i <= cols; i++) {
+          v[i] = [];
+          const aj = a.clone().lerp(c, i / cols);
+          const bj = b.clone().lerp(c, i / cols);
+          const rows = cols - i;
+          for (let j = 0; j <= rows; j++) {
+            if (j === 0 && i === cols) {
+              v[i][j] = aj;
+            } else {
+              v[i][j] = aj.clone().lerp(bj, j / rows);
+            }
+          }
+        }
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < 2 * (cols - i) - 1; j++) {
+            const k = Math.floor(j / 2);
+            if (j % 2 === 0) {
+              pushVertex(v[i][k + 1]);
+              pushVertex(v[i + 1][k]);
+              pushVertex(v[i][k]);
+            } else {
+              pushVertex(v[i][k + 1]);
+              pushVertex(v[i + 1][k + 1]);
+              pushVertex(v[i + 1][k]);
+            }
+          }
+        }
+      }
+      function applyRadius(radius2) {
+        const vertex2 = new Vector3();
+        for (let i = 0; i < vertexBuffer.length; i += 3) {
+          vertex2.x = vertexBuffer[i + 0];
+          vertex2.y = vertexBuffer[i + 1];
+          vertex2.z = vertexBuffer[i + 2];
+          vertex2.normalize().multiplyScalar(radius2);
+          vertexBuffer[i + 0] = vertex2.x;
+          vertexBuffer[i + 1] = vertex2.y;
+          vertexBuffer[i + 2] = vertex2.z;
+        }
+      }
+      function generateUVs() {
+        const vertex2 = new Vector3();
+        for (let i = 0; i < vertexBuffer.length; i += 3) {
+          vertex2.x = vertexBuffer[i + 0];
+          vertex2.y = vertexBuffer[i + 1];
+          vertex2.z = vertexBuffer[i + 2];
+          const u = azimuth(vertex2) / 2 / Math.PI + 0.5;
+          const v = inclination(vertex2) / Math.PI + 0.5;
+          uvBuffer.push(u, 1 - v);
+        }
+        correctUVs();
+        correctSeam();
+      }
+      function correctSeam() {
+        for (let i = 0; i < uvBuffer.length; i += 6) {
+          const x0 = uvBuffer[i + 0];
+          const x1 = uvBuffer[i + 2];
+          const x2 = uvBuffer[i + 4];
+          const max = Math.max(x0, x1, x2);
+          const min = Math.min(x0, x1, x2);
+          if (max > 0.9 && min < 0.1) {
+            if (x0 < 0.2) uvBuffer[i + 0] += 1;
+            if (x1 < 0.2) uvBuffer[i + 2] += 1;
+            if (x2 < 0.2) uvBuffer[i + 4] += 1;
+          }
+        }
+      }
+      function pushVertex(vertex2) {
+        vertexBuffer.push(vertex2.x, vertex2.y, vertex2.z);
+      }
+      function getVertexByIndex(index, vertex2) {
+        const stride = index * 3;
+        vertex2.x = vertices[stride + 0];
+        vertex2.y = vertices[stride + 1];
+        vertex2.z = vertices[stride + 2];
+      }
+      function correctUVs() {
+        const a = new Vector3();
+        const b = new Vector3();
+        const c = new Vector3();
+        const centroid = new Vector3();
+        const uvA = new Vector2();
+        const uvB = new Vector2();
+        const uvC = new Vector2();
+        for (let i = 0, j = 0; i < vertexBuffer.length; i += 9, j += 6) {
+          a.set(vertexBuffer[i + 0], vertexBuffer[i + 1], vertexBuffer[i + 2]);
+          b.set(vertexBuffer[i + 3], vertexBuffer[i + 4], vertexBuffer[i + 5]);
+          c.set(vertexBuffer[i + 6], vertexBuffer[i + 7], vertexBuffer[i + 8]);
+          uvA.set(uvBuffer[j + 0], uvBuffer[j + 1]);
+          uvB.set(uvBuffer[j + 2], uvBuffer[j + 3]);
+          uvC.set(uvBuffer[j + 4], uvBuffer[j + 5]);
+          centroid.copy(a).add(b).add(c).divideScalar(3);
+          const azi = azimuth(centroid);
+          correctUV(uvA, j + 0, a, azi);
+          correctUV(uvB, j + 2, b, azi);
+          correctUV(uvC, j + 4, c, azi);
+        }
+      }
+      function correctUV(uv, stride, vector, azimuth2) {
+        if (azimuth2 < 0 && uv.x === 1) {
+          uvBuffer[stride] = uv.x - 1;
+        }
+        if (vector.x === 0 && vector.z === 0) {
+          uvBuffer[stride] = azimuth2 / 2 / Math.PI + 0.5;
+        }
+      }
+      function azimuth(vector) {
+        return Math.atan2(vector.z, -vector.x);
+      }
+      function inclination(vector) {
+        return Math.atan2(-vector.y, Math.sqrt(vector.x * vector.x + vector.z * vector.z));
+      }
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    /**
+     * Factory method for creating an instance of this class from the given
+     * JSON object.
+     *
+     * @param {Object} data - A JSON object representing the serialized geometry.
+     * @return {PolyhedronGeometry} A new instance.
+     */
+    static fromJSON(data) {
+      return new _PolyhedronGeometry(data.vertices, data.indices, data.radius, data.detail);
+    }
+  };
+  var OctahedronGeometry = class _OctahedronGeometry extends PolyhedronGeometry {
+    /**
+     * Constructs a new octahedron geometry.
+     *
+     * @param {number} [radius=1] - Radius of the octahedron.
+     * @param {number} [detail=0] - Setting this to a value greater than `0` adds vertices making it no longer a octahedron.
+     */
+    constructor(radius = 1, detail = 0) {
+      const vertices = [
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1
+      ];
+      const indices = [
+        0,
+        2,
+        4,
+        0,
+        4,
+        3,
+        0,
+        3,
+        5,
+        0,
+        5,
+        2,
+        1,
+        2,
+        5,
+        1,
+        5,
+        3,
+        1,
+        3,
+        4,
+        1,
+        4,
+        2
+      ];
+      super(vertices, indices, radius, detail);
+      this.type = "OctahedronGeometry";
+      this.parameters = {
+        radius,
+        detail
+      };
+    }
+    /**
+     * Factory method for creating an instance of this class from the given
+     * JSON object.
+     *
+     * @param {Object} data - A JSON object representing the serialized geometry.
+     * @return {OctahedronGeometry} A new instance.
+     */
+    static fromJSON(data) {
+      return new _OctahedronGeometry(data.radius, data.detail);
     }
   };
   var PlaneGeometry = class _PlaneGeometry extends BufferGeometry {
@@ -28030,79 +28457,212 @@ void main() {
       return 16346453;
     }
     if (color === "blue") {
-      return 6340343;
+      return 5945589;
     }
-    return 16764779;
+    return 16765516;
+  }
+  function birdShadeColor(color) {
+    if (color === "red") {
+      return 14043187;
+    }
+    if (color === "blue") {
+      return 3903177;
+    }
+    return 15050776;
+  }
+  function createPipeTexture(color) {
+    if (typeof document === "undefined") {
+      return null;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 64;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+    const stops = color === "green" ? [
+      [0, "#3b7d14"],
+      [0.18, "#67c82c"],
+      [0.28, "#b7f477"],
+      [0.36, "#d7ffaa"],
+      [0.48, "#73bf2e"],
+      [0.78, "#4b951b"],
+      [1, "#2f660f"]
+    ] : [
+      [0, "#7c2618"],
+      [0.18, "#d14e38"],
+      [0.28, "#ff9b86"],
+      [0.36, "#ffd0c4"],
+      [0.48, "#d95b43"],
+      [0.78, "#9b3322"],
+      [1, "#661d12"]
+    ];
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    for (const [pos, hex] of stops) {
+      grad.addColorStop(pos, hex);
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const tex = new CanvasTexture(canvas);
+    tex.wrapS = RepeatWrapping;
+    tex.wrapT = RepeatWrapping;
+    return tex;
+  }
+  function createGroundTexture() {
+    if (typeof document === "undefined") {
+      return null;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+    ctx.fillStyle = "#6ec02b";
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.fillStyle = "#98e554";
+    for (let i = -128; i < 256; i += 32) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + 16, 0);
+      ctx.lineTo(i - 16, 128);
+      ctx.lineTo(i - 32, 128);
+      ctx.closePath();
+      ctx.fill();
+    }
+    const tex = new CanvasTexture(canvas);
+    tex.wrapS = RepeatWrapping;
+    tex.wrapT = RepeatWrapping;
+    tex.repeat.set(22, 4);
+    return tex;
+  }
+  function createWingPivot(side, color) {
+    const pivot = new Group();
+    pivot.position.set(0.02, 0.08, side * 0.3);
+    const wingBaseMat = new MeshStandardMaterial({ color: 16775135, roughness: 0.55 });
+    const wingTipMat = new MeshStandardMaterial({
+      color: birdShadeColor(color),
+      roughness: 0.5
+    });
+    const inner = new Mesh(new SphereGeometry(0.18, 12, 10), wingBaseMat);
+    inner.scale.set(1.3, 0.35, 1.4);
+    inner.position.set(-0.04, 0, side * 0.16);
+    inner.castShadow = true;
+    pivot.add(inner);
+    for (let f = 0; f < 3; f++) {
+      const feather = new Mesh(new BoxGeometry(0.28 - f * 0.04, 0.055, 0.24), wingTipMat);
+      feather.position.set(-0.14 - f * 0.05, -0.01 * f, side * (0.28 + f * 0.1));
+      feather.rotation.y = side * (-0.18 - f * 0.08);
+      feather.castShadow = true;
+      pivot.add(feather);
+    }
+    return pivot;
   }
   function createBirdMesh(color) {
     const group = new Group();
     const bodyMat = new MeshStandardMaterial({
       color: birdHexColor(color),
-      roughness: 0.45,
-      metalness: 0.08
+      roughness: 0.38,
+      metalness: 0.06
     });
-    const bellyMat = new MeshStandardMaterial({ color: 16774102, roughness: 0.6 });
-    const beakMat = new MeshStandardMaterial({ color: 16747556, roughness: 0.4 });
-    const eyeWhiteMat = new MeshStandardMaterial({ color: 16777215, roughness: 0.3 });
-    const pupilMat = new MeshStandardMaterial({ color: 1120295, roughness: 0.2 });
-    const body = new Mesh(new SphereGeometry(0.42, 16, 12), bodyMat);
-    body.scale.set(1.18, 0.92, 0.96);
-    body.castShadow = true;
-    group.add(body);
-    const belly = new Mesh(new SphereGeometry(0.32, 12, 10), bellyMat);
-    belly.position.set(0.06, -0.13, 0);
-    belly.scale.set(1.05, 0.72, 0.86);
+    const shadeMat = new MeshStandardMaterial({
+      color: birdShadeColor(color),
+      roughness: 0.45
+    });
+    const bellyMat = new MeshStandardMaterial({ color: 16774358, roughness: 0.58 });
+    const upperBeakMat = new MeshStandardMaterial({ color: 16747295, roughness: 0.35 });
+    const lowerBeakMat = new MeshStandardMaterial({ color: 15489815, roughness: 0.4 });
+    const eyeWhiteMat = new MeshStandardMaterial({ color: 16777215, roughness: 0.25 });
+    const pupilMat = new MeshStandardMaterial({ color: 1120295, roughness: 0.15 });
+    const torso = new Mesh(new SphereGeometry(0.38, 18, 14), bodyMat);
+    torso.scale.set(1.16, 0.92, 0.94);
+    torso.castShadow = true;
+    group.add(torso);
+    const head = new Mesh(new SphereGeometry(0.29, 16, 14), bodyMat);
+    head.position.set(0.22, 0.16, 0);
+    head.castShadow = true;
+    group.add(head);
+    const crest = new Mesh(new ConeGeometry(0.08, 0.22, 8), shadeMat);
+    crest.position.set(0.14, 0.46, 0);
+    crest.rotation.z = 0.55;
+    group.add(crest);
+    const belly = new Mesh(new SphereGeometry(0.31, 14, 12), bellyMat);
+    belly.position.set(0.08, -0.14, 0);
+    belly.scale.set(1.06, 0.72, 0.84);
     group.add(belly);
-    const beak = new Mesh(new ConeGeometry(0.14, 0.32, 10), beakMat);
-    beak.rotation.z = -Math.PI / 2;
-    beak.position.set(0.56, -0.02, 0);
-    group.add(beak);
     for (const side of [-1, 1]) {
-      const eye = new Mesh(new SphereGeometry(0.11, 10, 8), eyeWhiteMat);
-      eye.position.set(0.24, 0.14, side * 0.24);
+      const eye = new Mesh(new SphereGeometry(0.125, 12, 10), eyeWhiteMat);
+      eye.position.set(0.34, 0.24, side * 0.19);
+      eye.scale.set(0.95, 1.15, 0.82);
       group.add(eye);
-      const pupil = new Mesh(new SphereGeometry(0.055, 8, 8), pupilMat);
-      pupil.position.set(0.32, 0.14, side * 0.28);
+      const pupil = new Mesh(new SphereGeometry(0.06, 10, 8), pupilMat);
+      pupil.position.set(0.42, 0.24, side * 0.22);
       group.add(pupil);
+      const glint = new Mesh(new SphereGeometry(0.022, 6, 6), eyeWhiteMat);
+      glint.position.set(0.46, 0.27, side * 0.24);
+      group.add(glint);
     }
-    const wingGeo = new BoxGeometry(0.34, 0.08, 0.38);
-    const leftWing = new Mesh(wingGeo, bellyMat);
-    leftWing.position.set(-0.04, 0.06, -0.36);
-    leftWing.castShadow = true;
-    group.add(leftWing);
-    const rightWing = new Mesh(wingGeo, bellyMat);
-    rightWing.position.set(-0.04, 0.06, 0.36);
-    rightWing.castShadow = true;
-    group.add(rightWing);
-    group.userData.leftWing = leftWing;
-    group.userData.rightWing = rightWing;
+    const upperBeak = new Mesh(new SphereGeometry(0.13, 12, 10), upperBeakMat);
+    upperBeak.scale.set(1.65, 0.62, 1.1);
+    upperBeak.position.set(0.54, 0.12, 0);
+    upperBeak.castShadow = true;
+    group.add(upperBeak);
+    const lowerBeak = new Mesh(new SphereGeometry(0.11, 12, 10), lowerBeakMat);
+    lowerBeak.scale.set(1.45, 0.52, 0.96);
+    lowerBeak.position.set(0.51, 0.02, 0);
+    lowerBeak.castShadow = true;
+    group.add(lowerBeak);
+    const tailGroup = new Group();
+    tailGroup.position.set(-0.42, 0.06, 0);
+    for (let t = -1; t <= 1; t++) {
+      const feather = new Mesh(new BoxGeometry(0.32, 0.06, 0.12), shadeMat);
+      feather.position.set(-0.12, Math.abs(t) * -0.02, t * 0.11);
+      feather.rotation.y = t * 0.34;
+      feather.rotation.z = -0.25;
+      feather.castShadow = true;
+      tailGroup.add(feather);
+    }
+    group.add(tailGroup);
+    const leftWingPivot = createWingPivot(-1, color);
+    const rightWingPivot = createWingPivot(1, color);
+    group.add(leftWingPivot);
+    group.add(rightWingPivot);
+    group.userData.leftWingPivot = leftWingPivot;
+    group.userData.rightWingPivot = rightWingPivot;
+    group.userData.tailGroup = tailGroup;
+    group.userData.upperBeak = upperBeak;
+    group.userData.lowerBeak = lowerBeak;
     group.userData.birdColor = color;
     return group;
   }
-  function createPipeMesh(pipe, color) {
+  function createPipeMesh(pipe, color, pipeTex) {
     const group = new Group();
     const radius = PIPE_WIDTH * WORLD_SCALE * 0.5;
     const height = PIPE_HEIGHT * WORLD_SCALE;
-    const mainColor = color === "green" ? 6736176 : 14244675;
-    const rimColor = color === "green" ? 8446790 : 15890014;
+    const mainColor = pipeTex ? 16777215 : color === "green" ? 6736176 : 14244675;
+    const rimColor = pipeTex ? 16777215 : color === "green" ? 8446790 : 15890014;
     const bodyMat = new MeshStandardMaterial({
       color: mainColor,
-      roughness: 0.4,
-      metalness: 0.1
+      map: pipeTex,
+      roughness: 0.34,
+      metalness: 0.14
     });
     const rimMat = new MeshStandardMaterial({
       color: rimColor,
-      roughness: 0.35,
-      metalness: 0.12
+      map: pipeTex,
+      roughness: 0.28,
+      metalness: 0.18
     });
-    const capMat = new MeshStandardMaterial({ color: 1452573, roughness: 0.9 });
-    const shaft = new Mesh(new CylinderGeometry(radius, radius, height, 18), bodyMat);
+    const capMat = new MeshStandardMaterial({ color: 991252, roughness: 0.92 });
+    const shaft = new Mesh(new CylinderGeometry(radius, radius, height, 22), bodyMat);
     shaft.castShadow = true;
     shaft.receiveShadow = true;
     group.add(shaft);
-    const collarH = 0.42;
+    const collarH = 0.48;
     const collar = new Mesh(
-      new CylinderGeometry(radius * 1.14, radius * 1.14, collarH, 18),
+      new CylinderGeometry(radius * 1.15, radius * 1.15, collarH, 22),
       rimMat
     );
     const collarY = pipe.top ? -height / 2 + collarH / 2 : height / 2 - collarH / 2;
@@ -28110,7 +28670,10 @@ void main() {
     collar.castShadow = true;
     collar.receiveShadow = true;
     group.add(collar);
-    const innerCap = new Mesh(new CylinderGeometry(radius * 0.85, radius * 0.85, 0.08, 16), capMat);
+    const innerCap = new Mesh(
+      new CylinderGeometry(radius * 0.84, radius * 0.84, 0.1, 18),
+      capMat
+    );
     innerCap.position.set(0, pipe.top ? -height / 2 : height / 2, 0);
     group.add(innerCap);
     return group;
@@ -28123,23 +28686,41 @@ void main() {
       this.bird2Mesh = null;
       this.pipeMeshes = /* @__PURE__ */ new Map();
       this.groundSegments = [];
+      this.groundTex = null;
+      this.greenPipeTex = null;
+      this.redPipeTex = null;
       this.clouds = [];
+      this.skyline = [];
+      this.sunOrb = null;
+      this.moonOrb = null;
+      this.stars = null;
+      this.particles = [];
       this.currentBg = null;
       this.currentPipeColor = null;
       this.camInitialized = false;
+      this.shakeRemaining = 0;
+      this.clock = 0;
       this.scene = new Scene();
-      this.camera = new PerspectiveCamera(58, 9 / 16, 0.1, 140);
+      this.camera = new PerspectiveCamera(58, 9 / 14, 0.1, 140);
       this.hemiLight = new HemisphereLight(14677759, 3894847, 1);
       this.scene.add(this.hemiLight);
-      this.dirLight = new DirectionalLight(16777215, 1.25);
-      this.dirLight.position.set(6, 14, 9);
+      this.dirLight = new DirectionalLight(16777215, 1.3);
+      this.dirLight.position.set(7, 15, 10);
       this.dirLight.castShadow = true;
       this.scene.add(this.dirLight);
+      if (!headless) {
+        this.groundTex = createGroundTexture();
+        this.greenPipeTex = createPipeTexture("green");
+        this.redPipeTex = createPipeTexture("red");
+      }
       this.buildEnvironment();
       if (!headless && canvas && typeof window !== "undefined") {
         try {
           this.renderer = new WebGLRenderer({ canvas, antialias: true });
           this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = PCFSoftShadowMap;
+          this.renderer.toneMapping = ACESFilmicToneMapping;
+          this.renderer.toneMappingExposure = 1.08;
           this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           this.webglAvailable = true;
         } catch {
@@ -28149,35 +28730,86 @@ void main() {
       }
     }
     buildEnvironment() {
-      const grassMat = new MeshStandardMaterial({ color: 7585582, roughness: 0.85 });
       const sandMat = new MeshStandardMaterial({ color: 14604437, roughness: 0.9 });
-      const baseSlab = new Mesh(new BoxGeometry(70, 2.2, 22), sandMat);
-      baseSlab.position.set(6, -1.25, 0);
+      const turfMat = new MeshStandardMaterial({
+        color: this.groundTex ? 16777215 : 7585582,
+        map: this.groundTex,
+        roughness: 0.8
+      });
+      const baseSlab = new Mesh(new BoxGeometry(80, 2.2, 24), sandMat);
+      baseSlab.position.set(6, -1.28, 0);
       baseSlab.receiveShadow = true;
       this.scene.add(baseSlab);
-      for (let i = 0; i < 18; i++) {
+      const turfTop = new Mesh(new BoxGeometry(80, 0.24, 24), turfMat);
+      turfTop.position.set(6, -0.12, 0);
+      turfTop.receiveShadow = true;
+      this.scene.add(turfTop);
+      for (let i = 0; i < 16; i++) {
         const strip = new Mesh(
-          new BoxGeometry(1.8, 0.24, 22),
-          i % 2 === 0 ? grassMat : new MeshStandardMaterial({ color: 6071584, roughness: 0.85 })
+          new BoxGeometry(0.9, 0.04, 24),
+          new MeshStandardMaterial({ color: 6071584, roughness: 0.85 })
         );
-        strip.position.set(-10 + i * 2.2, -0.12, 0);
+        strip.position.set(-10 + i * 2.2, 0.01, 0);
         strip.receiveShadow = true;
         this.scene.add(strip);
         this.groundSegments.push(strip);
       }
-      const cloudMat = new MeshStandardMaterial({ color: 16777215, roughness: 0.9 });
+      const buildingMat = new MeshStandardMaterial({ color: 7251637, roughness: 0.85 });
+      const bushMat = new MeshStandardMaterial({ color: 5022520, roughness: 0.85 });
+      for (let i = 0; i < 12; i++) {
+        const bHeight = 2.4 + i * 7 % 5 * 0.75;
+        const bGroup = new Group();
+        const tower = new Mesh(new BoxGeometry(2.1, bHeight, 2.1), buildingMat);
+        tower.position.set(0, bHeight / 2, 0);
+        bGroup.add(tower);
+        const bush = new Mesh(new SphereGeometry(0.95, 10, 8), bushMat);
+        bush.scale.set(1.4, 0.8, 1);
+        bush.position.set(0.8, 0.4, 3.2);
+        bGroup.add(bush);
+        bGroup.position.set(-10 + i * 3.6, 0, -10.5 - i % 2 * 1.8);
+        this.scene.add(bGroup);
+        this.skyline.push(bGroup);
+      }
+      const cloudMat = new MeshStandardMaterial({ color: 16777215, roughness: 0.92 });
       for (let i = 0; i < 8; i++) {
         const cloud = new Group();
         for (let p = 0; p < 3; p++) {
-          const puff = new Mesh(new SphereGeometry(0.55 - p * 0.08, 10, 8), cloudMat);
-          puff.position.set((p - 1) * 0.55, p === 1 ? 0.18 : 0, 0);
+          const puff = new Mesh(new SphereGeometry(0.62 - p * 0.09, 10, 8), cloudMat);
+          puff.position.set((p - 1) * 0.62, p === 1 ? 0.22 : 0, 0);
           cloud.add(puff);
         }
-        const zSide = i % 2 === 0 ? -5.5 - i % 3 * 1.8 : 5.5 + i % 3 * 1.4;
-        cloud.position.set(-6 + i * 3.8, 6.2 + i % 3 * 1.1, zSide);
+        const zSide = i % 2 === 0 ? -6.5 - i % 3 * 1.8 : 6.8 + i % 3 * 1.4;
+        cloud.position.set(-6 + i * 4, 6.8 + i % 3 * 1.1, zSide);
         this.scene.add(cloud);
         this.clouds.push(cloud);
       }
+      this.sunOrb = new Mesh(
+        new SphereGeometry(1.6, 16, 12),
+        new MeshBasicMaterial({ color: 16770682 })
+      );
+      this.sunOrb.position.set(22, 12.5, -18);
+      this.scene.add(this.sunOrb);
+      this.moonOrb = new Mesh(
+        new SphereGeometry(1.3, 16, 12),
+        new MeshBasicMaterial({ color: 16183761 })
+      );
+      this.moonOrb.position.set(22, 12.5, -18);
+      this.scene.add(this.moonOrb);
+      const starCoords = [];
+      for (let s = 0; s < 90; s++) {
+        starCoords.push(
+          s * 37 % 50 - 12,
+          6 + s * 23 % 14,
+          -12 - s * 13 % 14
+        );
+      }
+      const starGeo = new BufferGeometry();
+      starGeo.setAttribute("position", new Float32BufferAttribute(starCoords, 3));
+      this.stars = new Points(
+        starGeo,
+        new PointsMaterial({ color: 15200756, size: 0.16 })
+      );
+      this.scene.add(this.stars);
     }
     resize(width, height) {
       const w = Math.max(1, width);
@@ -28188,15 +28820,66 @@ void main() {
         this.renderer.setSize(w, h, false);
       }
     }
+    spawnFlapBurst(bird, is2p) {
+      const bx = worldX(bird.centerX);
+      const by = worldY(bird.y + bird.height / 2);
+      const bz = is2p ? 0.25 : 0;
+      const mat = new MeshBasicMaterial({ color: 16775398 });
+      for (let i = 0; i < 6; i++) {
+        const puff = new Mesh(new SphereGeometry(0.08, 6, 6), mat);
+        puff.position.set(bx - 0.25, by - 0.15, bz + (i - 2.5) * 0.08);
+        this.scene.add(puff);
+        this.particles.push({
+          mesh: puff,
+          vx: -1.8 - i % 3 * 0.6,
+          vy: -0.6 - i % 2 * 0.5,
+          vz: (i - 2.5) * 0.45,
+          life: 0.42,
+          maxLife: 0.42
+        });
+      }
+    }
+    spawnScoreBurst(bird) {
+      const bx = worldX(bird.centerX);
+      const by = worldY(bird.y + bird.height / 2);
+      const mat = new MeshBasicMaterial({ color: 16764779 });
+      for (let i = 0; i < 10; i++) {
+        const angle = Math.PI * 2 * i / 10;
+        const spark = new Mesh(new OctahedronGeometry(0.09, 0), mat);
+        spark.position.set(bx, by, 0);
+        this.scene.add(spark);
+        this.particles.push({
+          mesh: spark,
+          vx: Math.cos(angle) * 2.2,
+          vy: Math.sin(angle) * 2.2 + 0.8,
+          vz: (i % 3 - 1) * 0.9,
+          life: 0.55,
+          maxLife: 0.55
+        });
+      }
+    }
+    triggerShake(duration = 0.35) {
+      this.shakeRemaining = duration;
+    }
     applyTheme(game) {
       const bg = game.theme.background;
       if (this.currentBg !== bg) {
         this.currentBg = bg;
-        const skyHex = bg === "day" ? 6475232 : 991288;
+        const isDay = bg === "day";
+        const skyHex = isDay ? 6475232 : 991288;
         this.scene.background = new Color(skyHex);
-        this.scene.fog = new Fog(skyHex, 14, 46);
-        this.hemiLight.intensity = bg === "day" ? 1.05 : 0.6;
-        this.dirLight.intensity = bg === "day" ? 1.25 : 0.75;
+        this.scene.fog = new Fog(skyHex, 15, 48);
+        this.hemiLight.intensity = isDay ? 1.05 : 0.6;
+        this.dirLight.intensity = isDay ? 1.3 : 0.78;
+        if (this.sunOrb) {
+          this.sunOrb.visible = isDay;
+        }
+        if (this.moonOrb) {
+          this.moonOrb.visible = !isDay;
+        }
+        if (this.stars) {
+          this.stars.visible = !isDay;
+        }
       }
       if (this.currentPipeColor !== game.theme.pipe) {
         this.currentPipeColor = game.theme.pipe;
@@ -28222,16 +28905,21 @@ void main() {
         this.scene.add(mesh);
       }
       mesh.position.set(worldX(bird.centerX), worldY(bird.y + bird.height / 2), zOffset);
-      mesh.rotation.z = Math.max(-0.85, Math.min(0.45, bird.speed * 0.14));
+      mesh.rotation.z = Math.max(-0.9, Math.min(0.48, bird.speed * 0.14));
       const frame = bird.currentFlapFrame();
-      const wingAngle = frame === "up" ? 0.55 : frame === "down" ? -0.55 : 0;
-      const lw = mesh.userData.leftWing;
-      const rw = mesh.userData.rightWing;
+      const baseAngle = frame === "up" ? 0.68 : frame === "down" ? -0.68 : 0.08;
+      const flapWave = baseAngle + Math.sin(this.clock * 14) * 0.12;
+      const lw = mesh.userData.leftWingPivot;
+      const rw = mesh.userData.rightWingPivot;
       if (lw) {
-        lw.rotation.x = wingAngle;
+        lw.rotation.x = flapWave;
       }
       if (rw) {
-        rw.rotation.x = -wingAngle;
+        rw.rotation.x = -flapWave;
+      }
+      const tail = mesh.userData.tailGroup;
+      if (tail) {
+        tail.rotation.z = Math.sin(this.clock * 10) * 0.12;
       }
       return mesh;
     }
@@ -28248,11 +28936,12 @@ void main() {
       const by = worldY(game.bird1.y + game.bird1.height / 2);
       const bz = game.bird2 ? 0.25 : 0;
       return {
-        position: [bx - 4.8, Math.max(1.15, by + 1.1), bz + 0.55],
-        target: [bx + 6.5, Math.max(0.85, by - 0.15), 0]
+        position: [bx - 4.2, Math.max(1.25, by + 1.15), bz + 2.35],
+        target: [bx + 5.8, Math.max(0.8, by - 0.1), 0]
       };
     }
     sync(game, dt, mode) {
+      this.clock += Math.max(0, dt);
       this.applyTheme(game);
       const b1Z = game.bird2 ? 0.25 : 0;
       this.bird1Mesh = this.syncBird(this.bird1Mesh, game.bird1, b1Z);
@@ -28264,18 +28953,28 @@ void main() {
           this.pipeMeshes.delete(pipe);
         }
       }
+      const pipeTex = game.theme.pipe === "green" ? this.greenPipeTex : this.redPipeTex;
       for (const pipe of game.pipes) {
         let mesh = this.pipeMeshes.get(pipe);
         if (!mesh) {
-          mesh = createPipeMesh(pipe, game.theme.pipe);
+          mesh = createPipeMesh(pipe, game.theme.pipe, pipeTex);
           this.scene.add(mesh);
           this.pipeMeshes.set(pipe, mesh);
         }
         mesh.position.set(worldX(pipe.centerX), worldY(pipe.y + pipe.height / 2), 0);
       }
       const groundShift = game.ground.x * WORLD_SCALE % 4.4;
+      if (this.groundTex) {
+        this.groundTex.offset.x = -game.ground.x / 180;
+      }
       for (let i = 0; i < this.groundSegments.length; i++) {
         this.groundSegments[i].position.x = -10 + i * 2.2 + groundShift;
+      }
+      for (const b of this.skyline) {
+        b.position.x -= dt * 0.55;
+        if (b.position.x < -14) {
+          b.position.x = 28;
+        }
       }
       for (const cloud of this.clouds) {
         cloud.position.x -= dt * 0.9;
@@ -28283,15 +28982,37 @@ void main() {
           cloud.position.x = 20;
         }
       }
+      const aliveParticles = [];
+      for (const p of this.particles) {
+        p.life -= dt;
+        if (p.life > 0) {
+          p.mesh.position.x += p.vx * dt;
+          p.mesh.position.y += p.vy * dt;
+          p.mesh.position.z += p.vz * dt;
+          p.vy -= 3.2 * dt;
+          const scale = Math.max(0.15, p.life / p.maxLife);
+          p.mesh.scale.setScalar(scale);
+          aliveParticles.push(p);
+        } else {
+          this.scene.remove(p.mesh);
+        }
+      }
+      this.particles = aliveParticles;
+      if (this.shakeRemaining > 0) {
+        this.shakeRemaining = Math.max(0, this.shakeRemaining - dt);
+      }
       const pose = this.computeCameraPose(game, mode);
+      const shakeAmp = this.shakeRemaining > 0 ? this.shakeRemaining * 0.55 : 0;
+      const sx = shakeAmp ? Math.sin(this.clock * 65) * shakeAmp : 0;
+      const sy = shakeAmp ? Math.cos(this.clock * 78) * shakeAmp : 0;
       if (!this.camInitialized || dt <= 0) {
-        this.camera.position.set(pose.position[0], pose.position[1], pose.position[2]);
+        this.camera.position.set(pose.position[0] + sx, pose.position[1] + sy, pose.position[2]);
         this.camera.lookAt(pose.target[0], pose.target[1], pose.target[2]);
         this.camInitialized = true;
       } else {
         const alpha = 1 - Math.exp(-10 * Math.min(0.1, dt));
-        this.camera.position.x += (pose.position[0] - this.camera.position.x) * alpha;
-        this.camera.position.y += (pose.position[1] - this.camera.position.y) * alpha;
+        this.camera.position.x += (pose.position[0] - this.camera.position.x) * alpha + sx;
+        this.camera.position.y += (pose.position[1] - this.camera.position.y) * alpha + sy;
         this.camera.position.z += (pose.position[2] - this.camera.position.z) * alpha;
         this.camera.lookAt(pose.target[0], pose.target[1], pose.target[2]);
       }
@@ -28303,11 +29024,23 @@ void main() {
       }
     }
     stats(mode, game) {
+      let anatomyCount = 0;
+      if (this.bird1Mesh) {
+        const ud = this.bird1Mesh.userData;
+        for (const k of ["leftWingPivot", "rightWingPivot", "tailGroup", "upperBeak", "lowerBeak"]) {
+          if (ud[k]) {
+            anatomyCount += 1;
+          }
+        }
+      }
       return {
         pipeMeshes: this.pipeMeshes.size,
         hasBird2: this.bird2Mesh !== null,
         cameraMode: mode,
-        background: game.theme.background
+        background: game.theme.background,
+        birdAnatomyParts: anatomyCount,
+        activeParticles: this.particles.length,
+        shakeRemaining: this.shakeRemaining
       };
     }
   };
@@ -28319,14 +29052,26 @@ void main() {
       this.pendingRenderDt = 0;
       this.canvas = canvas;
       this.sound = new SoundBank("../flappybird/resources/audios");
+      const domCanvas = typeof HTMLCanvasElement !== "undefined" && canvas instanceof HTMLCanvasElement ? canvas : null;
+      this.scene3d = new FlappyScene3D(domCanvas, Boolean(options.headless));
+      this.cameraMode = options.cameraMode ?? "chase";
       this.game = new FlappyGame({
         seed: options.seed,
         storage: options.storage ?? null,
-        onSound: this.sound.play
+        onSound: (key) => {
+          this.sound.play(key);
+          if (this.game && this.game.phase === "playing") {
+            if (key === "wing") {
+              this.scene3d.spawnFlapBurst(this.game.bird1, Boolean(this.game.bird2));
+            } else if (key === "point") {
+              this.scene3d.spawnScoreBurst(this.game.bird1);
+            }
+          }
+          if (key === "hit") {
+            this.scene3d.triggerShake(0.35);
+          }
+        }
       });
-      this.cameraMode = options.cameraMode ?? "chase";
-      const domCanvas = typeof HTMLCanvasElement !== "undefined" && canvas instanceof HTMLCanvasElement ? canvas : null;
-      this.scene3d = new FlappyScene3D(domCanvas, Boolean(options.headless));
     }
     toggleCameraMode() {
       this.cameraMode = this.cameraMode === "chase" ? "side" : "chase";

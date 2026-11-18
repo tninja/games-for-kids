@@ -9,6 +9,7 @@ import {
   PlayerMode,
   SCREEN_HEIGHT,
   SCREEN_WIDTH,
+  SoundKey,
   StorageLike
 } from "./types";
 
@@ -46,17 +47,29 @@ export class Flappy3DApp {
   ) {
     this.canvas = canvas;
     this.sound = new SoundBank("../flappybird/resources/audios");
-    this.game = new FlappyGame({
-      seed: options.seed,
-      storage: options.storage ?? null,
-      onSound: this.sound.play
-    });
-    this.cameraMode = options.cameraMode ?? "chase";
     const domCanvas =
       typeof HTMLCanvasElement !== "undefined" && canvas instanceof HTMLCanvasElement
         ? canvas
         : null;
     this.scene3d = new FlappyScene3D(domCanvas, Boolean(options.headless));
+    this.cameraMode = options.cameraMode ?? "chase";
+    this.game = new FlappyGame({
+      seed: options.seed,
+      storage: options.storage ?? null,
+      onSound: (key: SoundKey) => {
+        this.sound.play(key);
+        if (this.game && this.game.phase === "playing") {
+          if (key === "wing") {
+            this.scene3d.spawnFlapBurst(this.game.bird1, Boolean(this.game.bird2));
+          } else if (key === "point") {
+            this.scene3d.spawnScoreBurst(this.game.bird1);
+          }
+        }
+        if (key === "hit") {
+          this.scene3d.triggerShake(0.35);
+        }
+      }
+    });
   }
 
   public toggleCameraMode(): CameraMode {
