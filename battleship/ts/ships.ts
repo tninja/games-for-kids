@@ -465,16 +465,27 @@ export function drawCaptainPortrait(
 
 export function drawHitBurst(ctx: CanvasContextLike, burst: HitBurst): void {
   const progress = 1 - burst.life / burst.maxLife;
-  const scaleBoost = burst.isSunk ? 1.38 : 1.08;
-  const baseR = burst.cellSize * 0.5 * scaleBoost;
+  const scaleBoost = burst.enormous ? 2.15 : burst.isSunk ? 1.65 : 1.08;
+  const baseR = burst.cellSize * 0.52 * scaleBoost;
   const cx = burst.x;
   const cy = burst.y;
 
   ctx.save?.();
 
+  // Enormous white-hot shockwave flash halo on ship sink / victory blasts.
+  if ((burst.isSunk || burst.enormous) && progress < 0.42) {
+    const pf = progress / 0.42;
+    const haloR = baseR * (0.65 + 1.35 * pf);
+    ctx.globalAlpha = Math.max(0, 0.78 * (1 - pf));
+    ctx.fillStyle = "rgb(255, 248, 206)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   if (progress < 0.78) {
     const p0 = progress / 0.78;
-    const jolt = Math.sin(p0 * Math.PI * 6) * 4 * (1 - p0);
+    const jolt = Math.sin(p0 * Math.PI * 6) * (burst.enormous ? 6 : 4) * (1 - p0);
     const segW = burst.cellSize * 0.72;
     const segH = burst.cellSize * 0.5;
     ctx.globalAlpha = Math.max(0, 0.85 * (1 - p0));
@@ -496,12 +507,12 @@ export function drawHitBurst(ctx: CanvasContextLike, burst: HitBurst): void {
     ctx.stroke();
   }
 
-  if (progress < 0.55) {
-    const p1 = progress / 0.55;
-    const outerR = baseR * (0.48 + 1.1 * Math.sin(p1 * Math.PI * 0.75));
-    const innerR = outerR * 0.42;
-    const rays = 8;
-    ctx.globalAlpha = Math.max(0, 1 - p1 * 0.88);
+  if (progress < 0.62) {
+    const p1 = progress / 0.62;
+    const outerR = baseR * (0.52 + 1.18 * Math.sin(p1 * Math.PI * 0.75));
+    const innerR = outerR * 0.44;
+    const rays = burst.isSunk || burst.enormous ? 12 : 8;
+    ctx.globalAlpha = Math.max(0, 1 - p1 * 0.85);
     ctx.fillStyle = p1 < 0.3 ? "rgb(255, 252, 224)" : COLORS.GOLD;
     ctx.beginPath();
     for (let i = 0; i < rays * 2; i++) {
@@ -518,8 +529,8 @@ export function drawHitBurst(ctx: CanvasContextLike, burst: HitBurst): void {
     ctx.closePath?.();
     ctx.fill();
 
-    const jetH = baseR * (0.9 + p1 * 1.15);
-    const jetW = baseR * 0.34 * (1 - p1 * 0.4);
+    const jetH = baseR * (0.95 + p1 * 1.25);
+    const jetW = baseR * 0.38 * (1 - p1 * 0.35);
     ctx.fillStyle = COLORS.ORANGE;
     ctx.beginPath();
     ctx.moveTo(cx - jetW, cy);
@@ -529,34 +540,55 @@ export function drawHitBurst(ctx: CanvasContextLike, burst: HitBurst): void {
     ctx.fill();
   }
 
-  if (progress < 0.72) {
-    const p2 = progress / 0.72;
-    const fireR = baseR * (0.25 + 0.75 * Math.sin(p2 * Math.PI));
-    ctx.globalAlpha = Math.max(0, 0.95 * (1 - p2 * 0.75));
+  if (progress < 0.78) {
+    const p2 = progress / 0.78;
+    const fireR = baseR * (0.3 + 0.82 * Math.sin(p2 * Math.PI));
+    ctx.globalAlpha = Math.max(0, 0.96 * (1 - p2 * 0.72));
     ctx.fillStyle = COLORS.CORAL;
     ctx.beginPath();
     ctx.arc(cx, cy, Math.max(2, fireR), 0, Math.PI * 2);
     ctx.fill();
 
+    ctx.fillStyle = COLORS.ORANGE;
+    ctx.beginPath();
+    ctx.arc(cx, cy - fireR * 0.12, Math.max(2, fireR * 0.74), 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.fillStyle = COLORS.GOLD;
     ctx.beginPath();
-    ctx.arc(cx, cy, Math.max(1.5, fireR * 0.58), 0, Math.PI * 2);
+    ctx.arc(cx, cy, Math.max(1.5, fireR * 0.48), 0, Math.PI * 2);
     ctx.fill();
   }
 
-  if (progress > 0.12) {
-    const p3 = (progress - 0.12) / 0.88;
-    const puffs: [number, number, number][] = [
-      [-baseR * 0.34, -p3 * baseR * 1.05, 0.3],
-      [baseR * 0.3, -p3 * baseR * 1.25, 0.26],
-      [0, -p3 * baseR * 1.5, 0.35]
-    ];
-    ctx.fillStyle = "rgb(212, 226, 236)";
-    ctx.globalAlpha = Math.max(0, 0.65 * (1 - p3));
-    for (const [dx, dy, rFrac] of puffs) {
+  if (progress > 0.1) {
+    const p3 = (progress - 0.1) / 0.9;
+    if (burst.isSunk || burst.enormous) {
+      // Rising mushroom cloud stem + boiling cap for huge sink explosions.
+      ctx.globalAlpha = Math.max(0, 0.72 * (1 - p3 * 0.85));
+      ctx.fillStyle = "rgb(255, 174, 92)";
+      const stemH = baseR * (0.4 + p3 * 1.15);
+      ctx.fillRect(cx - baseR * 0.16, cy - stemH, baseR * 0.32, stemH);
+      const capY = cy - stemH;
+      const capR = baseR * (0.38 + p3 * 0.44);
+      ctx.fillStyle = p3 < 0.45 ? COLORS.CORAL : "rgb(206, 222, 234)";
       ctx.beginPath();
-      ctx.arc(cx + dx * (0.6 + p3 * 0.6), cy + dy, baseR * rFrac * (0.7 + p3 * 0.6), 0, Math.PI * 2);
+      ctx.arc(cx - capR * 0.55, capY + 4, capR * 0.68, 0, Math.PI * 2);
+      ctx.arc(cx + capR * 0.55, capY + 4, capR * 0.68, 0, Math.PI * 2);
+      ctx.arc(cx, capY - capR * 0.2, capR * 0.84, 0, Math.PI * 2);
       ctx.fill();
+    } else {
+      const puffs: [number, number, number][] = [
+        [-baseR * 0.34, -p3 * baseR * 1.05, 0.3],
+        [baseR * 0.3, -p3 * baseR * 1.25, 0.26],
+        [0, -p3 * baseR * 1.5, 0.35]
+      ];
+      ctx.fillStyle = "rgb(212, 226, 236)";
+      ctx.globalAlpha = Math.max(0, 0.65 * (1 - p3));
+      for (const [dx, dy, rFrac] of puffs) {
+        ctx.beginPath();
+        ctx.arc(cx + dx * (0.6 + p3 * 0.6), cy + dy, baseR * rFrac * (0.7 + p3 * 0.6), 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
   }
 
@@ -740,9 +772,9 @@ export function drawBattleCam(
   clock: number
 ): void {
   const t = Math.max(0, Math.min(1, 1 - cam.life / cam.maxLife));
-  const impactT = 0.28;
+  const impactT = 0.24;
   const hitShake =
-    t >= impactT && t < 0.62 ? Math.sin(clock * 95) * 6 * (1 - (t - impactT) / 0.34) : 0;
+    t >= impactT && t < 0.72 ? Math.sin(clock * 105) * 10 * (1 - (t - impactT) / 0.48) : 0;
 
   ctx.save?.();
   ctx.fillStyle = "rgba(6, 20, 34, 0.72)";
@@ -818,21 +850,35 @@ export function drawBattleCam(
   }
 
   if (t >= impactT) {
-    const ep = Math.min(1, (t - impactT) / 0.65);
+    const ep = Math.min(1, (t - impactT) / 0.72);
     const ex = shipCx;
     const ey = waterY - 14;
-    if (ep < 0.72) {
-      const sp = ep / 0.72;
-      const outerR = 30 + 62 * Math.sin(sp * Math.PI * 0.75);
+    // Giant cascading explosions across center, bow, and stern!
+    const blasts: [number, number, number, number][] = [
+      [0, 0, 0.0, 1.25],
+      [-74, 4, 0.12, 0.82],
+      [76, 2, 0.22, 0.88]
+    ];
+    for (const [bxOff, byOff, startP, scale] of blasts) {
+      if (ep < startP) {
+        continue;
+      }
+      const lp = Math.min(1, (ep - startP) / 0.62);
+      if (lp >= 1) {
+        continue;
+      }
+      const bx = ex + bxOff;
+      const by = ey + byOff;
+      const outerR = (38 + 82 * Math.sin(lp * Math.PI * 0.78)) * scale;
       const innerR = outerR * 0.44;
-      ctx.globalAlpha = Math.max(0, 1 - sp * 0.85);
-      ctx.fillStyle = sp < 0.28 ? "rgb(255, 252, 224)" : COLORS.GOLD;
+      ctx.globalAlpha = Math.max(0, 1 - lp * 0.82);
+      ctx.fillStyle = lp < 0.28 ? "rgb(255, 252, 224)" : COLORS.GOLD;
       ctx.beginPath();
-      for (let i = 0; i < 20; i++) {
-        const ang = (Math.PI * i) / 10 + sp * 0.3;
+      for (let i = 0; i < 24; i++) {
+        const ang = (Math.PI * i) / 12 + lp * 0.35;
         const r = i % 2 === 0 ? outerR : innerR;
-        const px = ex + Math.cos(ang) * r;
-        const py = ey + Math.sin(ang) * r;
+        const px = bx + Math.cos(ang) * r;
+        const py = by + Math.sin(ang) * r;
         if (i === 0) {
           ctx.moveTo(px, py);
         } else {
@@ -844,29 +890,67 @@ export function drawBattleCam(
 
       ctx.fillStyle = COLORS.CORAL;
       ctx.beginPath();
-      ctx.arc(ex, ey, Math.max(4, outerR * 0.56), 0, Math.PI * 2);
+      ctx.arc(bx, by, Math.max(5, outerR * 0.62), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = COLORS.ORANGE;
+      ctx.beginPath();
+      ctx.arc(bx, by - outerR * 0.08, Math.max(4, outerR * 0.42), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Towering fiery mushroom cloud & giant water geysers
+    if (ep < 0.92) {
+      const mp = Math.min(1, ep / 0.92);
+      ctx.globalAlpha = Math.max(0, 0.88 * (1 - mp * 0.62));
+      const stemH = 26 + mp * 94;
+      ctx.fillStyle = mp < 0.45 ? COLORS.ORANGE : "rgb(214, 226, 236)";
+      ctx.fillRect(ex - 18, waterY - stemH, 36, stemH);
+      const capR = 26 + mp * 34;
+      const capY = waterY - stemH;
+      ctx.fillStyle = mp < 0.42 ? COLORS.CORAL : "rgb(206, 222, 234)";
+      ctx.beginPath();
+      ctx.arc(ex - capR * 0.65, capY + 6, capR * 0.72, 0, Math.PI * 2);
+      ctx.arc(ex + capR * 0.65, capY + 6, capR * 0.72, 0, Math.PI * 2);
+      ctx.arc(ex, capY - capR * 0.2, capR * 0.92, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = "rgb(220, 246, 255)";
-      const gh = 54 * Math.sin(sp * Math.PI);
+      const gh = 78 * Math.sin(mp * Math.PI);
       for (const dir of [-1, 1]) {
         ctx.beginPath();
-        ctx.moveTo(ex + dir * 48 - 10, waterY + 4);
-        ctx.lineTo(ex + dir * 56, waterY - gh);
-        ctx.lineTo(ex + dir * 48 + 10, waterY + 4);
+        ctx.moveTo(ex + dir * 56 - 14, waterY + 6);
+        ctx.lineTo(ex + dir * 68, waterY - gh);
+        ctx.lineTo(ex + dir * 56 + 14, waterY + 6);
         ctx.closePath?.();
         ctx.fill();
       }
+
+      // Flying dark hull debris chunks arcing across the Battle Cam sky
+      ctx.fillStyle = "rgb(62, 78, 92)";
+      for (let i = 0; i < 8; i++) {
+        const dir = i % 2 === 0 ? -1 : 1;
+        const dx = dir * (28 + i * 18) * mp;
+        const dy = -(75 + (i % 3) * 28) * mp + 115 * mp * mp;
+        ctx.fillRect(ex + dx - 5, ey + dy - 3, 10, 6);
+      }
     }
 
-    ctx.globalAlpha = Math.max(0, 0.62 * (1 - sinkP * 0.55));
-    ctx.fillStyle = "rgb(206, 222, 234)";
-    for (let i = 0; i < 4; i++) {
-      const sy = waterY - 22 - sinkP * (34 + i * 18);
-      const sx = ex + (i % 2 === 0 ? -1 : 1) * (10 + i * 9) * sinkP;
-      ctx.beginPath();
-      ctx.arc(sx, sy, 12 + i * 5 + sinkP * 8, 0, Math.PI * 2);
-      ctx.fill();
+    // Extra celebratory sky fireworks during Victory Grand Finale Battle Cam!
+    if (cam.victory) {
+      const fwColors = [COLORS.GOLD, COLORS.GREEN, COLORS.CORAL, COLORS.BLUE, COLORS.PURPLE];
+      for (let f = 0; f < 4; f++) {
+        const fx = inner.x + inner.width * (0.16 + f * 0.23);
+        const fy = inner.y + 34 + (f % 2) * 26;
+        const fp = (ep * 1.4 + f * 0.25) % 1;
+        ctx.globalAlpha = Math.max(0, 1 - fp);
+        ctx.fillStyle = fwColors[f % fwColors.length];
+        for (let k = 0; k < 8; k++) {
+          const ang = (Math.PI * 2 * k) / 8;
+          ctx.beginPath();
+          ctx.arc(fx + Math.cos(ang) * fp * 34, fy + Math.sin(ang) * fp * 34, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
     }
     ctx.globalAlpha = 1;
   }

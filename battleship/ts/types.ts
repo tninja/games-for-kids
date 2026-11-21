@@ -261,6 +261,7 @@ export interface HitBurst {
   life: number;
   maxLife: number;
   isSunk: boolean;
+  enormous?: boolean;
 }
 
 export interface SinkAnim {
@@ -273,6 +274,7 @@ export interface BattleCam {
   title: string;
   subtitle: string;
   isEnemy: boolean;
+  victory?: boolean;
   life: number;
   maxLife: number;
 }

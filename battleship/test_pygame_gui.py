@@ -145,12 +145,13 @@ class TestBattleshipMatchAndPygameGUI(unittest.TestCase):
             gui.tick(1.2)
             self.assertEqual(len(gui.hit_bursts), 0)
 
-            # Sinking enemy ship triggers breakup animation & Battle Cam side-view popup
+            # Sinking enemy ship triggers enormous explosion, breakup animation & Battle Cam
             hx2, hy2 = gui.cell_center(ENEMY_PANEL, 0, 1)
             gui.handle_click((int(hx2), int(hy2)))
             gui.tick(0.25)
             self.assertIn("e:destroyer", gui.sink_anims)
             self.assertIsNotNone(gui.battle_cam)
+            self.assertTrue(any(b.get("enormous") for b in gui.hit_bursts))
             gui.draw()
             gui.tick(0.5)
             gui.draw()
@@ -158,6 +159,20 @@ class TestBattleshipMatchAndPygameGUI(unittest.TestCase):
             self.assertIsNone(gui.battle_cam)
             gui.tick(1.0)
             self.assertNotIn("e:destroyer", gui.sink_anims)
+
+            # Winning triggers Grand Finale multi-boat explosion barrage & Victory Battle Cam
+            for c in (0, 1, 2):
+                gui.fire_at(5, c)
+                gui.tick(0.25 if c == 2 else 0.8)
+            self.assertTrue(gui.match.game_over)
+            self.assertIsNotNone(gui.battle_cam)
+            assert gui.battle_cam is not None
+            self.assertTrue(gui.battle_cam.get("victory"))
+            self.assertGreater(len(gui.pending_events), 0)
+            gui.tick(0.4)
+            gui.draw()
+            gui.tick(2.2)
+            gui.activate("new_game")
 
             # Cross bomb
             gui.activate("select_bomb")
@@ -188,6 +203,17 @@ class TestBattleshipMatchAndPygameGUI(unittest.TestCase):
             self.assertEqual(gui.board_size, 10)
             px, py = gui.cell_center(PLAYER_PANEL, 0, 0)
             gui.handle_motion((int(px), int(py)))
+            gui.draw()
+
+            # Resizable window scaling and mouse coordinate mapping
+            gui.handle_resize(1920, 1200)
+            vp = gui.viewport_rect()
+            self.assertGreater(vp.width, 1280)
+            self.assertGreater(vp.height, 880)
+            lx, ly = gui.window_to_logical(vp.center)
+            self.assertAlmostEqual(lx, 640, delta=2)
+            self.assertAlmostEqual(ly, 440, delta=2)
+            self.assertEqual(gui.window_to_logical((0, 0)), (-1, -1))
             gui.draw()
 
 

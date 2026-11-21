@@ -336,60 +336,69 @@ export class BattleshipWebApp {
         y: center[1],
         life: 0.72,
         maxLife: 0.72,
-        maxRadius: 64,
+        maxRadius: 84,
         color: COLORS.CORAL,
+        lineWidth: 3
+      });
+      this.ripples.push({
+        x: center[0],
+        y: center[1],
+        life: 0.86,
+        maxLife: 0.86,
+        maxRadius: 118,
+        color: "rgb(255, 246, 206)",
         lineWidth: 2
       });
     }
-    const count = kind === "sunk" ? 22 : isHit ? 12 : 8;
+    const count = kind === "sunk" ? 36 : isHit ? 12 : 8;
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count + (i % 2) * 0.2;
-      const speed = (kind === "sunk" ? 135 : isHit ? 95 : 55) * (0.5 + (i % 3) * 0.25);
+      const speed = (kind === "sunk" ? 175 : isHit ? 95 : 55) * (0.5 + (i % 3) * 0.25);
       this.particles.push({
         x: center[0],
         y: center[1],
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - (isHit ? 26 : 15),
-        life: kind === "sunk" ? 0.68 : 0.45,
-        maxLife: kind === "sunk" ? 0.68 : 0.45,
-        color: isHit ? (i % 2 === 0 ? COLORS.CORAL : COLORS.GOLD) : COLORS.BLUE,
-        size: kind === "sunk" ? 5 : 4,
+        vy: Math.sin(angle) * speed - (kind === "sunk" ? 42 : isHit ? 26 : 15),
+        life: kind === "sunk" ? 0.78 : 0.45,
+        maxLife: kind === "sunk" ? 0.78 : 0.45,
+        color: isHit ? (i % 3 === 0 ? "rgb(255, 250, 214)" : i % 2 === 0 ? COLORS.CORAL : COLORS.GOLD) : COLORS.BLUE,
+        size: kind === "sunk" ? 6 : 4,
         kind: "spark"
       });
     }
     if (isHit) {
-      const debrisCount = kind === "sunk" ? 10 : 6;
+      const debrisCount = kind === "sunk" ? 16 : 6;
       for (let i = 0; i < debrisCount; i++) {
-        const ang = -Math.PI * 0.88 + (Math.PI * 0.76 * i) / Math.max(1, debrisCount - 1);
-        const spd = (kind === "sunk" ? 130 : 95) + (i % 3) * 28;
+        const ang = -Math.PI * 0.92 + (Math.PI * 0.84 * i) / Math.max(1, debrisCount - 1);
+        const spd = (kind === "sunk" ? 165 : 95) + (i % 3) * 32;
         this.particles.push({
-          x: center[0] + (i % 2 === 0 ? -4 : 4),
+          x: center[0] + (i % 2 === 0 ? -5 : 5),
           y: center[1],
           vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd - 30,
-          life: kind === "sunk" ? 0.7 : 0.55,
-          maxLife: kind === "sunk" ? 0.7 : 0.55,
+          vy: Math.sin(ang) * spd - (kind === "sunk" ? 45 : 30),
+          life: kind === "sunk" ? 0.78 : 0.55,
+          maxLife: kind === "sunk" ? 0.78 : 0.55,
           color: i % 3 === 0 ? COLORS.SHIP_ACCENT : i % 3 === 1 ? COLORS.SHIP_FILL : COLORS.SHIP_DARK,
-          size: kind === "sunk" ? 8 : 6,
+          size: kind === "sunk" ? 9 : 6,
           kind: "debris",
           angle: i * 0.7,
-          vAngle: (i % 2 === 0 ? 1 : -1) * (8 + (i % 3) * 3)
+          vAngle: (i % 2 === 0 ? 1 : -1) * (9 + (i % 3) * 4)
         });
       }
     }
     if (kind === "sunk") {
-      for (let i = 0; i < 8; i++) {
-        const ang = -Math.PI + (Math.PI * i) / 7;
-        const spd = 48 + (i % 3) * 20;
+      for (let i = 0; i < 12; i++) {
+        const ang = -Math.PI + (Math.PI * i) / 11;
+        const spd = 62 + (i % 3) * 24;
         this.particles.push({
           x: center[0],
           y: center[1],
           vx: Math.cos(ang) * spd,
-          vy: Math.sin(ang) * spd - 12,
-          life: 0.62,
-          maxLife: 0.62,
+          vy: Math.sin(ang) * spd - 18,
+          life: 0.7,
+          maxLife: 0.7,
           color: "rgb(220, 246, 255)",
-          size: 5,
+          size: 6,
           kind: "foam"
         });
       }
@@ -436,16 +445,76 @@ export class BattleshipWebApp {
     }
   }
 
-  private spawnHitBurst(center: Coord, isSunk: boolean, isEnemyBoard: boolean = true): void {
+  private spawnHitBurst(
+    center: Coord,
+    isSunk: boolean,
+    isEnemyBoard: boolean = true,
+    enormous: boolean = false
+  ): void {
     const m = this.gridMetrics(isEnemyBoard ? this.enemyPanelRect() : this.playerPanelRect());
-    const dur = isSunk ? 0.72 : 0.58;
+    const dur = enormous ? 0.88 : isSunk ? 0.76 : 0.58;
     this.hitBursts.push({
       x: center[0],
       y: center[1],
       cellSize: m.cellSize,
       life: dur,
       maxLife: dur,
-      isSunk
+      isSunk,
+      enormous
+    });
+  }
+
+  private triggerVictoryExplosionFinale(lastSunk?: FleetName | null): void {
+    const targetSide =
+      this.playMode === "1p" ? this.game.computer : this.game.opponentPlayer();
+    const fleets = targetSide.fleetGroup.fleets;
+    const camFleet: FleetName = lastSunk ?? (fleets[0]?.name ?? "carrier");
+    this.battleCam = {
+      fleetName: camFleet,
+      title: "VICTORY! ENEMY FLEET OBLITERATED!",
+      subtitle: "All enemy ships destroyed!",
+      isEnemy: true,
+      victory: true,
+      life: 2.05,
+      maxLife: 2.05
+    };
+    const words = ["KABOOM!", "BOOM!", "MEGA BLAST!", "SUNK!", "VICTORY!"];
+    fleets.forEach((fl, fIdx) => {
+      const midCoord = fl.coordinates[Math.floor(fl.coordinates.length / 2)] ?? fl.coordinates[0];
+      if (!midCoord) {
+        return;
+      }
+      const delayBase = 0.12 + fIdx * 0.16;
+      this.pendingEvents.push({
+        delay: delayBase,
+        fn: (ff: boolean) => {
+          if (ff) {
+            return;
+          }
+          const center = this.enemyCellCenter(midCoord[0], midCoord[1]);
+          this.spawnHitBurst(center, true, true, true);
+          this.spawnImpact(center, "sunk");
+          this.triggerShake(11, 0.36);
+          this.addPopup(center, words[fIdx % words.length], fIdx % 2 === 0 ? COLORS.GOLD : COLORS.ORANGE, 24);
+          if (fIdx % 2 === 0) {
+            this.sound.play("bomb");
+          }
+          for (const [r, c] of fl.coordinates) {
+            if (r !== midCoord[0] || c !== midCoord[1]) {
+              const p = this.enemyCellCenter(r, c);
+              this.spawnHitBurst(p, true, true, false);
+            }
+          }
+        }
+      });
+    });
+    this.pendingEvents.push({
+      delay: 0.45,
+      fn: (ff: boolean) => {
+        if (!ff) {
+          this.spawnVictoryConfetti();
+        }
+      }
     });
   }
 
@@ -471,14 +540,21 @@ export class BattleshipWebApp {
     if (!fl) {
       return;
     }
+    const mid = fl.coordinates[Math.floor(fl.coordinates.length / 2)] ?? fl.coordinates[0];
+    if (mid) {
+      const midCenter = isEnemyBoard
+        ? this.enemyCellCenter(mid[0], mid[1])
+        : this.playerCellCenter(mid[0], mid[1]);
+      this.spawnHitBurst(midCenter, true, isEnemyBoard, true);
+    }
     fl.coordinates.forEach(([r, c], idx) => {
       const center = isEnemyBoard ? this.enemyCellCenter(r, c) : this.playerCellCenter(r, c);
       this.pendingEvents.push({
         delay: 0.06 * (idx + 1),
         fn: (ff: boolean) => {
           if (!ff) {
-            this.spawnHitBurst(center, true, isEnemyBoard);
-            this.spawnImpact(center, "hit");
+            this.spawnHitBurst(center, true, isEnemyBoard, idx === Math.floor(fl.coordinates.length / 2));
+            this.spawnImpact(center, "sunk");
           }
         }
       });
@@ -1054,6 +1130,7 @@ export class BattleshipWebApp {
           this.statusColor = COLORS.GREEN;
           if (!fastForward) {
             this.spawnVictoryConfetti();
+            this.triggerVictoryExplosionFinale(res.sunk);
             this.sound.play("win");
           }
         } else if (res.bonusTurn) {
@@ -1206,14 +1283,14 @@ export class BattleshipWebApp {
           this.spawnImpact(targetCenter, kind);
           this.sound.play(kind);
           if (res.sunk) {
-            this.spawnHitBurst(targetCenter, true, true);
+            this.spawnHitBurst(targetCenter, true, true, true);
             this.triggerSinkAnimation(res.sunk, true);
-            this.triggerShake(9, 0.38);
+            this.triggerShake(13, 0.46);
             this.addPopup(
               targetCenter,
               FLEET_LABELS[res.sunk].toUpperCase() + " SUNK!",
               COLORS.GOLD,
-              24
+              26
             );
           } else if (res.hit) {
             this.spawnHitBurst(targetCenter, false, true);
@@ -1232,6 +1309,7 @@ export class BattleshipWebApp {
           this.statusColor = COLORS.GREEN;
           if (!fastForward) {
             this.spawnVictoryConfetti();
+            this.triggerVictoryExplosionFinale(res.sunk);
             this.sound.play("win");
           }
         } else if (res.bonusTurn && this.ruleMode === "salvo") {
