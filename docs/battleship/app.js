@@ -1373,6 +1373,25 @@ var __BattleshipBundle = (() => {
   };
 
   // battleship/ts/ships.ts
+  function rotatePoint(px, py, ox, oy, angle) {
+    const dx = px - ox;
+    const dy = py - oy;
+    const ca = Math.cos(angle);
+    const sa = Math.sin(angle);
+    return [ox + dx * ca - dy * sa, oy + dx * sa + dy * ca];
+  }
+  function drawRotatedPoly(ctx, pts, ox, oy, angle) {
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const [rx, ry] = rotatePoint(pts[i][0], pts[i][1], ox, oy, angle);
+      if (i === 0) {
+        ctx.moveTo(rx, ry);
+      } else {
+        ctx.lineTo(rx, ry);
+      }
+    }
+    ctx.closePath?.();
+  }
   function drawOceanWaves(ctx, cell, row, col, clock) {
     const phase = clock * 2.2 + row * 0.9 + col * 0.7;
     const shift = Math.sin(phase) * 3;
@@ -1392,7 +1411,7 @@ var __BattleshipBundle = (() => {
     ctx.stroke();
     ctx.restore?.();
   }
-  function drawShipHull(ctx, fleet, metrics, options) {
+  function drawSinkingShipBreakup(ctx, fleet, metrics, progress, clock) {
     if (fleet.coordinates.length === 0) {
       return;
     }
@@ -1402,6 +1421,99 @@ var __BattleshipBundle = (() => {
     const pad = Math.max(4, Math.round(cs * 0.12));
     const x = metrics.originX + first[1] * cs + pad;
     const y = metrics.originY + first[0] * cs + pad;
+    const w = (isHoriz ? fleet.size * cs : cs) - pad * 2;
+    const h = (isHoriz ? cs : fleet.size * cs) - pad * 2;
+    const p = Math.max(0, Math.min(1, progress));
+    const jitter = p < 0.3 ? Math.sin(clock * 95) * 4 * (1 - p / 0.3) : 0;
+    const crackP = Math.max(0, (p - 0.18) / 0.82);
+    const splitGap = crackP * 10;
+    const tilt = crackP * 0.42;
+    const sinkDrop = crackP * (isHoriz ? h * 0.42 : cs * 0.35);
+    const hullColor = p < 0.22 ? "rgb(255, 198, 122)" : COLORS.SHIP_SUNK;
+    const trimColor = p < 0.22 ? "rgb(255, 248, 220)" : "rgb(220, 128, 124)";
+    ctx.save?.();
+    ctx.globalAlpha = Math.max(0.45, 1 - crackP * 0.42);
+    ctx.fillStyle = hullColor;
+    ctx.strokeStyle = trimColor;
+    ctx.lineWidth = 2;
+    if (isHoriz) {
+      const midX = x + w / 2;
+      const midY = y + h / 2;
+      const bow = Math.min(cs * 0.4, w * 0.22);
+      const leftPts = [
+        [x + jitter, y + 3 + sinkDrop],
+        [midX - splitGap, y + 3 + sinkDrop],
+        [midX - splitGap - 5, midY + sinkDrop],
+        [midX - splitGap, y + h - 3 + sinkDrop],
+        [x + jitter, y + h - 3 + sinkDrop]
+      ];
+      drawRotatedPoly(ctx, leftPts, midX - splitGap, midY + sinkDrop, -tilt);
+      ctx.fill();
+      ctx.stroke();
+      const rightPts = [
+        [midX + splitGap, y + 3 + sinkDrop],
+        [x + w - bow + jitter, y + 3 + sinkDrop],
+        [x + w + jitter, midY + sinkDrop],
+        [x + w - bow + jitter, y + h - 3 + sinkDrop],
+        [midX + splitGap, y + h - 3 + sinkDrop],
+        [midX + splitGap + 5, midY + sinkDrop]
+      ];
+      drawRotatedPoly(ctx, rightPts, midX + splitGap, midY + sinkDrop, tilt);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      const midX = x + w / 2;
+      const midY = y + h / 2;
+      const bow = Math.min(cs * 0.4, h * 0.22);
+      const topPts = [
+        [midX + jitter, y + sinkDrop],
+        [x + w - 3 + jitter, y + bow + sinkDrop],
+        [x + w - 3 + jitter, midY - splitGap + sinkDrop],
+        [midX, midY - splitGap - 5 + sinkDrop],
+        [x + 3 + jitter, midY - splitGap + sinkDrop],
+        [x + 3 + jitter, y + bow + sinkDrop]
+      ];
+      drawRotatedPoly(ctx, topPts, midX, midY - splitGap + sinkDrop, -tilt * 0.85);
+      ctx.fill();
+      ctx.stroke();
+      const botPts = [
+        [x + 3 + jitter, midY + splitGap + sinkDrop],
+        [midX, midY + splitGap + 5 + sinkDrop],
+        [x + w - 3 + jitter, midY + splitGap + sinkDrop],
+        [x + w - 3 + jitter, y + h - 3 + sinkDrop],
+        [x + 3 + jitter, y + h - 3 + sinkDrop]
+      ];
+      drawRotatedPoly(ctx, botPts, midX, midY + splitGap + sinkDrop, tilt * 0.85);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "rgb(218, 246, 255)";
+    ctx.lineWidth = 2.4;
+    ctx.globalAlpha = Math.max(0.2, 0.9 * (1 - crackP * 0.4));
+    const foamCount = Math.max(3, fleet.size + 1);
+    for (let i = 0; i < foamCount; i++) {
+      const frac = (i + 0.5) / foamCount;
+      const fx = isHoriz ? x + w * frac : x + w * (0.25 + i % 2 * 0.5);
+      const fy = isHoriz ? y + h * 0.72 + Math.sin(clock * 14 + i) * 3 : y + h * frac;
+      const rad = 3 + crackP * 7 + i % 2 * 2;
+      ctx.beginPath();
+      ctx.arc(fx, fy, rad, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore?.();
+  }
+  function drawShipHull(ctx, fleet, metrics, options) {
+    if (fleet.coordinates.length === 0) {
+      return;
+    }
+    const first = fleet.coordinates[0];
+    const isHoriz = fleet.direction === "horizontal";
+    const cs = metrics.cellSize;
+    const pad = Math.max(4, Math.round(cs * 0.12));
+    const sinkP = options.sinkProgress ?? 1;
+    const dip = options.sunk && sinkP < 1 ? Math.round(sinkP * 5) : 0;
+    const x = metrics.originX + first[1] * cs + pad;
+    const y = metrics.originY + first[0] * cs + pad + dip;
     const w = (isHoriz ? fleet.size * cs : cs) - pad * 2;
     const h = (isHoriz ? cs : fleet.size * cs) - pad * 2;
     const hullPalette = {
@@ -1639,6 +1751,408 @@ var __BattleshipBundle = (() => {
     ctx.stroke();
     ctx.restore?.();
   }
+  function drawHitBurst(ctx, burst) {
+    const progress = 1 - burst.life / burst.maxLife;
+    const scaleBoost = burst.isSunk ? 1.38 : 1.08;
+    const baseR = burst.cellSize * 0.5 * scaleBoost;
+    const cx = burst.x;
+    const cy = burst.y;
+    ctx.save?.();
+    if (progress < 0.78) {
+      const p0 = progress / 0.78;
+      const jolt = Math.sin(p0 * Math.PI * 6) * 4 * (1 - p0);
+      const segW = burst.cellSize * 0.72;
+      const segH = burst.cellSize * 0.5;
+      ctx.globalAlpha = Math.max(0, 0.85 * (1 - p0));
+      ctx.fillStyle = "rgb(92, 54, 62)";
+      ctx.strokeStyle = COLORS.ORANGE;
+      ctx.lineWidth = 2.2;
+      ctx.fillRect(cx - segW / 2 + jolt, cy - segH / 2, segW, segH);
+      ctx.strokeRect(cx - segW / 2 + jolt, cy - segH / 2, segW, segH);
+      ctx.strokeStyle = "rgb(255, 240, 178)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - segW * 0.34 + jolt, cy - segH * 0.25);
+      ctx.lineTo(cx - 2 + jolt, cy + 2);
+      ctx.lineTo(cx + segW * 0.32 + jolt, cy + segH * 0.28);
+      ctx.moveTo(cx + segW * 0.24 + jolt, cy - segH * 0.28);
+      ctx.lineTo(cx - 2 + jolt, cy + 2);
+      ctx.lineTo(cx - segW * 0.22 + jolt, cy + segH * 0.3);
+      ctx.stroke();
+    }
+    if (progress < 0.55) {
+      const p1 = progress / 0.55;
+      const outerR = baseR * (0.48 + 1.1 * Math.sin(p1 * Math.PI * 0.75));
+      const innerR = outerR * 0.42;
+      const rays = 8;
+      ctx.globalAlpha = Math.max(0, 1 - p1 * 0.88);
+      ctx.fillStyle = p1 < 0.3 ? "rgb(255, 252, 224)" : COLORS.GOLD;
+      ctx.beginPath();
+      for (let i = 0; i < rays * 2; i++) {
+        const ang = Math.PI * i / rays + p1 * 0.35;
+        const rad = i % 2 === 0 ? outerR : innerR;
+        const px = cx + Math.cos(ang) * rad;
+        const py = cy + Math.sin(ang) * rad;
+        if (i === 0) {
+          ctx.moveTo(px, py);
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.closePath?.();
+      ctx.fill();
+      const jetH = baseR * (0.9 + p1 * 1.15);
+      const jetW = baseR * 0.34 * (1 - p1 * 0.4);
+      ctx.fillStyle = COLORS.ORANGE;
+      ctx.beginPath();
+      ctx.moveTo(cx - jetW, cy);
+      ctx.lineTo(cx, cy - jetH);
+      ctx.lineTo(cx + jetW, cy);
+      ctx.closePath?.();
+      ctx.fill();
+    }
+    if (progress < 0.72) {
+      const p2 = progress / 0.72;
+      const fireR = baseR * (0.25 + 0.75 * Math.sin(p2 * Math.PI));
+      ctx.globalAlpha = Math.max(0, 0.95 * (1 - p2 * 0.75));
+      ctx.fillStyle = COLORS.CORAL;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(2, fireR), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = COLORS.GOLD;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(1.5, fireR * 0.58), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (progress > 0.12) {
+      const p3 = (progress - 0.12) / 0.88;
+      const puffs = [
+        [-baseR * 0.34, -p3 * baseR * 1.05, 0.3],
+        [baseR * 0.3, -p3 * baseR * 1.25, 0.26],
+        [0, -p3 * baseR * 1.5, 0.35]
+      ];
+      ctx.fillStyle = "rgb(212, 226, 236)";
+      ctx.globalAlpha = Math.max(0, 0.65 * (1 - p3));
+      for (const [dx, dy, rFrac] of puffs) {
+        ctx.beginPath();
+        ctx.arc(cx + dx * (0.6 + p3 * 0.6), cy + dy, baseR * rFrac * (0.7 + p3 * 0.6), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore?.();
+  }
+  function drawSideShipHalf(ctx, fleetName, side, cx, waterY, shipW, shipH, splitGap, sinkY, tilt, flash) {
+    const halfW = shipW / 2;
+    const pivotX = side === "stern" ? cx - splitGap : cx + splitGap;
+    const pivotY = waterY - shipH * 0.25 + sinkY;
+    const hullFill = flash ? "rgb(255, 224, 146)" : fleetName === "submarine" ? "rgb(62, 136, 142)" : "rgb(122, 152, 174)";
+    const hullDark = flash ? "rgb(255, 168, 92)" : fleetName === "submarine" ? "rgb(42, 98, 106)" : "rgb(78, 104, 126)";
+    const trim = flash ? "rgb(255, 250, 228)" : COLORS.GOLD;
+    ctx.fillStyle = hullFill;
+    ctx.strokeStyle = trim;
+    ctx.lineWidth = 2;
+    if (side === "stern") {
+      const leftX = pivotX - halfW;
+      const topY = waterY - shipH + sinkY;
+      const botY = waterY + 6 + sinkY;
+      const pts = [
+        [leftX + 8, topY],
+        [pivotX, topY],
+        [pivotX - 7, (topY + botY) / 2],
+        [pivotX, botY],
+        [leftX + 18, botY],
+        [leftX, topY + shipH * 0.45]
+      ];
+      drawRotatedPoly(ctx, pts, pivotX, pivotY, -tilt);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = hullDark;
+      if (fleetName === "carrier") {
+        const deck = [
+          [leftX + 2, topY - 7],
+          [pivotX, topY - 7],
+          [pivotX, topY + 2],
+          [leftX + 4, topY + 2]
+        ];
+        drawRotatedPoly(ctx, deck, pivotX, pivotY, -tilt);
+        ctx.fill();
+        const island = [
+          [leftX + halfW * 0.36, topY - 30],
+          [leftX + halfW * 0.68, topY - 30],
+          [leftX + halfW * 0.72, topY - 7],
+          [leftX + halfW * 0.32, topY - 7]
+        ];
+        drawRotatedPoly(ctx, island, pivotX, pivotY, -tilt);
+        ctx.fill();
+      } else if (fleetName === "submarine") {
+        const fin = [
+          [leftX + 12, topY - 10],
+          [leftX + 24, topY - 10],
+          [leftX + 28, topY + 2],
+          [leftX + 10, topY + 2]
+        ];
+        drawRotatedPoly(ctx, fin, pivotX, pivotY, -tilt);
+        ctx.fill();
+      } else {
+        const funnel = [
+          [leftX + halfW * 0.42, topY - 24],
+          [leftX + halfW * 0.72, topY - 24],
+          [leftX + halfW * 0.78, topY],
+          [leftX + halfW * 0.36, topY]
+        ];
+        drawRotatedPoly(ctx, funnel, pivotX, pivotY, -tilt);
+        ctx.fill();
+      }
+    } else {
+      const rightX = pivotX + halfW;
+      const topY = waterY - shipH + sinkY;
+      const botY = waterY + 6 + sinkY;
+      const pts = [
+        [pivotX, topY],
+        [rightX, topY - 4],
+        [rightX - 18, botY],
+        [pivotX, botY],
+        [pivotX + 7, (topY + botY) / 2]
+      ];
+      drawRotatedPoly(ctx, pts, pivotX, pivotY, tilt);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = hullDark;
+      if (fleetName === "carrier") {
+        const deck = [
+          [pivotX, topY - 7],
+          [rightX + 4, topY - 7],
+          [rightX, topY + 2],
+          [pivotX, topY + 2]
+        ];
+        drawRotatedPoly(ctx, deck, pivotX, pivotY, tilt);
+        ctx.fill();
+      } else if (fleetName === "submarine") {
+        const tower = [
+          [pivotX + 10, topY - 24],
+          [pivotX + 42, topY - 24],
+          [pivotX + 46, topY + 2],
+          [pivotX + 6, topY + 2]
+        ];
+        drawRotatedPoly(ctx, tower, pivotX, pivotY, tilt);
+        ctx.fill();
+        const peri = [
+          [pivotX + 24, topY - 40],
+          [pivotX + 34, topY - 40],
+          [pivotX + 34, topY - 35],
+          [pivotX + 28, topY - 35],
+          [pivotX + 28, topY - 24],
+          [pivotX + 24, topY - 24]
+        ];
+        ctx.fillStyle = trim;
+        drawRotatedPoly(ctx, peri, pivotX, pivotY, tilt);
+        ctx.fill();
+      } else if (fleetName === "battleship") {
+        const bridge = [
+          [pivotX + 6, topY - 28],
+          [pivotX + 40, topY - 28],
+          [pivotX + 46, topY],
+          [pivotX + 4, topY]
+        ];
+        drawRotatedPoly(ctx, bridge, pivotX, pivotY, tilt);
+        ctx.fill();
+        const gun = [
+          [pivotX + 52, topY - 12],
+          [pivotX + 74, topY - 12],
+          [pivotX + 78, topY],
+          [pivotX + 48, topY]
+        ];
+        drawRotatedPoly(ctx, gun, pivotX, pivotY, tilt);
+        ctx.fill();
+        ctx.strokeStyle = trim;
+        ctx.lineWidth = 3;
+        const [g1x, g1y] = rotatePoint(pivotX + 72, topY - 9, pivotX, pivotY, tilt);
+        const [g2x, g2y] = rotatePoint(pivotX + 102, topY - 17, pivotX, pivotY, tilt);
+        ctx.beginPath();
+        ctx.moveTo(g1x, g1y);
+        ctx.lineTo(g2x, g2y);
+        ctx.stroke();
+      } else {
+        const bridge = [
+          [pivotX + 8, topY - 22],
+          [pivotX + 38, topY - 22],
+          [pivotX + 42, topY],
+          [pivotX + 6, topY]
+        ];
+        drawRotatedPoly(ctx, bridge, pivotX, pivotY, tilt);
+        ctx.fill();
+        const mast = [
+          [pivotX + 22, topY - 36],
+          [pivotX + 26, topY - 36],
+          [pivotX + 26, topY - 22],
+          [pivotX + 22, topY - 22]
+        ];
+        ctx.fillStyle = trim;
+        drawRotatedPoly(ctx, mast, pivotX, pivotY, tilt);
+        ctx.fill();
+      }
+    }
+  }
+  function drawBattleCam(ctx, painter, rect, cam, clock) {
+    const t = Math.max(0, Math.min(1, 1 - cam.life / cam.maxLife));
+    const impactT = 0.28;
+    const hitShake = t >= impactT && t < 0.62 ? Math.sin(clock * 95) * 6 * (1 - (t - impactT) / 0.34) : 0;
+    ctx.save?.();
+    ctx.fillStyle = "rgba(6, 20, 34, 0.72)";
+    ctx.fillRect(rect.x - 10, rect.y - 10, rect.width + 20, rect.height + 20);
+    painter.panel(rect, COLORS.PANEL, 18);
+    const inner = {
+      x: rect.x + 12,
+      y: rect.y + 42,
+      width: rect.width - 24,
+      height: rect.height - 88
+    };
+    const waterY = inner.y + Math.round(inner.height * 0.64);
+    const skyFlash = t >= impactT && t < 0.46 ? Math.sin((t - impactT) / 0.18 * Math.PI) : 0;
+    ctx.fillStyle = skyFlash > 0.35 ? "rgb(246, 152, 82)" : cam.isEnemy ? "rgb(36, 124, 184)" : "rgb(98, 56, 78)";
+    ctx.fillRect(inner.x, inner.y, inner.width, waterY - inner.y);
+    ctx.fillStyle = skyFlash > 0.35 ? "rgb(255, 224, 140)" : "rgb(112, 198, 240)";
+    ctx.fillRect(inner.x, waterY - 14, inner.width, 14);
+    ctx.fillStyle = "rgba(240, 249, 255, 0.78)";
+    const cloudShift = t * 18;
+    const clouds = [
+      [inner.x + 86 + cloudShift, inner.y + 34, 16],
+      [inner.x + 104 + cloudShift, inner.y + 30, 20],
+      [inner.x + 122 + cloudShift, inner.y + 35, 14],
+      [inner.x + inner.width - 110 + cloudShift * 0.6, inner.y + 42, 14],
+      [inner.x + inner.width - 92 + cloudShift * 0.6, inner.y + 38, 18]
+    ];
+    for (const [cx, cy, cr] of clouds) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "rgb(18, 86, 138)";
+    ctx.fillRect(inner.x, waterY, inner.width, inner.y + inner.height - waterY);
+    const shipCx = inner.x + inner.width / 2 + hitShake;
+    const shipW = Math.min(270, inner.width * 0.56);
+    const shipH = 34;
+    const sinkP = t > impactT ? Math.max(0, (t - impactT) / (1 - impactT)) : 0;
+    const splitGap = sinkP * 16;
+    const tilt = sinkP * 0.58;
+    const sinkY = sinkP * 54;
+    const isFlash = t >= impactT && t < 0.38;
+    drawSideShipHalf(ctx, cam.fleetName, "stern", shipCx, waterY, shipW, shipH, splitGap, sinkY, tilt, isFlash);
+    drawSideShipHalf(ctx, cam.fleetName, "bow", shipCx, waterY, shipW, shipH, splitGap, sinkY, tilt, isFlash);
+    if (t < impactT) {
+      const p = t / impactT;
+      const sx = inner.x + 40 + (shipCx - inner.x - 40) * p;
+      const sy = inner.y + 12 + (waterY - 16 - inner.y - 12) * p;
+      const tx = inner.x + 40 + (shipCx - inner.x - 40) * Math.max(0, p - 0.22);
+      const ty = inner.y + 12 + (waterY - 16 - inner.y - 12) * Math.max(0, p - 0.22);
+      ctx.strokeStyle = COLORS.GOLD;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+      ctx.fillStyle = "rgb(255, 250, 224)";
+      ctx.beginPath();
+      ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (t >= impactT) {
+      const ep = Math.min(1, (t - impactT) / 0.65);
+      const ex = shipCx;
+      const ey = waterY - 14;
+      if (ep < 0.72) {
+        const sp = ep / 0.72;
+        const outerR = 30 + 62 * Math.sin(sp * Math.PI * 0.75);
+        const innerR = outerR * 0.44;
+        ctx.globalAlpha = Math.max(0, 1 - sp * 0.85);
+        ctx.fillStyle = sp < 0.28 ? "rgb(255, 252, 224)" : COLORS.GOLD;
+        ctx.beginPath();
+        for (let i = 0; i < 20; i++) {
+          const ang = Math.PI * i / 10 + sp * 0.3;
+          const r = i % 2 === 0 ? outerR : innerR;
+          const px = ex + Math.cos(ang) * r;
+          const py = ey + Math.sin(ang) * r;
+          if (i === 0) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        ctx.closePath?.();
+        ctx.fill();
+        ctx.fillStyle = COLORS.CORAL;
+        ctx.beginPath();
+        ctx.arc(ex, ey, Math.max(4, outerR * 0.56), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgb(220, 246, 255)";
+        const gh = 54 * Math.sin(sp * Math.PI);
+        for (const dir of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(ex + dir * 48 - 10, waterY + 4);
+          ctx.lineTo(ex + dir * 56, waterY - gh);
+          ctx.lineTo(ex + dir * 48 + 10, waterY + 4);
+          ctx.closePath?.();
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = Math.max(0, 0.62 * (1 - sinkP * 0.55));
+      ctx.fillStyle = "rgb(206, 222, 234)";
+      for (let i = 0; i < 4; i++) {
+        const sy = waterY - 22 - sinkP * (34 + i * 18);
+        const sx = ex + (i % 2 === 0 ? -1 : 1) * (10 + i * 9) * sinkP;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 12 + i * 5 + sinkP * 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = "rgb(14, 72, 122)";
+    ctx.fillRect(inner.x, waterY + 6, inner.width, inner.y + inner.height - (waterY + 6));
+    ctx.strokeStyle = "rgb(168, 232, 255)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let wx = inner.x; wx <= inner.x + inner.width; wx += 18) {
+      const wy = waterY + 6 + Math.sin(clock * 8 + wx * 0.08) * 3.5;
+      if (wx === inner.x) {
+        ctx.moveTo(wx, wy);
+      } else {
+        ctx.lineTo(wx, wy);
+      }
+    }
+    ctx.stroke();
+    painter.strokeRoundRect(rect, cam.isEnemy ? COLORS.GOLD : COLORS.CORAL, 3, 18);
+    ctx.strokeStyle = COLORS.BORDER;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(inner.x, inner.y, inner.width, inner.height);
+    ctx.fillStyle = COLORS.CORAL;
+    ctx.beginPath();
+    ctx.arc(rect.x + 26, rect.y + 22, 6, 0, Math.PI * 2);
+    ctx.fill();
+    painter.text(
+      "BATTLE CAM",
+      { x: rect.x + 40, y: rect.y + 12, width: 160, height: 24 },
+      20,
+      COLORS.GOLD,
+      "left",
+      "800"
+    );
+    painter.text(
+      "Click or Esc to skip",
+      { x: rect.x + rect.width - 210, y: rect.y + 14, width: 192, height: 22 },
+      16,
+      COLORS.MUTED,
+      "right"
+    );
+    painter.text(
+      cam.title,
+      { x: rect.x + 16, y: rect.y + rect.height - 40, width: rect.width - 32, height: 28 },
+      24,
+      cam.isEnemy ? COLORS.GOLD : COLORS.CORAL,
+      "center",
+      "800"
+    );
+    ctx.restore?.();
+  }
 
   // battleship/ts/sound.ts
   var SoundEffects = class {
@@ -1780,6 +2294,9 @@ var __BattleshipBundle = (() => {
       this.particles = [];
       this.ripples = [];
       this.popups = [];
+      this.hitBursts = [];
+      this.sinkAnims = {};
+      this.battleCam = null;
       this.pendingEvents = [];
       this.pendingEnemyKeys = {};
       this.pendingPlayerKeys = {};
@@ -1823,6 +2340,9 @@ var __BattleshipBundle = (() => {
       this.particles = [];
       this.ripples = [];
       this.popups = [];
+      this.hitBursts = [];
+      this.sinkAnims = {};
+      this.battleCam = null;
       this.pendingEvents = [];
       this.pendingEnemyKeys = {};
       this.pendingPlayerKeys = {};
@@ -2000,8 +2520,46 @@ var __BattleshipBundle = (() => {
           life: kind === "sunk" ? 0.68 : 0.45,
           maxLife: kind === "sunk" ? 0.68 : 0.45,
           color: isHit ? i % 2 === 0 ? COLORS.CORAL : COLORS.GOLD : COLORS.BLUE,
-          size: kind === "sunk" ? 5 : 4
+          size: kind === "sunk" ? 5 : 4,
+          kind: "spark"
         });
+      }
+      if (isHit) {
+        const debrisCount = kind === "sunk" ? 10 : 6;
+        for (let i = 0; i < debrisCount; i++) {
+          const ang = -Math.PI * 0.88 + Math.PI * 0.76 * i / Math.max(1, debrisCount - 1);
+          const spd = (kind === "sunk" ? 130 : 95) + i % 3 * 28;
+          this.particles.push({
+            x: center[0] + (i % 2 === 0 ? -4 : 4),
+            y: center[1],
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 30,
+            life: kind === "sunk" ? 0.7 : 0.55,
+            maxLife: kind === "sunk" ? 0.7 : 0.55,
+            color: i % 3 === 0 ? COLORS.SHIP_ACCENT : i % 3 === 1 ? COLORS.SHIP_FILL : COLORS.SHIP_DARK,
+            size: kind === "sunk" ? 8 : 6,
+            kind: "debris",
+            angle: i * 0.7,
+            vAngle: (i % 2 === 0 ? 1 : -1) * (8 + i % 3 * 3)
+          });
+        }
+      }
+      if (kind === "sunk") {
+        for (let i = 0; i < 8; i++) {
+          const ang = -Math.PI + Math.PI * i / 7;
+          const spd = 48 + i % 3 * 20;
+          this.particles.push({
+            x: center[0],
+            y: center[1],
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 12,
+            life: 0.62,
+            maxLife: 0.62,
+            color: "rgb(220, 246, 255)",
+            size: 5,
+            kind: "foam"
+          });
+        }
       }
     }
     spawnSonarPulse(center) {
@@ -2042,9 +2600,50 @@ var __BattleshipBundle = (() => {
         });
       }
     }
-    triggerShake(intensity = 7) {
-      this.shakeDuration = 0.35;
-      this.shakeTime = this.shakeDuration;
+    spawnHitBurst(center, isSunk, isEnemyBoard = true) {
+      const m = this.gridMetrics(isEnemyBoard ? this.enemyPanelRect() : this.playerPanelRect());
+      const dur = isSunk ? 0.72 : 0.58;
+      this.hitBursts.push({
+        x: center[0],
+        y: center[1],
+        cellSize: m.cellSize,
+        life: dur,
+        maxLife: dur,
+        isSunk
+      });
+    }
+    triggerSinkAnimation(fleetName, isEnemyBoard = true) {
+      const key = (isEnemyBoard ? "e:" : "p:") + fleetName;
+      this.sinkAnims[key] = { life: 1.05, maxLife: 1.05 };
+      this.battleCam = {
+        fleetName,
+        title: (isEnemyBoard ? "ENEMY " : "YOUR ") + FLEET_LABELS[fleetName].toUpperCase() + " DESTROYED!",
+        subtitle: isEnemyBoard ? "Direct sink!" : "Ship lost!",
+        isEnemy: isEnemyBoard,
+        life: 1.65,
+        maxLife: 1.65
+      };
+      const side = isEnemyBoard ? this.playMode === "1p" ? this.game.computer : this.game.opponentPlayer() : this.playMode === "1p" ? this.game.player : this.game.activePlayer();
+      const fl = side.fleetGroup.findByName(fleetName);
+      if (!fl) {
+        return;
+      }
+      fl.coordinates.forEach(([r, c], idx) => {
+        const center = isEnemyBoard ? this.enemyCellCenter(r, c) : this.playerCellCenter(r, c);
+        this.pendingEvents.push({
+          delay: 0.06 * (idx + 1),
+          fn: (ff) => {
+            if (!ff) {
+              this.spawnHitBurst(center, true, isEnemyBoard);
+              this.spawnImpact(center, "hit");
+            }
+          }
+        });
+      });
+    }
+    triggerShake(intensity = 7, duration = 0.35) {
+      this.shakeDuration = duration;
+      this.shakeTime = duration;
       this.shakeIntensity = intensity;
     }
     finalizeGameSummary() {
@@ -2083,11 +2682,17 @@ var __BattleshipBundle = (() => {
       this.particles = [];
       this.ripples = [];
       this.popups = [];
+      this.hitBursts = [];
+      this.sinkAnims = {};
+      this.battleCam = null;
       this.shakeTime = 0;
     }
     tick(seconds) {
       const dt = Math.max(0, seconds);
       this.clock += dt;
+      if (this.shakeTime > 0) {
+        this.shakeTime = Math.max(0, this.shakeTime - dt);
+      }
       const remainingEvents = [];
       for (const evt of this.pendingEvents) {
         evt.delay -= dt;
@@ -2117,7 +2722,10 @@ var __BattleshipBundle = (() => {
         if (pt.life > 0) {
           pt.x += pt.vx * dt;
           pt.y += pt.vy * dt;
-          pt.vy += 140 * dt;
+          pt.vy += (pt.kind === "debris" ? 210 : pt.kind === "foam" ? 65 : 140) * dt;
+          if (pt.angle !== void 0 && pt.vAngle !== void 0) {
+            pt.angle += pt.vAngle * dt;
+          }
           activeParticles.push(pt);
         }
       }
@@ -2139,8 +2747,25 @@ var __BattleshipBundle = (() => {
         }
       }
       this.popups = activePopups;
-      if (this.shakeTime > 0) {
-        this.shakeTime = Math.max(0, this.shakeTime - dt);
+      const activeBursts = [];
+      for (const b of this.hitBursts) {
+        b.life -= dt;
+        if (b.life > 0) {
+          activeBursts.push(b);
+        }
+      }
+      this.hitBursts = activeBursts;
+      for (const key of Object.keys(this.sinkAnims)) {
+        this.sinkAnims[key].life -= dt;
+        if (this.sinkAnims[key].life <= 0) {
+          delete this.sinkAnims[key];
+        }
+      }
+      if (this.battleCam) {
+        this.battleCam.life -= dt;
+        if (this.battleCam.life <= 0) {
+          this.battleCam = null;
+        }
       }
     }
     buttons() {
@@ -2281,6 +2906,18 @@ var __BattleshipBundle = (() => {
           active: true,
           accent: COLORS.GREEN
         }
+      };
+    }
+    battleCamRect() {
+      const cw = this.mobileMode ? MOBILE_WIDTH : WIDTH;
+      const ch = this.mobileMode ? MOBILE_HEIGHT : HEIGHT;
+      const w = this.mobileMode ? 480 : 560;
+      const h = this.mobileMode ? 260 : 300;
+      return {
+        x: Math.round((cw - w) / 2),
+        y: Math.round((ch - h) / 2) - (this.mobileMode ? 40 : 30),
+        width: w,
+        height: h
       };
     }
     handoffButtonRect() {
@@ -2511,6 +3148,12 @@ var __BattleshipBundle = (() => {
             }
             if (!fastForward) {
               this.spawnImpact(pos, kind);
+              if (cell.hit) {
+                this.spawnHitBurst(pos, Boolean(cell.sunk), true);
+              }
+              if (cell.sunk) {
+                this.triggerSinkAnimation(cell.sunk);
+              }
             }
           }
           if (!fastForward) {
@@ -2575,8 +3218,19 @@ var __BattleshipBundle = (() => {
                   this.spawnImpact(compTargetCenter, compKind);
                   this.sound.play(compKind);
                   if (comp.sunk) {
-                    this.triggerShake(8);
-                    this.addPopup(compTargetCenter, "SUNK!", COLORS.CORAL, 22);
+                    this.spawnHitBurst(compTargetCenter, true, false);
+                    this.triggerSinkAnimation(comp.sunk, false);
+                    this.triggerShake(9, 0.38);
+                    this.addPopup(
+                      compTargetCenter,
+                      FLEET_LABELS[comp.sunk].toUpperCase() + " SUNK!",
+                      COLORS.CORAL,
+                      22
+                    );
+                  } else if (comp.hit) {
+                    this.spawnHitBurst(compTargetCenter, false, false);
+                    this.triggerShake(4.5, 0.24);
+                    this.addPopup(compTargetCenter, "HIT!", COLORS.CORAL, 20);
                   }
                 }
                 if (isLast && res.gameOver && res.winner === "Computer") {
@@ -2651,9 +3305,18 @@ var __BattleshipBundle = (() => {
             this.spawnImpact(targetCenter, kind);
             this.sound.play(kind);
             if (res.sunk) {
-              this.triggerShake(8);
-              this.addPopup(targetCenter, "SUNK!", COLORS.GOLD, 24);
+              this.spawnHitBurst(targetCenter, true, true);
+              this.triggerSinkAnimation(res.sunk, true);
+              this.triggerShake(9, 0.38);
+              this.addPopup(
+                targetCenter,
+                FLEET_LABELS[res.sunk].toUpperCase() + " SUNK!",
+                COLORS.GOLD,
+                24
+              );
             } else if (res.hit) {
+              this.spawnHitBurst(targetCenter, false, true);
+              this.triggerShake(4.5, 0.26);
               const st = res.streakCount ?? 1;
               const label = st >= 2 ? st + "x COMBO!" : "HIT!";
               this.addPopup(targetCenter, label, st >= 2 ? COLORS.GOLD : COLORS.CORAL, 22);
@@ -2726,6 +3389,11 @@ var __BattleshipBundle = (() => {
     }
     handlePointerDown(pt) {
       this.hover = pt;
+      if (this.battleCam && collidePoint(this.battleCamRect(), pt)) {
+        this.battleCam = null;
+        this.sound.play("click");
+        return;
+      }
       if (this.phase() === "handoff") {
         if (collidePoint(this.handoffButtonRect(), pt)) {
           this.activate("confirm_handoff");
@@ -2785,6 +3453,11 @@ var __BattleshipBundle = (() => {
       }
     }
     handleKeyDown(key) {
+      if (key === "Escape" && this.battleCam) {
+        this.battleCam = null;
+        this.sound.play("click");
+        return true;
+      }
       if (this.phase() === "handoff") {
         if (key === "Enter" || key === " ") {
           this.activate("confirm_handoff");
@@ -3013,11 +3686,17 @@ var __BattleshipBundle = (() => {
       if (isPlayer) {
         for (const fl of viewSide.fleetGroup.fleets) {
           const revHits = this.revealedHitCount(fl, true);
-          drawShipHull(ctx, fl, m, {
-            sunk: revHits === fl.size,
-            selected: this.placingMode && fl.name === this.selectedShipName,
-            clock: this.clock
-          });
+          const isSunk = revHits === fl.size;
+          const sa = this.sinkAnims["p:" + fl.name];
+          if (isSunk && sa) {
+            drawSinkingShipBreakup(ctx, fl, m, 1 - sa.life / sa.maxLife, this.clock);
+          } else {
+            drawShipHull(ctx, fl, m, {
+              sunk: isSunk,
+              selected: this.placingMode && fl.name === this.selectedShipName,
+              clock: this.clock
+            });
+          }
         }
         if (this.placingMode) {
           const anchor = this.hoverPlayerCell ?? this.cursor;
@@ -3046,7 +3725,12 @@ var __BattleshipBundle = (() => {
           const revHits = this.revealedHitCount(fl, false);
           const isSunk = revHits === fl.size;
           if (isSunk) {
-            drawShipHull(ctx, fl, m, { sunk: true, clock: this.clock });
+            const sa = this.sinkAnims["e:" + fl.name];
+            if (sa) {
+              drawSinkingShipBreakup(ctx, fl, m, 1 - sa.life / sa.maxLife, this.clock);
+            } else {
+              drawShipHull(ctx, fl, m, { sunk: true, clock: this.clock });
+            }
           } else if (this.game.gameOver) {
             drawShipHull(ctx, fl, m, { sunk: false, ghost: true, clock: this.clock });
           }
@@ -3445,8 +4129,41 @@ var __BattleshipBundle = (() => {
         ctx.save?.();
         ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
         ctx.fillStyle = pt.color;
-        ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+        if (pt.kind === "debris") {
+          const ang = pt.angle ?? 0;
+          const hw = pt.size * 0.72;
+          const hh = pt.size * 0.42;
+          const ca = Math.cos(ang);
+          const sa = Math.sin(ang);
+          const corners = [
+            [-hw, -hh],
+            [hw, -hh],
+            [hw, hh],
+            [-hw, hh]
+          ];
+          ctx.beginPath();
+          for (let i = 0; i < corners.length; i++) {
+            const rx = pt.x + corners[i][0] * ca - corners[i][1] * sa;
+            const ry = pt.y + corners[i][0] * sa + corners[i][1] * ca;
+            if (i === 0) {
+              ctx.moveTo(rx, ry);
+            } else {
+              ctx.lineTo(rx, ry);
+            }
+          }
+          ctx.closePath?.();
+          ctx.fill();
+        } else if (pt.kind === "foam") {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size * 0.65, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+        }
         ctx.restore?.();
+      }
+      for (const burst of this.hitBursts) {
+        drawHitBurst(ctx, burst);
       }
       for (const pop of this.popups) {
         ctx.save?.();
@@ -3536,6 +4253,8 @@ var __BattleshipBundle = (() => {
       }
       if (this.phase() === "handoff") {
         this.drawHandoffOverlay();
+      } else if (this.battleCam) {
+        drawBattleCam(this.ctx, this.painter, this.battleCamRect(), this.battleCam, this.clock);
       }
       if (shaking) {
         this.ctx.restore?.();

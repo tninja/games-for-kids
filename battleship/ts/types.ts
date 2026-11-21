@@ -229,6 +229,9 @@ export interface Particle {
   maxLife: number;
   color: string;
   size: number;
+  kind?: "spark" | "debris" | "smoke" | "foam";
+  angle?: number;
+  vAngle?: number;
 }
 
 export interface Ripple {
@@ -249,6 +252,29 @@ export interface FloatingPopup {
   life: number;
   maxLife: number;
   size: number;
+}
+
+export interface HitBurst {
+  x: number;
+  y: number;
+  cellSize: number;
+  life: number;
+  maxLife: number;
+  isSunk: boolean;
+}
+
+export interface SinkAnim {
+  life: number;
+  maxLife: number;
+}
+
+export interface BattleCam {
+  fleetName: FleetName;
+  title: string;
+  subtitle: string;
+  isEnemy: boolean;
+  life: number;
+  maxLife: number;
 }
 
 export interface PendingEvent {

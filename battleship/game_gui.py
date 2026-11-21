@@ -86,6 +86,9 @@ class GameGUI:
         self.particles = []
         self.ripples = []
         self.popups = []
+        self.hit_bursts = []
+        self.sink_anims = {}
+        self.battle_cam = None
         self.pending_events = []
         self.pending_enemy = set()
         self.pending_player = set()
@@ -117,6 +120,9 @@ class GameGUI:
         self.particles = []
         self.ripples = []
         self.popups = []
+        self.hit_bursts = []
+        self.sink_anims = {}
+        self.battle_cam = None
         self.pending_events = []
         self.pending_enemy = set()
         self.pending_player = set()
@@ -250,6 +256,9 @@ class GameGUI:
             'ready': {'rect': pygame.Rect(ENEMY_PANEL.x + 28, btn_y + 52, ENEMY_PANEL.width - 56, 46), 'label': ready_label, 'action': 'finish_place', 'disabled': False, 'active': True, 'accent': COLORS['GREEN']},
         }
 
+    def battle_cam_rect(self):
+        return pygame.Rect(WIDTH // 2 - 280, HEIGHT // 2 - 180, 560, 300)
+
     def handoff_button_rect(self):
         return pygame.Rect(WIDTH // 2 - 170, HEIGHT // 2 + 24, 340, 58)
 
@@ -265,7 +274,19 @@ class GameGUI:
             angle = (math.pi * 2 * i) / count + (i % 2) * 0.2
             speed = (135 if kind == 'sunk' else 95 if is_hit else 55) * (0.5 + (i % 3) * 0.25)
             col = (COLORS['CORAL'] if i % 2 == 0 else COLORS['GOLD']) if is_hit else COLORS['BLUE']
-            self.particles.append({'x': center[0], 'y': center[1], 'vx': math.cos(angle) * speed, 'vy': math.sin(angle) * speed - (24 if is_hit else 14), 'life': 0.65 if kind == 'sunk' else 0.45, 'max_life': 0.65 if kind == 'sunk' else 0.45, 'color': col, 'size': 5 if kind == 'sunk' else 4})
+            self.particles.append({'x': center[0], 'y': center[1], 'vx': math.cos(angle) * speed, 'vy': math.sin(angle) * speed - (24 if is_hit else 14), 'life': 0.65 if kind == 'sunk' else 0.45, 'max_life': 0.65 if kind == 'sunk' else 0.45, 'color': col, 'size': 5 if kind == 'sunk' else 4, 'kind': 'spark'})
+        if is_hit:
+            debris_count = 10 if kind == 'sunk' else 6
+            for i in range(debris_count):
+                ang = -math.pi * 0.88 + (math.pi * 0.76 * i) / max(1, debris_count - 1)
+                spd = (130 if kind == 'sunk' else 95) + (i % 3) * 28
+                col = (224, 238, 246) if i % 3 == 0 else (148, 174, 190) if i % 3 == 1 else (92, 116, 134)
+                self.particles.append({'x': center[0] + (-4 if i % 2 == 0 else 4), 'y': center[1], 'vx': math.cos(ang) * spd, 'vy': math.sin(ang) * spd - 30, 'life': 0.7 if kind == 'sunk' else 0.55, 'max_life': 0.7 if kind == 'sunk' else 0.55, 'color': col, 'size': 8 if kind == 'sunk' else 6, 'kind': 'debris', 'angle': i * 0.7, 'v_angle': (1 if i % 2 == 0 else -1) * (8 + (i % 3) * 3)})
+        if kind == 'sunk':
+            for i in range(8):
+                ang = -math.pi + (math.pi * i) / 7.0
+                spd = 48 + (i % 3) * 20
+                self.particles.append({'x': center[0], 'y': center[1], 'vx': math.cos(ang) * spd, 'vy': math.sin(ang) * spd - 12, 'life': 0.62, 'max_life': 0.62, 'color': (220, 246, 255), 'size': 5, 'kind': 'foam'})
 
     def _spawn_sonar_pulse(self, center):
         self.ripples.append({'x': center[0], 'y': center[1], 'life': 0.75, 'max_life': 0.75, 'max_r': 96, 'color': COLORS['SONAR'], 'lw': 4})
@@ -277,9 +298,46 @@ class GameGUI:
             speed = 140 + (i % 5) * 45
             self.particles.append({'x': ENEMY_PANEL.centerx, 'y': ENEMY_PANEL.y + 180, 'vx': math.cos(angle) * speed, 'vy': math.sin(angle) * speed, 'life': 1.15, 'max_life': 1.15, 'color': palette[i % len(palette)], 'size': 5})
 
-    def _trigger_shake(self, intensity=8.0):
-        self.shake_duration = 0.35
-        self.shake_time = self.shake_duration
+    def _spawn_hit_burst(self, center, is_sunk=False, is_enemy=True):
+        _, _, cs, _ = self.grid_metrics(ENEMY_PANEL if is_enemy else PLAYER_PANEL)
+        dur = 0.72 if is_sunk else 0.58
+        self.hit_bursts.append({'x': center[0], 'y': center[1], 'cs': cs, 'life': dur, 'max_life': dur, 'is_sunk': is_sunk})
+
+    def _trigger_sink_anim(self, fleet_name, is_enemy=True):
+        key = ('e:' if is_enemy else 'p:') + fleet_name
+        self.sink_anims[key] = {'life': 1.05, 'max_life': 1.05}
+        side_word = 'ENEMY' if is_enemy else 'YOUR'
+        self.battle_cam = {
+            'fleet_name': fleet_name,
+            'title': f'{side_word} {FLEET_LABELS[fleet_name].upper()} DESTROYED!',
+            'is_enemy': is_enemy,
+            'life': 1.65,
+            'max_life': 1.65,
+        }
+        if is_enemy:
+            side = self.match.computer if self.play_mode == '1p' else self.match.opponent_player()
+            panel = ENEMY_PANEL
+        else:
+            side = self.match.player if self.play_mode == '1p' else self.match.active_player()
+            panel = PLAYER_PANEL
+        fl = side.fleet_group.find_by_name(fleet_name)
+        if fl is None:
+            return
+        for idx, (r, c) in enumerate(fl.coordinates):
+            pos = self.cell_center(panel, r, c)
+
+            def make_pop(p=pos, enemy_flag=is_enemy):
+                def fn(ff):
+                    if not ff:
+                        self._spawn_hit_burst(p, is_sunk=True, is_enemy=enemy_flag)
+                        self._spawn_impact(p, 'hit')
+                return fn
+
+            self.pending_events.append({'delay': 0.06 * (idx + 1), 'fn': make_pop()})
+
+    def _trigger_shake(self, intensity=8.0, duration=0.35):
+        self.shake_duration = duration
+        self.shake_time = duration
         self.shake_intensity = intensity
 
     def _finalize_summary(self):
@@ -318,11 +376,17 @@ class GameGUI:
         self.particles = []
         self.ripples = []
         self.popups = []
+        self.hit_bursts = []
+        self.sink_anims = {}
+        self.battle_cam = None
         self.shake_time = 0.0
 
     def tick(self, dt):
         dt = max(0.0, float(dt))
         self.time += dt
+
+        if self.shake_time > 0:
+            self.shake_time = max(0.0, self.shake_time - dt)
 
         rem_events = []
         for evt in self.pending_events:
@@ -350,11 +414,23 @@ class GameGUI:
             if pt['life'] > 0:
                 pt['x'] += pt['vx'] * dt
                 pt['y'] += pt['vy'] * dt
-                pt['vy'] += 140 * dt
+                grav = 210 if pt.get('kind') == 'debris' else 65 if pt.get('kind') == 'foam' else 140
+                pt['vy'] += grav * dt
+                if 'angle' in pt and 'v_angle' in pt:
+                    pt['angle'] += pt['v_angle'] * dt
                 rem_parts.append(pt)
         self.particles = rem_parts
 
         self.ripples = [rp for rp in self.ripples if self._step_life(rp, dt)]
+        self.hit_bursts = [b for b in self.hit_bursts if self._step_life(b, dt)]
+        for k in list(self.sink_anims.keys()):
+            self.sink_anims[k]['life'] -= dt
+            if self.sink_anims[k]['life'] <= 0:
+                del self.sink_anims[k]
+        if self.battle_cam is not None:
+            self.battle_cam['life'] -= dt
+            if self.battle_cam['life'] <= 0:
+                self.battle_cam = None
         rem_pops = []
         for pop in self.popups:
             pop['life'] -= dt
@@ -362,9 +438,6 @@ class GameGUI:
                 pop['y'] -= 28 * dt
                 rem_pops.append(pop)
         self.popups = rem_pops
-
-        if self.shake_time > 0:
-            self.shake_time = max(0.0, self.shake_time - dt)
 
     @staticmethod
     def _step_life(item, dt):
@@ -498,8 +571,14 @@ class GameGUI:
                             self._spawn_impact(t_pos, kind)
                             self.sound.play(kind)
                             if c_info['sunk']:
-                                self._trigger_shake(8.0)
-                                self._add_popup(t_pos, 'SUNK!', COLORS['CORAL'])
+                                self._spawn_hit_burst(t_pos, is_sunk=True, is_enemy=False)
+                                self._trigger_sink_anim(c_info['sunk'], is_enemy=False)
+                                self._trigger_shake(9.0, 0.38)
+                                self._add_popup(t_pos, f"{FLEET_LABELS[c_info['sunk']].upper()} SUNK!", COLORS['CORAL'])
+                            elif c_info['hit']:
+                                self._spawn_hit_burst(t_pos, is_sunk=False, is_enemy=False)
+                                self._trigger_shake(4.5, 0.24)
+                                self._add_popup(t_pos, 'HIT!', COLORS['CORAL'])
                         if last and res.get('game_over') and res.get('winner') == 'Computer':
                             self._finalize_summary()
                             self.status_message = 'DEFEAT! Computer sank all your ships.'
@@ -562,7 +641,12 @@ class GameGUI:
                         hit_count += 1
                     if not ff:
                         kind = 'sunk' if c_info['sunk'] else 'hit' if c_info['hit'] else 'miss'
-                        self._spawn_impact(self.cell_center(ENEMY_PANEL, c_info['row'], c_info['col']), kind)
+                        pos = self.cell_center(ENEMY_PANEL, c_info['row'], c_info['col'])
+                        self._spawn_impact(pos, kind)
+                        if c_info['hit']:
+                            self._spawn_hit_burst(pos, is_sunk=bool(c_info['sunk']))
+                        if c_info['sunk']:
+                            self._trigger_sink_anim(c_info['sunk'])
                 if not ff:
                     self.sound.play('bomb')
                     self._trigger_shake(10.0)
@@ -617,9 +701,13 @@ class GameGUI:
                 self._spawn_impact(target_center, kind)
                 self.sound.play(kind)
                 if res['sunk']:
-                    self._trigger_shake(8.0)
-                    self._add_popup(target_center, 'SUNK!', COLORS['GOLD'])
+                    self._spawn_hit_burst(target_center, is_sunk=True, is_enemy=True)
+                    self._trigger_sink_anim(res['sunk'], is_enemy=True)
+                    self._trigger_shake(9.0, 0.38)
+                    self._add_popup(target_center, f"{FLEET_LABELS[res['sunk']].upper()} SUNK!", COLORS['GOLD'])
                 elif res['hit']:
+                    self._spawn_hit_burst(target_center, is_sunk=False)
+                    self._trigger_shake(4.5, 0.26)
                     st = res.get('streak_count', 1)
                     self._add_popup(target_center, f'{st}x COMBO!' if st >= 2 else 'HIT!', COLORS['GOLD'] if st >= 2 else COLORS['CORAL'])
                     if st >= 2:
@@ -673,6 +761,10 @@ class GameGUI:
 
     def handle_click(self, pos, button=1):
         self.hover = pos
+        if self.battle_cam is not None and self.battle_cam_rect().collidepoint(pos):
+            self.battle_cam = None
+            self.sound.play('click')
+            return
         if button == 3:
             if self.placing_mode:
                 self.activate('rotate_ship')
@@ -724,6 +816,10 @@ class GameGUI:
             self.fire_at(e_cell[0], e_cell[1])
 
     def handle_key(self, key):
+        if key == pygame.K_ESCAPE and self.battle_cam is not None:
+            self.battle_cam = None
+            self.sound.play('click')
+            return
         if self.phase() == 'handoff':
             if key in (pygame.K_RETURN, pygame.K_SPACE):
                 self.activate('confirm_handoff')
@@ -778,7 +874,17 @@ class GameGUI:
         txt = font.render(btn['label'], True, txt_col)
         surf.blit(txt, txt.get_rect(center=rect.center))
 
-    def _draw_ship_hull(self, surf, fleet, panel, sunk=False, ghost=False, selected=False):
+    @staticmethod
+    def _rotate_poly(pts, ox, oy, angle):
+        ca = math.cos(angle)
+        sa = math.sin(angle)
+        out = []
+        for px, py in pts:
+            dx, dy = px - ox, py - oy
+            out.append((ox + dx * ca - dy * sa, oy + dx * sa + dy * ca))
+        return out
+
+    def _draw_sinking_breakup(self, surf, fleet, panel, progress):
         if not fleet.coordinates:
             return
         ox, oy, cs, _ = self.grid_metrics(panel)
@@ -787,6 +893,65 @@ class GameGUI:
         pad = max(4, int(cs * 0.12))
         x = ox + c0 * cs + pad
         y = oy + r0 * cs + pad
+        w = (fleet.size * cs if is_horiz else cs) - pad * 2
+        h = (cs if is_horiz else fleet.size * cs) - pad * 2
+        p = max(0.0, min(1.0, progress))
+
+        jitter = math.sin(self.time * 95) * 4 * (1.0 - p / 0.3) if p < 0.3 else 0.0
+        crack_p = max(0.0, (p - 0.18) / 0.82)
+        split_gap = crack_p * 10.0
+        tilt = crack_p * 0.42
+        sink_drop = crack_p * (h * 0.42 if is_horiz else cs * 0.35)
+
+        hull_col = (255, 198, 122) if p < 0.22 else COLORS['SHIP_SUNK']
+        trim_col = (255, 248, 220) if p < 0.22 else (220, 128, 124)
+
+        margin = 36
+        layer = pygame.Surface((w + margin * 2, h + margin * 2), pygame.SRCALPHA)
+        lx, ly = margin, margin
+        mid_x, mid_y = lx + w / 2.0, ly + h / 2.0
+
+        if is_horiz:
+            bow = min(cs * 0.4, w * 0.22)
+            left_pts = [(lx + jitter, ly + 3 + sink_drop), (mid_x - split_gap, ly + 3 + sink_drop), (mid_x - split_gap - 5, mid_y + sink_drop), (mid_x - split_gap, ly + h - 3 + sink_drop), (lx + jitter, ly + h - 3 + sink_drop)]
+            right_pts = [(mid_x + split_gap, ly + 3 + sink_drop), (lx + w - bow + jitter, ly + 3 + sink_drop), (lx + w + jitter, mid_y + sink_drop), (lx + w - bow + jitter, ly + h - 3 + sink_drop), (mid_x + split_gap, ly + h - 3 + sink_drop), (mid_x + split_gap + 5, mid_y + sink_drop)]
+            lp = self._rotate_poly(left_pts, mid_x - split_gap, mid_y + sink_drop, -tilt)
+            rp = self._rotate_poly(right_pts, mid_x + split_gap, mid_y + sink_drop, tilt)
+            pygame.draw.polygon(layer, hull_col, lp)
+            pygame.draw.polygon(layer, trim_col, lp, 2)
+            pygame.draw.polygon(layer, hull_col, rp)
+            pygame.draw.polygon(layer, trim_col, rp, 2)
+        else:
+            bow = min(cs * 0.4, h * 0.22)
+            top_pts = [(mid_x + jitter, ly + sink_drop), (lx + w - 3 + jitter, ly + bow + sink_drop), (lx + w - 3 + jitter, mid_y - split_gap + sink_drop), (mid_x, mid_y - split_gap - 5 + sink_drop), (lx + 3 + jitter, mid_y - split_gap + sink_drop), (lx + 3 + jitter, ly + bow + sink_drop)]
+            bot_pts = [(lx + 3 + jitter, mid_y + split_gap + sink_drop), (mid_x, mid_y + split_gap + 5 + sink_drop), (lx + w - 3 + jitter, mid_y + split_gap + sink_drop), (lx + w - 3 + jitter, ly + h - 3 + sink_drop), (lx + 3 + jitter, ly + h - 3 + sink_drop)]
+            tp = self._rotate_poly(top_pts, mid_x, mid_y - split_gap + sink_drop, -tilt * 0.85)
+            bp = self._rotate_poly(bot_pts, mid_x, mid_y + split_gap + sink_drop, tilt * 0.85)
+            pygame.draw.polygon(layer, hull_col, tp)
+            pygame.draw.polygon(layer, trim_col, tp, 2)
+            pygame.draw.polygon(layer, hull_col, bp)
+            pygame.draw.polygon(layer, trim_col, bp, 2)
+
+        foam_count = max(3, fleet.size + 1)
+        for i in range(foam_count):
+            frac = (i + 0.5) / foam_count
+            fx = int(lx + w * frac) if is_horiz else int(lx + w * (0.25 + (i % 2) * 0.5))
+            fy = int(ly + h * 0.72 + math.sin(self.time * 14 + i) * 3) if is_horiz else int(ly + h * frac)
+            pygame.draw.circle(layer, (218, 246, 255), (fx, fy), int(3 + crack_p * 7 + (i % 2) * 2), 2)
+
+        layer.set_alpha(max(110, int(255 * (1.0 - crack_p * 0.42))))
+        surf.blit(layer, (x - margin, y - margin))
+
+    def _draw_ship_hull(self, surf, fleet, panel, sunk=False, ghost=False, selected=False, sink_progress=1.0):
+        if not fleet.coordinates:
+            return
+        ox, oy, cs, _ = self.grid_metrics(panel)
+        r0, c0 = fleet.coordinates[0]
+        is_horiz = fleet.direction == 'horizontal'
+        pad = max(4, int(cs * 0.12))
+        dip = int(sink_progress * 5) if (sunk and sink_progress < 1.0) else 0
+        x = ox + c0 * cs + pad
+        y = oy + r0 * cs + pad + dip
         w = (fleet.size * cs if is_horiz else cs) - pad * 2
         h = (cs if is_horiz else fleet.size * cs) - pad * 2
 
@@ -894,7 +1059,11 @@ class GameGUI:
         if is_player:
             for fl in view_side.fleet_group.fleets:
                 sunk = self.revealed_hit_count(fl, True) == fl.size
-                self._draw_ship_hull(surf, fl, panel, sunk=sunk, selected=(self.placing_mode and fl.name == self.selected_ship))
+                sa = self.sink_anims.get('p:' + fl.name)
+                if sunk and sa:
+                    self._draw_sinking_breakup(surf, fl, panel, 1.0 - sa['life'] / sa['max_life'])
+                else:
+                    self._draw_ship_hull(surf, fl, panel, sunk=sunk, selected=(self.placing_mode and fl.name == self.selected_ship))
             if self.placing_mode:
                 anchor = self.hover_player if self.hover_player is not None else tuple(self.cursor)
                 size = FLEET_SIZES[self.selected_ship]
@@ -910,7 +1079,11 @@ class GameGUI:
             for fl in target_side.fleet_group.fleets:
                 sunk = self.revealed_hit_count(fl, False) == fl.size
                 if sunk:
-                    self._draw_ship_hull(surf, fl, panel, sunk=True)
+                    sa = self.sink_anims.get('e:' + fl.name)
+                    if sa:
+                        self._draw_sinking_breakup(surf, fl, panel, 1.0 - sa['life'] / sa['max_life'])
+                    else:
+                        self._draw_ship_hull(surf, fl, panel, sunk=True)
                 elif self.match.game_over:
                     self._draw_ship_hull(surf, fl, panel, sunk=False, ghost=True)
 
@@ -1067,10 +1240,200 @@ class GameGUI:
             pygame.draw.line(surf, p['color'], (int(tx), int(ty)), (int(px), int(py)), 5)
             pygame.draw.circle(surf, COLORS['INK'], (int(px), int(py)), p['radius'])
         for pt in self.particles:
-            pygame.draw.rect(surf, pt['color'], pygame.Rect(int(pt['x'] - pt['size'] / 2), int(pt['y'] - pt['size'] / 2), pt['size'], pt['size']))
+            kind = pt.get('kind', 'spark')
+            if kind == 'debris':
+                ang = pt.get('angle', 0.0)
+                hw, hh = pt['size'] * 0.72, pt['size'] * 0.42
+                ca, sa = math.cos(ang), math.sin(ang)
+                pts = [(pt['x'] + dx * ca - dy * sa, pt['y'] + dx * sa + dy * ca) for dx, dy in ((-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh))]
+                pygame.draw.polygon(surf, pt['color'], pts)
+            elif kind == 'foam':
+                pygame.draw.circle(surf, pt['color'], (int(pt['x']), int(pt['y'])), max(2, int(pt['size'] * 0.65)))
+            else:
+                pygame.draw.rect(surf, pt['color'], pygame.Rect(int(pt['x'] - pt['size'] / 2), int(pt['y'] - pt['size'] / 2), pt['size'], pt['size']))
+        for burst in self.hit_bursts:
+            self._draw_hit_burst(surf, burst)
         for pop in self.popups:
             s = self.font_h2.render(pop['text'], True, pop['color'])
             surf.blit(s, s.get_rect(center=(int(pop['x']), int(pop['y']))))
+
+    def _draw_hit_burst(self, surf, burst):
+        progress = 1.0 - burst['life'] / burst['max_life']
+        scale_boost = 1.38 if burst['is_sunk'] else 1.08
+        base_r = burst['cs'] * 0.5 * scale_boost
+        box = max(24, int(base_r * 3.6))
+        layer = pygame.Surface((box, box), pygame.SRCALPHA)
+        cx, cy = box // 2, box // 2
+
+        if progress < 0.78:
+            p0 = progress / 0.78
+            jolt = int(math.sin(p0 * math.pi * 6.0) * 4.0 * (1.0 - p0))
+            sw, sh = int(burst['cs'] * 0.72), int(burst['cs'] * 0.5)
+            alpha = max(0, min(255, int(218 * (1.0 - p0))))
+            r_box = pygame.Rect(cx - sw // 2 + jolt, cy - sh // 2, sw, sh)
+            pygame.draw.rect(layer, (92, 54, 62, alpha), r_box)
+            pygame.draw.rect(layer, (255, 162, 76, alpha), r_box, 2)
+            pygame.draw.line(layer, (255, 240, 178, alpha), (cx - int(sw * 0.34) + jolt, cy - int(sh * 0.25)), (cx + int(sw * 0.32) + jolt, cy + int(sh * 0.28)), 2)
+            pygame.draw.line(layer, (255, 240, 178, alpha), (cx + int(sw * 0.24) + jolt, cy - int(sh * 0.28)), (cx - int(sw * 0.22) + jolt, cy + int(sh * 0.3)), 2)
+
+        if progress < 0.55:
+            p1 = progress / 0.55
+            outer_r = base_r * (0.48 + 1.1 * math.sin(p1 * math.pi * 0.75))
+            inner_r = outer_r * 0.42
+            alpha = max(0, min(255, int(255 * (1.0 - p1 * 0.88))))
+            col = (255, 252, 224, alpha) if p1 < 0.3 else (255, 214, 92, alpha)
+            pts = []
+            for i in range(16):
+                ang = (math.pi * i) / 8.0 + p1 * 0.35
+                rad = outer_r if i % 2 == 0 else inner_r
+                pts.append((cx + math.cos(ang) * rad, cy + math.sin(ang) * rad))
+            pygame.draw.polygon(layer, col, pts)
+            jet_h = base_r * (0.9 + p1 * 1.15)
+            jet_w = base_r * 0.34 * (1.0 - p1 * 0.4)
+            pygame.draw.polygon(layer, (255, 162, 76, alpha), [(cx - jet_w, cy), (cx, cy - jet_h), (cx + jet_w, cy)])
+
+        if progress < 0.72:
+            p2 = progress / 0.72
+            fire_r = max(2, int(base_r * (0.25 + 0.75 * math.sin(p2 * math.pi))))
+            alpha = max(0, min(255, int(242 * (1.0 - p2 * 0.75))))
+            pygame.draw.circle(layer, (255, 118, 102, alpha), (cx, cy), fire_r)
+            pygame.draw.circle(layer, (255, 214, 92, alpha), (cx, cy), max(2, int(fire_r * 0.58)))
+
+        if progress > 0.12:
+            p3 = (progress - 0.12) / 0.88
+            alpha = max(0, min(255, int(165 * (1.0 - p3))))
+            puffs = (
+                (-base_r * 0.34, -p3 * base_r * 1.05, 0.3),
+                (base_r * 0.3, -p3 * base_r * 1.25, 0.26),
+                (0.0, -p3 * base_r * 1.5, 0.35),
+            )
+            for dx, dy, r_frac in puffs:
+                px = int(cx + dx * (0.6 + p3 * 0.6))
+                py = int(cy + dy)
+                pr = max(2, int(base_r * r_frac * (0.7 + p3 * 0.6)))
+                pygame.draw.circle(layer, (212, 226, 236, alpha), (px, py), pr)
+
+        surf.blit(layer, (int(burst['x'] - cx), int(burst['y'] - cy)))
+
+    def _draw_side_ship_half(self, surf, fleet_name, side, cx, water_y, ship_w, ship_h, split_gap, sink_y, tilt, flash):
+        half_w = ship_w / 2.0
+        pivot_x = cx - split_gap if side == 'stern' else cx + split_gap
+        pivot_y = water_y - ship_h * 0.25 + sink_y
+        hull_fill = (255, 224, 146) if flash else (62, 136, 142) if fleet_name == 'submarine' else (122, 152, 174)
+        hull_dark = (255, 168, 92) if flash else (42, 98, 106) if fleet_name == 'submarine' else (78, 104, 126)
+        trim = (255, 250, 228) if flash else COLORS['GOLD']
+        top_y = water_y - ship_h + sink_y
+        bot_y = water_y + 6 + sink_y
+
+        if side == 'stern':
+            left_x = pivot_x - half_w
+            pts = self._rotate_poly([(left_x + 8, top_y), (pivot_x, top_y), (pivot_x - 7, (top_y + bot_y) / 2), (pivot_x, bot_y), (left_x + 18, bot_y), (left_x, top_y + ship_h * 0.45)], pivot_x, pivot_y, -tilt)
+            pygame.draw.polygon(surf, hull_fill, pts)
+            pygame.draw.polygon(surf, trim, pts, 2)
+            if fleet_name == 'carrier':
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(left_x + 2, top_y - 7), (pivot_x, top_y - 7), (pivot_x, top_y + 2), (left_x + 4, top_y + 2)], pivot_x, pivot_y, -tilt))
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(left_x + half_w * 0.36, top_y - 30), (left_x + half_w * 0.68, top_y - 30), (left_x + half_w * 0.72, top_y - 7), (left_x + half_w * 0.32, top_y - 7)], pivot_x, pivot_y, -tilt))
+            elif fleet_name == 'submarine':
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(left_x + 12, top_y - 10), (left_x + 24, top_y - 10), (left_x + 28, top_y + 2), (left_x + 10, top_y + 2)], pivot_x, pivot_y, -tilt))
+            else:
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(left_x + half_w * 0.42, top_y - 24), (left_x + half_w * 0.72, top_y - 24), (left_x + half_w * 0.78, top_y), (left_x + half_w * 0.36, top_y)], pivot_x, pivot_y, -tilt))
+        else:
+            right_x = pivot_x + half_w
+            pts = self._rotate_poly([(pivot_x, top_y), (right_x, top_y - 4), (right_x - 18, bot_y), (pivot_x, bot_y), (pivot_x + 7, (top_y + bot_y) / 2)], pivot_x, pivot_y, tilt)
+            pygame.draw.polygon(surf, hull_fill, pts)
+            pygame.draw.polygon(surf, trim, pts, 2)
+            if fleet_name == 'carrier':
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(pivot_x, top_y - 7), (right_x + 4, top_y - 7), (right_x, top_y + 2), (pivot_x, top_y + 2)], pivot_x, pivot_y, tilt))
+            elif fleet_name == 'submarine':
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(pivot_x + 10, top_y - 24), (pivot_x + 42, top_y - 24), (pivot_x + 46, top_y + 2), (pivot_x + 6, top_y + 2)], pivot_x, pivot_y, tilt))
+                pygame.draw.polygon(surf, trim, self._rotate_poly([(pivot_x + 24, top_y - 40), (pivot_x + 34, top_y - 40), (pivot_x + 34, top_y - 35), (pivot_x + 28, top_y - 35), (pivot_x + 28, top_y - 24), (pivot_x + 24, top_y - 24)], pivot_x, pivot_y, tilt))
+            elif fleet_name == 'battleship':
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(pivot_x + 6, top_y - 28), (pivot_x + 40, top_y - 28), (pivot_x + 46, top_y), (pivot_x + 4, top_y)], pivot_x, pivot_y, tilt))
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(pivot_x + 52, top_y - 12), (pivot_x + 74, top_y - 12), (pivot_x + 78, top_y), (pivot_x + 48, top_y)], pivot_x, pivot_y, tilt))
+                g1, g2 = self._rotate_poly([(pivot_x + 72, top_y - 9), (pivot_x + 102, top_y - 17)], pivot_x, pivot_y, tilt)
+                pygame.draw.line(surf, trim, g1, g2, 3)
+            else:
+                pygame.draw.polygon(surf, hull_dark, self._rotate_poly([(pivot_x + 8, top_y - 22), (pivot_x + 38, top_y - 22), (pivot_x + 42, top_y), (pivot_x + 6, top_y)], pivot_x, pivot_y, tilt))
+                pygame.draw.polygon(surf, trim, self._rotate_poly([(pivot_x + 22, top_y - 36), (pivot_x + 26, top_y - 36), (pivot_x + 26, top_y - 22), (pivot_x + 22, top_y - 22)], pivot_x, pivot_y, tilt))
+
+    def _draw_battle_cam(self, surf):
+        cam = self.battle_cam
+        if cam is None:
+            return
+        rect = self.battle_cam_rect()
+        t = max(0.0, min(1.0, 1.0 - cam['life'] / cam['max_life']))
+        impact_t = 0.28
+        hit_shake = math.sin(self.time * 95) * 6 * (1.0 - (t - impact_t) / 0.34) if impact_t <= t < 0.62 else 0.0
+
+        shadow = pygame.Surface((rect.width + 20, rect.height + 20), pygame.SRCALPHA)
+        shadow.fill((6, 20, 34, 185))
+        surf.blit(shadow, (rect.x - 10, rect.y - 10))
+        pygame.draw.rect(surf, COLORS['PANEL'], rect, border_radius=18)
+
+        inner_w, inner_h = rect.width - 24, rect.height - 88
+        scene = pygame.Surface((inner_w, inner_h), pygame.SRCALPHA)
+        water_y = int(inner_h * 0.64)
+        sky_flash = math.sin(((t - impact_t) / 0.18) * math.pi) if impact_t <= t < 0.46 else 0.0
+        sky_col = (246, 152, 82) if sky_flash > 0.35 else (36, 124, 184) if cam['is_enemy'] else (98, 56, 78)
+        scene.fill(sky_col, pygame.Rect(0, 0, inner_w, water_y))
+        scene.fill((255, 224, 140) if sky_flash > 0.35 else (112, 198, 240), pygame.Rect(0, water_y - 14, inner_w, 14))
+
+        cs = int(t * 18)
+        for cx, cy, cr in ((86 + cs, 34, 16), (104 + cs, 30, 20), (122 + cs, 35, 14), (inner_w - 110 + int(cs * 0.6), 42, 14), (inner_w - 92 + int(cs * 0.6), 38, 18)):
+            pygame.draw.circle(scene, (240, 249, 255, 200), (cx, cy), cr)
+
+        scene.fill((18, 86, 138), pygame.Rect(0, water_y, inner_w, inner_h - water_y))
+        ship_cx = inner_w / 2.0 + hit_shake
+        ship_w = min(270.0, inner_w * 0.56)
+        ship_h = 34.0
+        sink_p = max(0.0, (t - impact_t) / (1.0 - impact_t)) if t > impact_t else 0.0
+        is_flash = impact_t <= t < 0.38
+        self._draw_side_ship_half(scene, cam['fleet_name'], 'stern', ship_cx, water_y, ship_w, ship_h, sink_p * 16.0, sink_p * 54.0, sink_p * 0.58, is_flash)
+        self._draw_side_ship_half(scene, cam['fleet_name'], 'bow', ship_cx, water_y, ship_w, ship_h, sink_p * 16.0, sink_p * 54.0, sink_p * 0.58, is_flash)
+
+        if t < impact_t:
+            p = t / impact_t
+            sx = int(40 + (ship_cx - 40) * p)
+            sy = int(12 + (water_y - 16 - 12) * p)
+            tx = int(40 + (ship_cx - 40) * max(0.0, p - 0.22))
+            ty = int(12 + (water_y - 16 - 12) * max(0.0, p - 0.22))
+            pygame.draw.line(scene, COLORS['GOLD'], (tx, ty), (sx, sy), 6)
+            pygame.draw.circle(scene, (255, 250, 224), (sx, sy), 8)
+        else:
+            ep = min(1.0, (t - impact_t) / 0.65)
+            ex, ey = int(ship_cx), water_y - 14
+            if ep < 0.72:
+                sp = ep / 0.72
+                outer_r = 30 + 62 * math.sin(sp * math.pi * 0.75)
+                inner_r = outer_r * 0.44
+                alpha = max(0, min(255, int(255 * (1.0 - sp * 0.85))))
+                col = (255, 252, 224, alpha) if sp < 0.28 else (255, 214, 92, alpha)
+                pts = [(ex + math.cos((math.pi * i) / 10 + sp * 0.3) * (outer_r if i % 2 == 0 else inner_r), ey + math.sin((math.pi * i) / 10 + sp * 0.3) * (outer_r if i % 2 == 0 else inner_r)) for i in range(20)]
+                pygame.draw.polygon(scene, col, pts)
+                pygame.draw.circle(scene, (255, 118, 102, alpha), (ex, ey), max(4, int(outer_r * 0.56)))
+                gh = 54 * math.sin(sp * math.pi)
+                for d in (-1, 1):
+                    pygame.draw.polygon(scene, (220, 246, 255, alpha), [(ex + d * 48 - 10, water_y + 4), (ex + d * 56, water_y - gh), (ex + d * 48 + 10, water_y + 4)])
+            smoke_a = max(0, min(255, int(160 * (1.0 - sink_p * 0.55))))
+            for i in range(4):
+                sy = int(water_y - 22 - sink_p * (34 + i * 18))
+                sx = int(ex + (-1 if i % 2 == 0 else 1) * (10 + i * 9) * sink_p)
+                pygame.draw.circle(scene, (206, 222, 234, smoke_a), (sx, sy), int(12 + i * 5 + sink_p * 8))
+
+        scene.fill((14, 72, 122), pygame.Rect(0, water_y + 6, inner_w, inner_h - (water_y + 6)))
+        wave_pts = [(wx, water_y + 6 + math.sin(self.time * 8 + wx * 0.08) * 3.5) for wx in range(0, inner_w + 18, 18)]
+        if len(wave_pts) >= 2:
+            pygame.draw.lines(scene, (168, 232, 255), False, wave_pts, 3)
+
+        surf.blit(scene, (rect.x + 12, rect.y + 42))
+        pygame.draw.rect(surf, COLORS['GOLD'] if cam['is_enemy'] else COLORS['CORAL'], rect, width=3, border_radius=18)
+        pygame.draw.rect(surf, COLORS['BORDER'], pygame.Rect(rect.x + 12, rect.y + 42, inner_w, inner_h), 2)
+        pygame.draw.circle(surf, COLORS['CORAL'], (rect.x + 26, rect.y + 22), 6)
+        surf.blit(self.font_md.render("BATTLE CAM", True, COLORS['GOLD']), (rect.x + 40, rect.y + 13))
+        sk = self.font_sm.render("Click or Esc to skip", True, COLORS['MUTED'])
+        surf.blit(sk, (rect.right - 16 - sk.get_width(), rect.y + 15))
+        tt = self.font_h2.render(cam['title'], True, COLORS['GOLD'] if cam['is_enemy'] else COLORS['CORAL'])
+        surf.blit(tt, tt.get_rect(center=(rect.centerx, rect.bottom - 24)))
 
     def _draw_handoff_overlay(self, surf):
         ov = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -1110,6 +1473,8 @@ class GameGUI:
         self._draw_effects(canvas)
         if self.phase() == 'handoff':
             self._draw_handoff_overlay(canvas)
+        elif self.battle_cam is not None:
+            self._draw_battle_cam(canvas)
 
         dx = dy = 0
         if self.shake_time > 0:

@@ -3,15 +3,19 @@ import { BattleshipGame, ComputerPlayer, Player } from "./game";
 import { collidePoint, Painter } from "./painter";
 import { ProfileStore, rankForStars } from "./profile";
 import {
+  drawBattleCam,
   drawCaptainPortrait,
+  drawHitBurst,
   drawHitFlame,
   drawMissSplash,
   drawOceanWaves,
-  drawShipHull
+  drawShipHull,
+  drawSinkingShipBreakup
 } from "./ships";
 import { SoundEffects } from "./sound";
 import {
   BADGE_LABELS,
+  BattleCam,
   BoardSize,
   ButtonAction,
   ButtonSpec,
@@ -33,6 +37,7 @@ import {
   GameSummary,
   GridMetrics,
   HEIGHT,
+  HitBurst,
   LOG_PANEL,
   MOBILE_ENEMY_PANEL,
   MOBILE_HEIGHT,
@@ -51,6 +56,7 @@ import {
   ROSTER_PANEL,
   RULE_LABELS,
   RuleMode,
+  SinkAnim,
   SonarResult,
   WeaponKind,
   WIDTH
@@ -92,6 +98,9 @@ export class BattleshipWebApp {
   public particles: Particle[] = [];
   public ripples: Ripple[] = [];
   public popups: FloatingPopup[] = [];
+  public hitBursts: HitBurst[] = [];
+  public sinkAnims: Record<string, SinkAnim> = {};
+  public battleCam: BattleCam | null = null;
   public pendingEvents: PendingEvent[] = [];
   public pendingEnemyKeys: Record<string, boolean> = {};
   public pendingPlayerKeys: Record<string, boolean> = {};
@@ -140,6 +149,9 @@ export class BattleshipWebApp {
     this.particles = [];
     this.ripples = [];
     this.popups = [];
+    this.hitBursts = [];
+    this.sinkAnims = {};
+    this.battleCam = null;
     this.pendingEvents = [];
     this.pendingEnemyKeys = {};
     this.pendingPlayerKeys = {};
@@ -341,8 +353,46 @@ export class BattleshipWebApp {
         life: kind === "sunk" ? 0.68 : 0.45,
         maxLife: kind === "sunk" ? 0.68 : 0.45,
         color: isHit ? (i % 2 === 0 ? COLORS.CORAL : COLORS.GOLD) : COLORS.BLUE,
-        size: kind === "sunk" ? 5 : 4
+        size: kind === "sunk" ? 5 : 4,
+        kind: "spark"
       });
+    }
+    if (isHit) {
+      const debrisCount = kind === "sunk" ? 10 : 6;
+      for (let i = 0; i < debrisCount; i++) {
+        const ang = -Math.PI * 0.88 + (Math.PI * 0.76 * i) / Math.max(1, debrisCount - 1);
+        const spd = (kind === "sunk" ? 130 : 95) + (i % 3) * 28;
+        this.particles.push({
+          x: center[0] + (i % 2 === 0 ? -4 : 4),
+          y: center[1],
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 30,
+          life: kind === "sunk" ? 0.7 : 0.55,
+          maxLife: kind === "sunk" ? 0.7 : 0.55,
+          color: i % 3 === 0 ? COLORS.SHIP_ACCENT : i % 3 === 1 ? COLORS.SHIP_FILL : COLORS.SHIP_DARK,
+          size: kind === "sunk" ? 8 : 6,
+          kind: "debris",
+          angle: i * 0.7,
+          vAngle: (i % 2 === 0 ? 1 : -1) * (8 + (i % 3) * 3)
+        });
+      }
+    }
+    if (kind === "sunk") {
+      for (let i = 0; i < 8; i++) {
+        const ang = -Math.PI + (Math.PI * i) / 7;
+        const spd = 48 + (i % 3) * 20;
+        this.particles.push({
+          x: center[0],
+          y: center[1],
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 12,
+          life: 0.62,
+          maxLife: 0.62,
+          color: "rgb(220, 246, 255)",
+          size: 5,
+          kind: "foam"
+        });
+      }
     }
   }
 
@@ -386,9 +436,58 @@ export class BattleshipWebApp {
     }
   }
 
-  private triggerShake(intensity: number = 7): void {
-    this.shakeDuration = 0.35;
-    this.shakeTime = this.shakeDuration;
+  private spawnHitBurst(center: Coord, isSunk: boolean, isEnemyBoard: boolean = true): void {
+    const m = this.gridMetrics(isEnemyBoard ? this.enemyPanelRect() : this.playerPanelRect());
+    const dur = isSunk ? 0.72 : 0.58;
+    this.hitBursts.push({
+      x: center[0],
+      y: center[1],
+      cellSize: m.cellSize,
+      life: dur,
+      maxLife: dur,
+      isSunk
+    });
+  }
+
+  private triggerSinkAnimation(fleetName: FleetName, isEnemyBoard: boolean = true): void {
+    const key = (isEnemyBoard ? "e:" : "p:") + fleetName;
+    this.sinkAnims[key] = { life: 1.05, maxLife: 1.05 };
+    this.battleCam = {
+      fleetName,
+      title: (isEnemyBoard ? "ENEMY " : "YOUR ") + FLEET_LABELS[fleetName].toUpperCase() + " DESTROYED!",
+      subtitle: isEnemyBoard ? "Direct sink!" : "Ship lost!",
+      isEnemy: isEnemyBoard,
+      life: 1.65,
+      maxLife: 1.65
+    };
+    const side = isEnemyBoard
+      ? this.playMode === "1p"
+        ? this.game.computer
+        : this.game.opponentPlayer()
+      : this.playMode === "1p"
+        ? this.game.player
+        : this.game.activePlayer();
+    const fl = side.fleetGroup.findByName(fleetName);
+    if (!fl) {
+      return;
+    }
+    fl.coordinates.forEach(([r, c], idx) => {
+      const center = isEnemyBoard ? this.enemyCellCenter(r, c) : this.playerCellCenter(r, c);
+      this.pendingEvents.push({
+        delay: 0.06 * (idx + 1),
+        fn: (ff: boolean) => {
+          if (!ff) {
+            this.spawnHitBurst(center, true, isEnemyBoard);
+            this.spawnImpact(center, "hit");
+          }
+        }
+      });
+    });
+  }
+
+  private triggerShake(intensity: number = 7, duration: number = 0.35): void {
+    this.shakeDuration = duration;
+    this.shakeTime = duration;
     this.shakeIntensity = intensity;
   }
 
@@ -430,12 +529,19 @@ export class BattleshipWebApp {
     this.particles = [];
     this.ripples = [];
     this.popups = [];
+    this.hitBursts = [];
+    this.sinkAnims = {};
+    this.battleCam = null;
     this.shakeTime = 0;
   }
 
   public tick(seconds: number): void {
     const dt = Math.max(0, seconds);
     this.clock += dt;
+
+    if (this.shakeTime > 0) {
+      this.shakeTime = Math.max(0, this.shakeTime - dt);
+    }
 
     const remainingEvents: PendingEvent[] = [];
     for (const evt of this.pendingEvents) {
@@ -468,7 +574,10 @@ export class BattleshipWebApp {
       if (pt.life > 0) {
         pt.x += pt.vx * dt;
         pt.y += pt.vy * dt;
-        pt.vy += 140 * dt;
+        pt.vy += (pt.kind === "debris" ? 210 : pt.kind === "foam" ? 65 : 140) * dt;
+        if (pt.angle !== undefined && pt.vAngle !== undefined) {
+          pt.angle += pt.vAngle * dt;
+        }
         activeParticles.push(pt);
       }
     }
@@ -493,8 +602,26 @@ export class BattleshipWebApp {
     }
     this.popups = activePopups;
 
-    if (this.shakeTime > 0) {
-      this.shakeTime = Math.max(0, this.shakeTime - dt);
+    const activeBursts: HitBurst[] = [];
+    for (const b of this.hitBursts) {
+      b.life -= dt;
+      if (b.life > 0) {
+        activeBursts.push(b);
+      }
+    }
+    this.hitBursts = activeBursts;
+
+    for (const key of Object.keys(this.sinkAnims)) {
+      this.sinkAnims[key].life -= dt;
+      if (this.sinkAnims[key].life <= 0) {
+        delete this.sinkAnims[key];
+      }
+    }
+    if (this.battleCam) {
+      this.battleCam.life -= dt;
+      if (this.battleCam.life <= 0) {
+        this.battleCam = null;
+      }
     }
   }
 
@@ -647,6 +774,19 @@ export class BattleshipWebApp {
         active: true,
         accent: COLORS.GREEN
       }
+    };
+  }
+
+  public battleCamRect(): Rect {
+    const cw = this.mobileMode ? MOBILE_WIDTH : WIDTH;
+    const ch = this.mobileMode ? MOBILE_HEIGHT : HEIGHT;
+    const w = this.mobileMode ? 480 : 560;
+    const h = this.mobileMode ? 260 : 300;
+    return {
+      x: Math.round((cw - w) / 2),
+      y: Math.round((ch - h) / 2) - (this.mobileMode ? 40 : 30),
+      width: w,
+      height: h
     };
   }
 
@@ -895,6 +1035,12 @@ export class BattleshipWebApp {
           }
           if (!fastForward) {
             this.spawnImpact(pos, kind);
+            if (cell.hit) {
+              this.spawnHitBurst(pos, Boolean(cell.sunk), true);
+            }
+            if (cell.sunk) {
+              this.triggerSinkAnimation(cell.sunk);
+            }
           }
         }
         if (!fastForward) {
@@ -966,8 +1112,19 @@ export class BattleshipWebApp {
                 this.spawnImpact(compTargetCenter, compKind);
                 this.sound.play(compKind);
                 if (comp.sunk) {
-                  this.triggerShake(8);
-                  this.addPopup(compTargetCenter, "SUNK!", COLORS.CORAL, 22);
+                  this.spawnHitBurst(compTargetCenter, true, false);
+                  this.triggerSinkAnimation(comp.sunk, false);
+                  this.triggerShake(9, 0.38);
+                  this.addPopup(
+                    compTargetCenter,
+                    FLEET_LABELS[comp.sunk].toUpperCase() + " SUNK!",
+                    COLORS.CORAL,
+                    22
+                  );
+                } else if (comp.hit) {
+                  this.spawnHitBurst(compTargetCenter, false, false);
+                  this.triggerShake(4.5, 0.24);
+                  this.addPopup(compTargetCenter, "HIT!", COLORS.CORAL, 20);
                 }
               }
               if (isLast && res.gameOver && res.winner === "Computer") {
@@ -1049,9 +1206,18 @@ export class BattleshipWebApp {
           this.spawnImpact(targetCenter, kind);
           this.sound.play(kind);
           if (res.sunk) {
-            this.triggerShake(8);
-            this.addPopup(targetCenter, "SUNK!", COLORS.GOLD, 24);
+            this.spawnHitBurst(targetCenter, true, true);
+            this.triggerSinkAnimation(res.sunk, true);
+            this.triggerShake(9, 0.38);
+            this.addPopup(
+              targetCenter,
+              FLEET_LABELS[res.sunk].toUpperCase() + " SUNK!",
+              COLORS.GOLD,
+              24
+            );
           } else if (res.hit) {
+            this.spawnHitBurst(targetCenter, false, true);
+            this.triggerShake(4.5, 0.26);
             const st = res.streakCount ?? 1;
             const label = st >= 2 ? st + "x COMBO!" : "HIT!";
             this.addPopup(targetCenter, label, st >= 2 ? COLORS.GOLD : COLORS.CORAL, 22);
@@ -1133,6 +1299,11 @@ export class BattleshipWebApp {
 
   public handlePointerDown(pt: Coord): void {
     this.hover = pt;
+    if (this.battleCam && collidePoint(this.battleCamRect(), pt)) {
+      this.battleCam = null;
+      this.sound.play("click");
+      return;
+    }
     if (this.phase() === "handoff") {
       if (collidePoint(this.handoffButtonRect(), pt)) {
         this.activate("confirm_handoff");
@@ -1199,6 +1370,11 @@ export class BattleshipWebApp {
   }
 
   public handleKeyDown(key: string): boolean {
+    if (key === "Escape" && this.battleCam) {
+      this.battleCam = null;
+      this.sound.play("click");
+      return true;
+    }
     if (this.phase() === "handoff") {
       if (key === "Enter" || key === " ") {
         this.activate("confirm_handoff");
@@ -1457,11 +1633,17 @@ export class BattleshipWebApp {
     if (isPlayer) {
       for (const fl of viewSide.fleetGroup.fleets) {
         const revHits = this.revealedHitCount(fl, true);
-        drawShipHull(ctx, fl, m, {
-          sunk: revHits === fl.size,
-          selected: this.placingMode && fl.name === this.selectedShipName,
-          clock: this.clock
-        });
+        const isSunk = revHits === fl.size;
+        const sa = this.sinkAnims["p:" + fl.name];
+        if (isSunk && sa) {
+          drawSinkingShipBreakup(ctx, fl, m, 1 - sa.life / sa.maxLife, this.clock);
+        } else {
+          drawShipHull(ctx, fl, m, {
+            sunk: isSunk,
+            selected: this.placingMode && fl.name === this.selectedShipName,
+            clock: this.clock
+          });
+        }
       }
       // Placement hover preview on YOUR FLEET
       if (this.placingMode) {
@@ -1492,7 +1674,12 @@ export class BattleshipWebApp {
         const revHits = this.revealedHitCount(fl, false);
         const isSunk = revHits === fl.size;
         if (isSunk) {
-          drawShipHull(ctx, fl, m, { sunk: true, clock: this.clock });
+          const sa = this.sinkAnims["e:" + fl.name];
+          if (sa) {
+            drawSinkingShipBreakup(ctx, fl, m, 1 - sa.life / sa.maxLife, this.clock);
+          } else {
+            drawShipHull(ctx, fl, m, { sunk: true, clock: this.clock });
+          }
         } else if (this.game.gameOver) {
           drawShipHull(ctx, fl, m, { sunk: false, ghost: true, clock: this.clock });
         }
@@ -1945,8 +2132,41 @@ export class BattleshipWebApp {
       ctx.save?.();
       ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
       ctx.fillStyle = pt.color;
-      ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+      if (pt.kind === "debris") {
+        const ang = pt.angle ?? 0;
+        const hw = pt.size * 0.72;
+        const hh = pt.size * 0.42;
+        const ca = Math.cos(ang);
+        const sa = Math.sin(ang);
+        const corners: [number, number][] = [
+          [-hw, -hh],
+          [hw, -hh],
+          [hw, hh],
+          [-hw, hh]
+        ];
+        ctx.beginPath();
+        for (let i = 0; i < corners.length; i++) {
+          const rx = pt.x + corners[i][0] * ca - corners[i][1] * sa;
+          const ry = pt.y + corners[i][0] * sa + corners[i][1] * ca;
+          if (i === 0) {
+            ctx.moveTo(rx, ry);
+          } else {
+            ctx.lineTo(rx, ry);
+          }
+        }
+        ctx.closePath?.();
+        ctx.fill();
+      } else if (pt.kind === "foam") {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size * 0.65, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+      }
       ctx.restore?.();
+    }
+    for (const burst of this.hitBursts) {
+      drawHitBurst(ctx, burst);
     }
     for (const pop of this.popups) {
       ctx.save?.();
@@ -2055,6 +2275,8 @@ export class BattleshipWebApp {
 
     if (this.phase() === "handoff") {
       this.drawHandoffOverlay();
+    } else if (this.battleCam) {
+      drawBattleCam(this.ctx, this.painter, this.battleCamRect(), this.battleCam, this.clock);
     }
 
     if (shaking) {

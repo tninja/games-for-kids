@@ -130,6 +130,35 @@ class TestBattleshipMatchAndPygameGUI(unittest.TestCase):
             gui.handle_click((int(cx), int(cy)))
             self.assertEqual(gui.match.shots_fired, 1)
 
+            # Explicit enemy hit triggers short hit burst animation & subtle shake
+            gui.match.computer.fleet_group.fleets = [
+                Fleet(0, 0, 2, "horizontal", "destroyer"),
+                Fleet(5, 0, 3, "horizontal", "cruiser"),
+            ]
+            hx, hy = gui.cell_center(ENEMY_PANEL, 0, 0)
+            gui.handle_click((int(hx), int(hy)))
+            gui.tick(0.25)
+            self.assertGreater(len(gui.hit_bursts), 0)
+            self.assertGreater(gui.shake_time, 0.0)
+            self.assertTrue(any(p.get("kind") == "debris" for p in gui.particles))
+            gui.draw()
+            gui.tick(1.2)
+            self.assertEqual(len(gui.hit_bursts), 0)
+
+            # Sinking enemy ship triggers breakup animation & Battle Cam side-view popup
+            hx2, hy2 = gui.cell_center(ENEMY_PANEL, 0, 1)
+            gui.handle_click((int(hx2), int(hy2)))
+            gui.tick(0.25)
+            self.assertIn("e:destroyer", gui.sink_anims)
+            self.assertIsNotNone(gui.battle_cam)
+            gui.draw()
+            gui.tick(0.5)
+            gui.draw()
+            gui.handle_key(pygame.K_ESCAPE)
+            self.assertIsNone(gui.battle_cam)
+            gui.tick(1.0)
+            self.assertNotIn("e:destroyer", gui.sink_anims)
+
             # Cross bomb
             gui.activate("select_bomb")
             bx, by = gui.cell_center(ENEMY_PANEL, 4, 4)
