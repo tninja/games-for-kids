@@ -379,7 +379,17 @@ class BattleshipWebTests(unittest.TestCase):
 
     def test_typescript_sources_typecheck_and_build_sync(self) -> None:
         ts_dir = ROOT / "battleship/ts"
-        expected_ts = ("types.ts", "fleet.ts", "game.ts", "sound.ts", "painter.ts", "app.ts", "build.mjs")
+        expected_ts = (
+            "types.ts",
+            "fleet.ts",
+            "game.ts",
+            "sound.ts",
+            "painter.ts",
+            "profile.ts",
+            "ships.ts",
+            "app.ts",
+            "build.mjs",
+        )
         for name in expected_ts:
             path = ts_dir / name
             self.assertTrue(path.is_file(), f"Missing TypeScript file: battleship/ts/{name}")
@@ -409,6 +419,121 @@ class BattleshipWebTests(unittest.TestCase):
             self.assertEqual(line, line.rstrip(), f"Trailing whitespace in battleship/build_web.sh:{idx}")
         sh_chk = subprocess.run([str(build_sh), "--check"], cwd=ROOT, capture_output=True, text=True, check=False)
         self.assertEqual(sh_chk.returncode, 0, f"build_web.sh --check failed:\n{sh_chk.stdout}\n{sh_chk.stderr}")
+
+    def test_kids_ai_tiers_placement_skills_and_rules(self) -> None:
+        script = (
+            'const assert = require("assert");'
+            'const bs = require("./docs/battleship/app.js");'
+            + _mock_ctx_js() +
+            'for (const diff of ["easy", "normal", "hard"]) {'
+            '  const g = new bs.BattleshipGame({ boardSize: 7, seed: 71, difficulty: diff });'
+            '  assert.strictEqual(g.captainInfo().difficulty, diff);'
+            '  const shot = g.computer.chooseNextShot(g.player, g.rng);'
+            '  assert.ok(shot[0] >= 0 && shot[0] < 7 && shot[1] >= 0 && shot[1] < 7);'
+            '}'
+            'const app = new bs.BattleshipWebApp({ getContext: () => ctx }, { seed: 88, persistProfile: false });'
+            'app.activate("toggle_place");'
+            'assert.strictEqual(app.phase(), "place");'
+            'app.draw();'
+            'assert.strictEqual(app.layoutErrors.length, 0, "Placement layout errors: " + app.layoutErrors);'
+            'app.handleKeyDown("t");'
+            'assert.strictEqual(app.placeDirection, "vertical");'
+            'app.selectedShipName = "carrier";'
+            'app.placeDirection = "horizontal";'
+            'app.game.player.fleetGroup.fleets = ['
+            '  new bs.Fleet(0, 0, 5, "horizontal", "carrier"),'
+            '  new bs.Fleet(2, 0, 4, "horizontal", "battleship"),'
+            '  new bs.Fleet(3, 0, 3, "horizontal", "cruiser"),'
+            '  new bs.Fleet(4, 0, 3, "horizontal", "submarine"),'
+            '  new bs.Fleet(5, 0, 3, "horizontal", "destroyer")'
+            '];'
+            'assert.strictEqual(app.placeSelectedShipAt(1, 0), true);'
+            'assert.strictEqual(app.placeSelectedShipAt(1, 0), false, "Overlap must fail");'
+            'app.activate("finish_place");'
+            'assert.strictEqual(app.phase(), "battle");'
+            'app.game.computer.fleetGroup.fleets = ['
+            '  new bs.Fleet(1, 1, 3, "horizontal", "cruiser"),'
+            '  new bs.Fleet(5, 0, 2, "horizontal", "destroyer")'
+            '];'
+            'app.activate("select_sonar");'
+            'assert.strictEqual(app.weapon, "sonar");'
+            'app.draw();'
+            'assert.strictEqual(app.layoutErrors.length, 0);'
+            'const sRes = app.useSonarAt(1, 2);'
+            'assert.strictEqual(sRes.accepted, true);'
+            'assert.strictEqual(sRes.count, 3);'
+            'assert.strictEqual(app.game.sonarLeft[0], 1);'
+            'assert.ok(app.sound.played.includes("sonar"));'
+            'const sAgain = app.useSonarAt(0, 0);'
+            'assert.strictEqual(sAgain.accepted, false);'
+            'app.activate("select_bomb");'
+            'assert.strictEqual(app.weapon, "bomb");'
+            'app.draw();'
+            'assert.strictEqual(app.layoutErrors.length, 0);'
+            'const bRes = app.fireAt(1, 2);'
+            'assert.strictEqual(bRes.accepted, true);'
+            'assert.strictEqual(app.game.bombLeft[0], 0);'
+            'app.tick(1.0);'
+            'assert.ok(app.sound.played.includes("bomb"));'
+            'const stGame = new bs.BattleshipGame({ boardSize: 7, seed: 5, ruleMode: "streak" });'
+            'stGame.computer.fleetGroup.fleets = [new bs.Fleet(0, 0, 3, "horizontal", "cruiser")];'
+            'const h1 = stGame.playerFire(0, 0);'
+            'assert.strictEqual(h1.bonusTurn, true);'
+            'assert.strictEqual(stGame.computer.hitHistory.length, 0, "Streak hit keeps turn");'
+            'const slGame = new bs.BattleshipGame({ boardSize: 7, seed: 6, ruleMode: "salvo" });'
+            'const sShot1 = slGame.playerFire(0, 0);'
+            'assert.strictEqual(sShot1.bonusTurn, true);'
+            'assert.strictEqual(sShot1.salvoRemaining, 4);'
+            'console.log("ok");'
+        )
+        self.assertEqual(_run_node(script).strip(), "ok")
+
+    def test_2p_handoff_helper_mode_and_progression(self) -> None:
+        script = (
+            'const assert = require("assert");'
+            'const bs = require("./docs/battleship/app.js");'
+            + _mock_ctx_js() +
+            'const app = new bs.BattleshipWebApp({ getContext: () => ctx }, { seed: 91, playMode: "2p", persistProfile: false });'
+            'assert.strictEqual(app.phase(), "place");'
+            'app.draw();'
+            'assert.strictEqual(app.layoutErrors.length, 0);'
+            'app.activate("finish_place");'
+            'assert.strictEqual(app.phase(), "handoff");'
+            'app.draw();'
+            'assert.strictEqual(app.layoutErrors.length, 0);'
+            'app.handleKeyDown(" ");'
+            'assert.strictEqual(app.phase(), "place");'
+            'assert.strictEqual(app.placingSide, 1);'
+            'app.activate("finish_place");'
+            'assert.strictEqual(app.phase(), "handoff");'
+            'app.activate("confirm_handoff");'
+            'assert.strictEqual(app.phase(), "battle");'
+            'assert.strictEqual(app.game.activePlayerIndex, 0);'
+            'const f1 = app.fireAt(0, 0);'
+            'assert.strictEqual(f1.accepted, true);'
+            'assert.strictEqual(app.phase(), "handoff");'
+            'app.activate("confirm_handoff");'
+            'assert.strictEqual(app.game.activePlayerIndex, 1);'
+            'const hApp = new bs.BattleshipWebApp({ getContext: () => ctx }, { seed: 44, helperMode: true, difficulty: "hard", persistProfile: false });'
+            'hApp.game.computer.fleetGroup.fleets = [new bs.Fleet(6, 4, 3, "horizontal", "cruiser")];'
+            'for (let c = 0; c < 4; c++) { hApp.fireAt(0, c); hApp.tick(1.0); }'
+            'assert.ok(hApp.game.helperHint() !== null, "Expected helper hint after 4 misses");'
+            'hApp.fireAt(6, 4); hApp.tick(1.0);'
+            'hApp.fireAt(6, 5); hApp.tick(1.0);'
+            'hApp.fireAt(6, 6); hApp.tick(1.0);'
+            'assert.strictEqual(hApp.game.gameOver, true);'
+            'assert.ok(hApp.summary !== null);'
+            'assert.ok(hApp.summary.stars >= 1);'
+            'assert.ok(hApp.profile.data.badges.includes("first_win"));'
+            'assert.ok(hApp.profile.data.badges.includes("admiral_slayer"));'
+            'hApp.draw();'
+            'assert.strictEqual(hApp.layoutErrors.length, 0);'
+            'hApp.setMobileMode(true);'
+            'hApp.draw();'
+            'assert.strictEqual(hApp.layoutErrors.length, 0);'
+            'console.log("ok");'
+        )
+        self.assertEqual(_run_node(script).strip(), "ok")
 
 
 if __name__ == "__main__":

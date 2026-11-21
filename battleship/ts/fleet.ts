@@ -82,6 +82,19 @@ export class FleetGroup {
     this.fleets.push(fleet);
   }
 
+  public remove(name: FleetName): void {
+    this.fleets = this.fleets.filter((f) => f.name !== name);
+  }
+
+  public findByName(name: FleetName): Fleet | null {
+    for (const fleet of this.fleets) {
+      if (fleet.name === name) {
+        return fleet;
+      }
+    }
+    return null;
+  }
+
   public findAt(x: number, y: number): Fleet | null {
     for (const fleet of this.fleets) {
       if (fleet.hasCoord(x, y)) {
@@ -91,6 +104,41 @@ export class FleetGroup {
     return null;
   }
 
+  public isValidPlacement(
+    x: number,
+    y: number,
+    size: number,
+    direction: Direction,
+    boardSize: number,
+    ignoreName?: FleetName
+  ): boolean {
+    for (let i = 0; i < size; i++) {
+      const r = direction === "vertical" ? x + i : x;
+      const c = direction === "horizontal" ? y + i : y;
+      if (r < 0 || r >= boardSize || c < 0 || c >= boardSize) {
+        return false;
+      }
+      for (const fleet of this.fleets) {
+        if (ignoreName && fleet.name === ignoreName) {
+          continue;
+        }
+        if (fleet.hasCoord(r, c)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  public replaceOrAdd(fleet: Fleet): void {
+    const idx = this.fleets.findIndex((f) => f.name === fleet.name);
+    if (idx >= 0) {
+      this.fleets[idx] = fleet;
+    } else {
+      this.fleets.push(fleet);
+    }
+  }
+
   public hit(x: number, y: number): FleetName | null {
     for (const fleet of this.fleets) {
       if (fleet.hit(x, y)) {
@@ -98,6 +146,26 @@ export class FleetGroup {
       }
     }
     return null;
+  }
+
+  public remainingCount(): number {
+    let count = 0;
+    for (const fleet of this.fleets) {
+      if (!fleet.isSunk()) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  public minUnsunkSize(): number {
+    let minSize = Infinity;
+    for (const fleet of this.fleets) {
+      if (!fleet.isSunk() && fleet.size < minSize) {
+        minSize = fleet.size;
+      }
+    }
+    return Number.isFinite(minSize) ? minSize : 0;
   }
 
   public allSunk(): boolean {

@@ -114,6 +114,20 @@ export class SoundEffects {
       this.tone(ctx, 140, 34, 0.42, "sawtooth", 0.2, 0);
       this.tone(ctx, 220, 55, 0.28, "square", 0.1, 0.08);
       this.noise(ctx, 0.38, 650, 0.22, 0);
+    } else if (kind === "sonar") {
+      this.tone(ctx, 1180, 1140, 0.36, "sine", 0.14, 0);
+      this.tone(ctx, 1760, 1720, 0.22, "sine", 0.06, 0.08);
+    } else if (kind === "bomb") {
+      this.tone(ctx, 150, 28, 0.48, "sawtooth", 0.22, 0);
+      this.noise(ctx, 0.45, 720, 0.24, 0);
+      this.tone(ctx, 240, 50, 0.3, "square", 0.12, 0.12);
+    } else if (kind === "combo") {
+      this.tone(ctx, 587.33, 587.33, 0.1, "triangle", 0.13, 0);
+      this.tone(ctx, 880.0, 880.0, 0.16, "triangle", 0.15, 0.08);
+    } else if (kind === "place") {
+      this.tone(ctx, 320, 440, 0.08, "triangle", 0.11, 0);
+    } else if (kind === "rotate") {
+      this.tone(ctx, 520, 680, 0.05, "sine", 0.08, 0);
     } else if (kind === "win") {
       this.tone(ctx, 523.25, 523.25, 0.14, "triangle", 0.14, 0);
       this.tone(ctx, 659.25, 659.25, 0.14, "triangle", 0.14, 0.11);
