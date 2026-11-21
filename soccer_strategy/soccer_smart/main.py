@@ -23,7 +23,9 @@ def smoke(screenshot: str | None = None) -> None:
                    "book_entry:90", "skip", "choice:0", "skip", "continuous",
                    "play_next", "play_family:7", "skip", "choice:0", "skip",
                    "coach", "skip", "retry", "skip", "choice:1", "skip", "next",
-                   "skip", "choice:0", "skip"):
+                   "skip", "choice:0", "skip", "match_cup", "match_start:C1M1",
+                   "match_skip", "match_vision", "match_loft", "match_anchor:0",
+                   "match_skip", "match_rewind", "match_coach", "match_skip"):
         app.activate(action)
         app.draw()
         if app.layout_errors:

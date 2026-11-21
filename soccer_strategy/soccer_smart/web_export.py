@@ -10,6 +10,7 @@ from .book import lessons
 from .book_cards import build_book_cards
 from .book_tactics import build_book_scenes
 from .book_view import CATEGORIES
+from .campaign import build_cups
 from .catalog import build_catalog, build_practice_cards
 from .curriculum import GROUPS, SECTIONS
 from .play_content import FAMILIES, build_plays
@@ -19,6 +20,7 @@ DEFAULT_DOCS = ROOT / "docs"
 REQUIRED_WEB_FILES = (
     "index.html",
     "soccer_smart/index.html",
+    "soccer_smart/sim_kernel.js",
     "soccer_smart/app.js",
     "soccer_smart/data.json",
     "soccer_smart/data.js",
@@ -89,6 +91,7 @@ def build_web_payload() -> dict[str, Any]:
         "lessons": [asdict(entry) for entry in lessons()],
         "plays": [asdict(play) for play in build_plays()],
         "play_families": list(FAMILIES),
+        "cups": [asdict(cup) for cup in build_cups()],
     }
     personalized = JOHN_PATTERN.sub(_replace_match, json.dumps(raw_payload))
     return json.loads(personalized)

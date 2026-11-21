@@ -24,7 +24,7 @@ class ContinuousUITests(unittest.TestCase):
         self.assertFalse(self.app.layout_errors,self.app.layout_errors)
 
     def test_eighth_menu_entry_and_all_family_controls(self):
-        self.assertEqual(len(self.app.buttons()),8)
+        self.assertEqual(len(self.app.buttons()),9)
         self.app.handle_event(pygame.event.Event(pygame.KEYDOWN,key=pygame.K_8))
         self.fits()
         self.app.activate('play_next')

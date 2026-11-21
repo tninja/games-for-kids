@@ -64,7 +64,7 @@ def defensive_opening(family: int, variant: str) -> Scenario:
 
 def defensive_choices(ball: Point, receiver: Point, targets: dict[str,Point], released: bool) -> tuple[Choice, ...]:
     end = receiver if released else ball
-    step = option("step","Meet the released pass" if released else "Step into a guessed passing lane",
+    step = option("step","Meet the released pass" if released else "Jump the diagonal passing lane",
                   2 if released else 0,targets["step"],targets["step"] if released else ball,
                   "intercept" if released else "move",
                   "The released ball crosses within one step. Meet the actual lane." if released else
@@ -92,7 +92,7 @@ def support(people: tuple[Actor, ...], ball: Point, holder: Actor) -> tuple[str,
         option("hold","Stay available where you are",2 if usable else 1,john,ball,"move",
                "Your current position already offers a clear return lane. Staying available is a good choice too." if usable else
                "You preserve your spacing, but a defender screens this return lane. Move to offer a clearer angle."),
-        option("screened","Hide behind A2's cover shadow",0,shadow,ball,"move",
+        option("screened","Move higher behind A2",0,shadow,ball,"move",
                "A2 is between the carrier and you, screening the return lane. Your teammate keeps the ball; make yourself visible."))
 
 
@@ -113,7 +113,7 @@ def pressure(scene: Scenario, people: tuple[Actor, ...], ball: Point) -> tuple[s
         good, option("pause","Protect the ball and look",2 if time_to_scan else 1,ball,ball,"move",
                      "No opponent is close enough for immediate pressure. Keeping control and scanning is a good choice too." if time_to_scan else
                      "You protect possession, but the marker is close. Use the available outlet before pressure grows."),
-        option("force","Push the ball straight into the marker",0,lerp(ball,rival.position,.7),rival.position,"dribble",
+        option("force","Drive forward past the marker",0,lerp(ball,rival.position,.7),rival.position,"dribble",
                "This straight touch enters the marker's reach. A feint or a different exit would be a separate option.",aim=rival.position))
 
 
@@ -134,7 +134,7 @@ def recovery(people: tuple[Actor, ...], ball: Point, holder: Actor) -> tuple[str
         option("hold","Hold your current defensive shape",2 if distance <= 4 else 1,john,ball,"move",
                "You already provide central cover. Holding shape while watching the carrier is a good choice too." if distance <= 4 else
                "You stay connected with play, but central cover is still open. Recover toward your goal."),
-        option("chase","Run beyond the ball carrier",0,bounded((ball[0],ball[1]-8)),ball,"move",
+        option("chase","Step high past the ball carrier",0,bounded((ball[0],ball[1]-8)),ball,"move",
                "The opponent still controls the ball. Running beyond the carrier leaves the route toward your goal uncovered."))
 
 

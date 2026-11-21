@@ -16,7 +16,7 @@ function fits() {
   app.draw();
   assert.deepEqual(app.layoutErrors,[]);
 }
-assert.equal(app.buttons().length,8);
+assert.equal(app.buttons().length,9);
 app.handleKeyDown("8");
 assert.match(app.mobileState().badge,/CONTINUOUS/);
 fits();

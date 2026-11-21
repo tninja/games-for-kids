@@ -34,6 +34,7 @@ def _seed_html_and_js(docs: Path) -> None:
     (docs / "soccer_smart").mkdir(parents=True, exist_ok=True)
     (docs / "index.html").write_text("<!DOCTYPE html>\n<html></html>\n", encoding="utf-8")
     (docs / "soccer_smart/index.html").write_text("<!DOCTYPE html>\n<html></html>\n", encoding="utf-8")
+    (docs / "soccer_smart/sim_kernel.js").write_text("// clean ascii\n", encoding="utf-8")
     (docs / "soccer_smart/app.js").write_text("// clean ascii\n", encoding="utf-8")
 
 

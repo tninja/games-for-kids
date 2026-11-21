@@ -1,9 +1,11 @@
 """Pygame screens and event handling for Soccer Smart Lab."""
 
+from pathlib import Path
 import pygame
 
-from .catalog import build_practice_cards
+from .audio import SoundBank
 from .book_view import BookBrowser
+from .catalog import build_practice_cards
 from .content import TOPICS
 from .curriculum import MIXED_STAGE, SECTIONS, group_for_id
 from .drawing import (
@@ -25,12 +27,15 @@ from .drawing import (
     draw_window_marker,
     pitch_point,
 )
-from .presentation import ball_height, card_positions, coach_choice, positions, route_destination
-from .presentation import card_height
+from .match_session import MatchSession
+from .match_view import MatchBrowser, draw_match_screen, match_buttons, screen_to_pitch
 from .model import Choice, Scenario
-from .session import ANIMATION_SECONDS, Session
 from .play_session import ContinuousSession
 from .play_view import PlayBrowser
+from .presentation import ball_height, card_height, card_positions, coach_choice, positions, route_destination
+from .session import ANIMATION_SECONDS, Session
+from .sim_kernel import guided_anchors
+from .storage import ProgressStore
 
 MENU_CARDS = tuple(
     (f"{section.id:02d} / {section.title}", f"3 topics: {section.description}", f"stage:{section.id}")
@@ -40,6 +45,7 @@ MENU_CARDS = tuple(
     ("06 / Practice cards", "7 technique demos & adult activities", "cards:0"),
     ("07 / Book companion", "57 topics / original practice", "book"),
     ("08 / Continuous Play", "24 openings / linked decisions", "continuous"),
+    ("09 / Match Day Cup", "7v7 & 9v9 live 2D tactics / pitch play", "match_cup"),
 )
 
 
@@ -53,14 +59,27 @@ def choice_route(painter: Painter, scene: Scenario, choice: Choice,
         draw(painter.surface, pitch_point(scene.john.position), pitch_point(route_destination(choice)), color)
 
 
+def _star_count(results: dict[str, int]) -> int:
+    if not results:
+        return 1
+    strong = sum(1 for r in results.values() if r == 2)
+    ok = sum(1 for r in results.values() if r > 0)
+    total = len(results)
+    if strong * 4 >= total * 3:
+        return 3
+    return 2 if ok * 2 >= total else 1
+
+
 class App:
-    def __init__(self, seed: int = 0):
+    def __init__(self, seed: int = 0, progress_path: Path | None = None):
         pygame.display.init()
         pygame.font.init()
         self.window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption("Soccer Smart Lab - John's tactical decisions")
         self.canvas = pygame.Surface((WIDTH, HEIGHT))
         self.painter = Painter(self.canvas)
+        self.sound = SoundBank()
+        self.store = ProgressStore(progress_path)
         self.cards = build_practice_cards()
         self.session: Session | None = None
         self.card_index: int | None = None
@@ -71,12 +90,19 @@ class App:
         self.history: dict[str, list[str]] = {}
         self.book: BookBrowser | None = None
         self.play_browser: PlayBrowser | None = None
+        self.match_browser: MatchBrowser | None = None
+        self.match_session: MatchSession | None = None
+        self.coach_info = False
 
     @property
     def layout_errors(self) -> list[str]:
         return self.painter.errors
 
     def buttons(self) -> list[Button]:
+        if self.match_session is not None:
+            return match_buttons(self.match_session)
+        if self.match_browser is not None:
+            return self.match_browser.buttons()
         if self.play_browser is not None and self.session is None:
             return self.play_browser.buttons()
         if self.book is not None and self.session is None and self.card_index is None:
@@ -85,7 +111,7 @@ class App:
         if self.book is not None:
             result.append(Button(pygame.Rect(910, 30, 190, 50), "Book topics / B", "book_back"))
         if self.play_browser is not None:
-            result.append(Button(pygame.Rect(910,30,190,50),"Play tasks / B","play_back"))
+            result.append(Button(pygame.Rect(910, 30, 190, 50), "Play tasks / B", "play_back"))
         return result
 
     def _content_buttons(self) -> list[Button]:
@@ -97,7 +123,7 @@ class App:
             ]
         s = self.session
         if s is None:
-            return [Button(pygame.Rect(814, 264 + i * 62, 410, 58),
+            return [Button(pygame.Rect(814, 240 + i * 59, 410, 55),
                            title + "\n" + subtitle, action)
                     for i, (title, subtitle, action) in enumerate(MENU_CARDS)]
         if s.phase == "decide":
@@ -107,57 +133,122 @@ class App:
             return [
                 Button(pygame.Rect(814, 612, 410, 54), "Compare coach demo  /  C", "coach"),
                 Button(pygame.Rect(814, 674, 410, 54), "Try another choice  /  R", "retry"),
-                Button(pygame.Rect(814, 736, 410, 54), s.next_label if isinstance(s,ContinuousSession) else "Next situation  /  N", "next"),
+                Button(pygame.Rect(814, 736, 410, 54), s.next_label if isinstance(s, ContinuousSession) else "Next situation  /  N", "next"),
             ]
         if s.phase == "summary":
             return [Button(pygame.Rect(814, 732, 410, 58), "Choose another section", "menu")]
         label = "Pause and decide  /  SPACE" if s.phase == "observe" else "Show feedback  /  SPACE"
         return [Button(pygame.Rect(814, 732, 410, 58), label, "skip")]
 
+    def _clear_modes(self) -> None:
+        self.play_browser = None
+        self.book = None
+        self.match_browser = None
+        self.match_session = None
+        self.session = None
+        self.card_index = None
+
     def activate(self, action: str) -> None:
-        if action == "continuous":
+        if action == "match_cup":
+            self._clear_modes()
+            self.match_browser = MatchBrowser(self.store)
+            self.sound.play("click")
+        elif action.startswith("match_"):
+            self._match_action(action)
+        elif action == "continuous":
+            self._clear_modes()
             self.play_browser = PlayBrowser()
-            self.session, self.card_index, self.book = None, None, None
         elif action.startswith("play_") and self.play_browser is not None:
             self._play_action(action)
         elif action == "book":
-            self.play_browser = None
+            self._clear_modes()
             self.book = BookBrowser()
-            self.session, self.card_index = None, None
         elif action.startswith("book_") and self.book is not None:
             self._book_action(action)
         elif action.startswith("stage:"):
-            self.play_browser = None
-            self.book = None
+            self._clear_modes()
             self.session = Session(int(action.split(":")[1]), self.seed)
-            self.card_index = None
             self.seed += 1
             self.history = {}
         elif action.startswith("cards:"):
-            self.play_browser = None
-            self.book = None
+            self._clear_modes()
             self.cards = build_practice_cards()
-            self.session = None
             self.card_index = int(action.split(":")[1]) % len(self.cards)
             self.card_elapsed = 0.0
         elif action == "menu":
-            self.play_browser = None
-            self.book = None
-            self.session = None
-            self.card_index = None
+            self._clear_modes()
+        elif action == "toggle_info":
+            self.coach_info = not self.coach_info
+        elif action == "toggle_sound":
+            self.sound.toggle()
         elif self.card_index is not None:
             self._card_action(action)
         elif self.session is not None:
             self._session_action(action)
 
+    def _match_action(self, action: str) -> None:
+        if action == "match_tier":
+            nxt = "9v9" if self.store.data.get("rules_tier") == "7v7" else "7v7"
+            self.store.set_tier(nxt)
+            self.sound.play("click")
+        elif action.startswith("match_start:"):
+            match_id = action.split(":")[1]
+            self.match_session = MatchSession(match_id)
+            self.sound.play("whistle")
+        elif action == "match_back":
+            self.match_session = None
+            self.match_browser = MatchBrowser(self.store)
+        elif self.match_session is not None:
+            self._match_session_action(action)
+
+    def _match_anchor_action(self, ms: MatchSession, idx: int) -> None:
+        anchors = guided_anchors(ms.state)
+        if 0 <= idx < len(anchors):
+            act = anchors[idx][1]
+            if ms.loft and act.kind in ("pass", "shoot"):
+                act = type(act)(act.kind, act.tx, act.ty, True, act.target_key)
+            if ms.commit_action(act) is not None:
+                self.sound.play("loft" if act.loft else "kick")
+
+    def _match_session_action(self, action: str) -> None:
+        ms = self.match_session
+        assert ms is not None
+        if action == "match_loft":
+            ms.loft = not ms.loft
+            self.sound.play("click")
+        elif action == "match_intent":
+            ms.offball_intent = "decoy" if ms.offball_intent == "call" else "call"
+            self.sound.play("click")
+        elif action == "match_vision":
+            ms.pro_vision = not ms.pro_vision
+            self.sound.play("click")
+        elif action == "match_rewind":
+            if ms.rewind_beat():
+                self.sound.play("rewind")
+        elif action == "match_coach":
+            if ms.start_coach_demo():
+                self.sound.play("whistle")
+        elif action == "match_skip":
+            ms.skip_phase()
+        elif action == "match_replay":
+            self.match_session = MatchSession(ms.match.id)
+            self.sound.play("whistle")
+        elif action == "match_next":
+            if ms.next_moment() and ms.phase == "match_summary":
+                stars, won, hg, ag = ms.summary()
+                self.store.record_match(ms.match.id, stars, won, hg, ag, ms.earned_badges, ms.radar_delta)
+                self.sound.play("complete")
+        elif action.startswith("match_anchor:"):
+            self._match_anchor_action(ms, int(action.split(":")[1]))
+
     def _play_action(self, action: str) -> None:
         assert self.play_browser is not None
         if action == "play_back":
             self.session = None
-        elif action in ("play_next","play_prev"):
+        elif action in ("play_next", "play_prev"):
             self.play_browser.change_page(1 if action == "play_next" else -1)
         elif action.startswith("play_family:"):
-            self.session = ContinuousSession(int(action.split(":")[1]),self.seed)
+            self.session = ContinuousSession(int(action.split(":")[1]), self.seed)
             self.seed += 1
             self.history = {}
 
@@ -202,7 +293,10 @@ class App:
         if action.startswith("choice:"):
             index = int(action.split(":")[1])
             if s.choose(index):
-                self.history.setdefault(s.scene.id, []).append(s.scene.choices[index].label)
+                choice = s.scene.choices[index]
+                self.history.setdefault(s.scene.id, []).append(choice.label)
+                self.store.record_classic(s.scene.id, choice.rating)
+                self.sound.play("good" if choice.rating == 2 else "click" if choice.rating == 1 else "risk")
         elif action == "coach":
             s.compare_coach()
         elif action == "retry":
@@ -221,28 +315,49 @@ class App:
             self.running = False
         elif event.type == pygame.MOUSEMOTION:
             self.hover = self.logical_point(event.pos)
+            if self.match_session is not None and self.match_session.phase == "freeze":
+                pt = screen_to_pitch(self.hover)
+                if pt is not None:
+                    self.match_session.preview_point(pt[0], pt[1])
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            pos = self.logical_point(event.pos)
-            if (self.session is not None or self.card_index is not None or self.book is not None or self.play_browser is not None) and pygame.Rect(1120, 35, 125, 40).collidepoint(pos):
-                self.activate("menu")
-            else:
-                for button in self.buttons():
-                    if button.rect.collidepoint(pos):
-                        self.activate(button.action)
-                        break
+            self._handle_click(self.logical_point(event.pos))
         elif event.type == pygame.KEYDOWN:
             self._key(event.key)
 
+    def _handle_click(self, pos: tuple[int, int]) -> None:
+        in_sub = any(x is not None for x in (self.session, self.card_index, self.book, self.play_browser,
+                                             self.match_browser, self.match_session))
+        if in_sub and pygame.Rect(1120, 35, 125, 40).collidepoint(pos):
+            self.activate("menu")
+            return
+        if self.match_session is not None and self.match_session.phase == "freeze":
+            pt = screen_to_pitch(pos)
+            if pt is not None:
+                res = self.match_session.commit_point(pt[0], pt[1])
+                if res is not None:
+                    self.sound.play("loft" if self.match_session.loft else "kick")
+                return
+        for button in self.buttons():
+            if button.rect.collidepoint(pos):
+                self.activate(button.action)
+                return
+
     def _key(self, key: int) -> None:
+        if self._match_key(key):
+            return
         if self._play_key(key):
             return
         if self._book_key(key):
             return
         if key == pygame.K_ESCAPE:
             self.activate("menu")
-        elif key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8):
+        elif key == pygame.K_i:
+            self.activate("toggle_info")
+        elif key == pygame.K_m:
+            self.activate("toggle_sound")
+        elif pygame.K_1 <= key <= pygame.K_9:
             number = key - pygame.K_1
-            if self.session is None and self.card_index is None:
+            if self.session is None and self.card_index is None and number < len(MENU_CARDS):
                 self.activate(MENU_CARDS[number][2])
             elif self.session is not None and self.session.phase == "decide" and number < 3:
                 self.activate(f"choice:{number}")
@@ -255,6 +370,36 @@ class App:
         elif key == pygame.K_n:
             self.activate("card_next" if self.card_index is not None else "next")
 
+    def _match_key(self, key: int) -> bool:
+        if self.match_session is not None:
+            mapping = {
+                pygame.K_l: "match_loft", pygame.K_d: "match_intent", pygame.K_v: "match_vision",
+                pygame.K_z: "match_rewind", pygame.K_c: "match_coach", pygame.K_n: "match_next",
+                pygame.K_b: "match_back", pygame.K_r: "match_replay", pygame.K_SPACE: "match_skip",
+                pygame.K_ESCAPE: "menu",
+            }
+            if key in mapping:
+                self.activate(mapping[key])
+                return True
+            if pygame.K_1 <= key <= pygame.K_4 and self.match_session.phase == "freeze":
+                self.activate(f"match_anchor:{key - pygame.K_1}")
+                return True
+            return False
+        if self.match_browser is None:
+            return False
+        if key == pygame.K_t:
+            self.activate("match_tier")
+            return True
+        if key == pygame.K_ESCAPE:
+            self.activate("menu")
+            return True
+        if pygame.K_1 <= key <= pygame.K_6:
+            action = self.match_browser.number_action(key - pygame.K_1)
+            if action is not None:
+                self.activate(action)
+            return True
+        return False
+
     def _play_key(self, key: int) -> bool:
         if self.play_browser is None:
             return False
@@ -262,11 +407,11 @@ class App:
             self.activate("play_back")
             return True
         if self.session is None and pygame.K_1 <= key <= pygame.K_8:
-            action = self.play_browser.number_action(key-pygame.K_1)
+            action = self.play_browser.number_action(key - pygame.K_1)
             if action is not None:
                 self.activate(action)
             return True
-        if self.session is None and key in (pygame.K_LEFT,pygame.K_RIGHT):
+        if self.session is None and key in (pygame.K_LEFT, pygame.K_RIGHT):
             self.activate("play_prev" if key == pygame.K_LEFT else "play_next")
             return True
         return False
@@ -295,13 +440,31 @@ class App:
         p.text("SOCCER SMART LAB", pygame.Rect(30, 27, 680, 48), 49)
         p.text("Scan space, pressure, and teammates before you act.",
                pygame.Rect(32, 83, 720, 30), 26, MUTED)
-        role = ""
-        if self.session is not None and self.session.phase != "summary":
-            role = self.session.scene.role
+        role = self.session.scene.role if (self.session is not None and self.session.phase != "summary") else ""
+        if self.match_session is not None and self.match_session.phase != "match_summary":
+            role = f"{self.match_session.state.rules_mode} captain"
         draw_pitch(p, role)
         p.panel(SIDE)
-        if self.play_browser is not None and self.session is None:
-            p.text("MENU / ESC",pygame.Rect(1120,43,128,35),23,GREEN)
+        self._draw_active_mode(p)
+        for button in self.buttons():
+            p.button(button, button.rect.collidepoint(self.hover))
+        p.text("JOHN = you / Blue = teammates / Coral = opponents / Gold = keeper\nPress M = Sound / I = Coach Info",
+               pygame.Rect(32, 829, 740, 45), 21, MUTED)
+        snd = "Sound: ON" if self.sound.enabled else "Sound: OFF"
+        p.text(f"No countdown. Think it through.  |  {snd}", pygame.Rect(800, 835, 450, 28), 22, MUTED)
+        scaled = pygame.transform.smoothscale(self.canvas, self.window.get_size())
+        self.window.blit(scaled, (0, 0))
+        pygame.display.flip()
+
+    def _draw_active_mode(self, p: Painter) -> None:
+        if self.match_session is not None:
+            p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
+            draw_match_screen(p, self.match_session)
+        elif self.match_browser is not None:
+            p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
+            self.match_browser.draw(p)
+        elif self.play_browser is not None and self.session is None:
+            p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
             self.play_browser.draw(p)
         elif self.card_index is not None:
             p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
@@ -314,26 +477,18 @@ class App:
         else:
             p.text("MENU / ESC", pygame.Rect(1120, 43, 128, 35), 23, GREEN)
             self._scene()
-        for button in self.buttons():
-            p.button(button, button.rect.collidepoint(self.hover))
-        p.text("JOHN = you / BACK, CM, LW, RW, M, N = teammates / A, A2, R = opponents\nBlue = your team / Coral = opponents / Gold = keeper",
-               pygame.Rect(32, 829, 740, 45), 21, MUTED)
-        p.text("No countdown. Think it through.", pygame.Rect(850, 835, 390, 28), 23, MUTED)
-        scaled = pygame.transform.smoothscale(self.canvas, self.window.get_size())
-        self.window.blit(scaled, (0, 0))
-        pygame.display.flip()
 
     def _menu(self) -> None:
         p = self.painter
         for point, label, team in (((44.0, 56.0), "JOHN", "home"), ((52.0, 46.0), "A", "away"),
-                                   ((28.0, 40.0), "LW", "home"), ((50.0, 93.0), "GK", "keeper")):
+                                   ((28.0, 40.0), "Maya", "home"), ((50.0, 93.0), "GK", "keeper")):
             draw_player(p, point, label, team)
         draw_ball(p, (44.0, 55.0))
-        p.text("Choose a tactical section.", pygame.Rect(814, 160, 410, 46), 34)
-        p.text("6 practice plays + 2 transfer layouts.\nMultiple roles attacking the top goal.",
-               pygame.Rect(814, 212, 410, 64), 24, MUTED)
-        p.text(f"Starter: {len(TOPICS)} topics / 36 scenes / 7 cards.",
-               pygame.Rect(814, 780, 410, 28), 22, GREEN)
+        p.text("Choose a mode or Match Day Cup.", pygame.Rect(814, 152, 410, 42), 31)
+        p.text("Try 09 Match Day Cup for live 7v7 & 9v9 pitch play!",
+               pygame.Rect(814, 198, 410, 36), 22, GOLD)
+        p.text(f"Starter: {len(TOPICS)} topics / 36 scenes / 7 cards / 6 Cup matches.",
+               pygame.Rect(814, 780, 410, 28), 21, GREEN)
 
     def _draw_card(self) -> None:
         assert self.card_index is not None
@@ -349,19 +504,21 @@ class App:
             pygame.draw.lines(self.canvas, GOLD, False, points, 3)
         else:
             arrow(self.canvas, pitch_point(card.ball_start), pitch_point(card.ball_end), GOLD)
-        locators = ", ".join(
-            f"{gid} (p. {'/'.join(str(pg) for pg in group_for_id(gid).locators) or 'overview'})"
-            for gid in card.groups
-        )
-        if self.book is not None and self.book.selected is not None:
-            locators = f"index p. {self.book.selected.page} / original activity"
         p.text(f"PRACTICE CARD  {self.card_index + 1}/{len(self.cards)}  /  UNSCORED",
                pygame.Rect(814, 162, 410, 28), 23, GREEN)
         p.text(card.title, pygame.Rect(814, 198, 410, 52), 34)
-        p.text(f"Book themes: {locators}", pygame.Rect(814, 254, 410, 48), 22, GOLD)
+        if self.coach_info:
+            locators = ", ".join(
+                f"{gid} (p. {'/'.join(str(pg) for pg in group_for_id(gid).locators) or 'overview'})"
+                for gid in card.groups
+            )
+            if self.book is not None and self.book.selected is not None:
+                locators = f"index p. {self.book.selected.page} / original activity"
+            p.text(f"Coach info: {locators}", pygame.Rect(814, 254, 410, 48), 21, GOLD)
+        else:
+            p.text("Press I to view parent/coach notes & index.", pygame.Rect(814, 254, 410, 40), 21, MUTED)
         p.text(card.summary, pygame.Rect(814, 312, 410, 120), 25)
-        p.text("Adult-led activity:\n" + card.adult_prompt,
-               pygame.Rect(814, 442, 410, 150), 23, MUTED)
+        p.text("Practice idea:\n" + card.adult_prompt, pygame.Rect(814, 442, 410, 150), 23, MUTED)
 
     def _scene(self) -> None:
         s = self.session
@@ -371,7 +528,7 @@ class App:
             return
         scene = s.scene
         if scene.reference_line is not None:
-            y = pitch_point((0., scene.reference_line))[1]
+            y = pitch_point((0.0, scene.reference_line))[1]
             pygame.draw.line(self.canvas, GOLD, (52, y), (746, y), 2)
         actors, ball = positions(scene, s.phase, s.fraction, s.selected)
         for actor in scene.actors:
@@ -390,14 +547,13 @@ class App:
         assert s is not None
         p = self.painter
         mode = "NEW LAYOUT" if s.scene.transfer else "PRACTICE"
-        progress = (f"PLAY {s.index+1}/{len(s.plays)} / STEP {s.depth}" if isinstance(s,ContinuousSession) else
-                    f"{mode}  {s.index + 1}/{len(s.scenes)}  /  {s.scene.base_id}")
-        p.text(progress,
-               pygame.Rect(814, 158, 410, 26), 23, GREEN)
+        progress = (f"PLAY {s.index + 1}/{len(s.plays)} / STEP {s.depth}" if isinstance(s, ContinuousSession) else
+                    f"{mode}  {s.index + 1}/{len(s.scenes)}" + (f"  /  {s.scene.base_id}" if self.coach_info else ""))
+        p.text(progress, pygame.Rect(814, 158, 410, 26), 23, GREEN)
         p.text(s.scene.title, pygame.Rect(814, 190, 410, 72), 33)
-        label = "Task: "+s.play.title if isinstance(s,ContinuousSession) else f"Role: {s.scene.role}  ({', '.join(s.scene.groups)})"
-        p.text(label,
-               pygame.Rect(814, 266, 410, 34), 23, GOLD)
+        groups = f"  ({', '.join(s.scene.groups)})" if self.coach_info else ""
+        label = "Task: " + s.play.title if isinstance(s, ContinuousSession) else f"Role: {s.scene.role}{groups}"
+        p.text(label, pygame.Rect(814, 266, 410, 34), 23, GOLD)
         if s.phase == "feedback":
             self._feedback_text()
         else:
@@ -412,15 +568,16 @@ class App:
             if s.phase == "decide":
                 p.text("Hover to preview your move or pass destination.",
                        pygame.Rect(814, 658, 410, 48), 22, GOLD)
-            p.text(s.scene.rules, pygame.Rect(814, 712 if s.phase == "decide" else 610, 410, 68),
-                   22, MUTED)
+            if self.coach_info or "Offside" in s.scene.rules or "Throw-in" in s.scene.rules:
+                p.text(s.scene.rules, pygame.Rect(814, 712 if s.phase == "decide" else 610, 410, 68),
+                       22, MUTED)
 
     def _feedback_text(self) -> None:
         s = self.session
         assert s is not None and s.feedback is not None
         c = s.feedback
         color = (CORAL, GOLD, GREEN)[c.rating]
-        label = ("Notice the risk", "A reasonable option", "Good fit for this picture")[c.rating]
+        label = ("Tough spot - check the risk", "Solid safe choice", "Great read!")[c.rating]
         p = self.painter
         p.text(label, pygame.Rect(814, 306, 410, 36), 30, color)
         p.text(c.outcome, pygame.Rect(814, 346, 410, 58), 23)
@@ -430,7 +587,7 @@ class App:
         note = "First-try result saved. Press C for coach or R to retry."
         if len(prior) > 1:
             note = "Compared with: " + prior[-2]
-        if isinstance(s,ContinuousSession) and s.practice_only:
+        if isinstance(s, ContinuousSession) and s.practice_only:
             note = "Practice branch: first-run scores stay saved."
         p.text(note, pygame.Rect(814, 574, 410, 34), 20, GOLD)
 
@@ -438,7 +595,7 @@ class App:
         s = self.session
         assert s is not None and s.feedback is not None
         choice_route(self.painter, s.scene, s.feedback, GOLD)
-        best = coach_choice(s.scene,s.selected)
+        best = coach_choice(s.scene, s.selected)
         distinct = route_destination(s.feedback) != route_destination(best)
         if distinct or s.phase == "coach":
             choice_route(self.painter, s.scene, best, GREEN, True)
@@ -456,19 +613,19 @@ class App:
         assert s is not None
         p = self.painter
         practice, total, transfer, checks = s.summary()
-        p.text("Session complete!", pygame.Rect(814, 172, 410, 55), 42, GREEN)
+        stars = _star_count(s.results)
+        p.text(f"Session complete!  {'*' * stars}", pygame.Rect(814, 172, 410, 55), 38, GREEN)
         p.text("Strong or reasonable first tries", pygame.Rect(814, 240, 410, 34), 26)
         progress = (f"Practice: {practice} / {total}\nBook topic round" if self.book else
                     f"Practice: {practice} / {total}\nNew layouts: {transfer} / {checks}")
-        if isinstance(s,ContinuousSession):
+        if isinstance(s, ContinuousSession):
             progress = f"Decisions: {practice} / {total}\nFirst run / visited steps only"
-        p.text(progress,
-               pygame.Rect(814, 294, 410, 96), 36, GOLD)
+        p.text(progress, pygame.Rect(814, 294, 410, 96), 36, GOLD)
         p.text("Soccer Smarts checklist:\nWhere is the pressure?\nWhere is the open space?\nWho has a clear passing lane?",
                pygame.Rect(814, 414, 410, 150), 25)
         weak = [scene.title for scene in s.scenes if scene.id in s.results and s.results[scene.id] == 0]
         message = ("Review next: " + "; ".join(dict.fromkeys(weak))[:110]
-                   if weak else "Great scanning across roles! Try another section or Practice Cards.")
+                   if weak else "Great scanning across roles! Try Match Day Cup next.")
         p.text(message, pygame.Rect(814, 588, 410, 120), 24, MUTED)
         p.text("SCAN\nDECIDE\nSUPPORT", pygame.Rect(150, 330, 520, 260), 78, GREEN)
 
@@ -479,6 +636,14 @@ class App:
                 seconds = min(clock.tick(60) / 1000.0, 0.1)
                 for event in pygame.event.get():
                     self.handle_event(event)
+                if self.match_session is not None:
+                    ev = self.match_session.tick(seconds)
+                    if ev == "goal":
+                        self.sound.play("goal")
+                    elif ev in ("saved", "rebound", "corner"):
+                        self.sound.play("save")
+                    elif ev in ("intercepted", "offside", "conceded"):
+                        self.sound.play("intercept")
                 if self.session is not None:
                     self.session.tick(seconds)
                 if self.card_index is not None:

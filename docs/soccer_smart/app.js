@@ -17,6 +17,7 @@
   var GOLD = "rgb(255, 207, 107)";
   var CORAL = "rgb(249, 143, 121)";
   var BLUE = "rgb(96, 190, 247)";
+  var CYAN = "rgb(108, 224, 240)";
   var PITCH = { x: 52, y: 174, width: 694, height: 590 };
   var SIDE = { x: 790, y: 140, width: 458, height: 676 };
   var ANIMATION_SECONDS = 2.4;
@@ -24,6 +25,278 @@
   var RELEASE_KINDS = ["pass", "shoot", "clear"];
   var TRANSFER_SCALES = [0.92, 0.96, 1.04];
   var STORAGE_KEY = "soccer_smart_progress_v1";
+  var CUP_STORAGE_KEY = "soccer_smart_cup_v2";
+  var SIM = (typeof require === "function") ? require("./sim_kernel.js")
+    : (typeof window !== "undefined" ? window.SoccerSmartSim : null);
+
+  var WEB_SOUNDS = {
+    click: [[640], 0.035], kick: [[190, 130], 0.045], loft: [[260, 390, 520], 0.055],
+    whistle: [[1760, 1980, 1760], 0.06], intercept: [[310, 220], 0.06],
+    save: [[440, 330], 0.065], goal: [[523, 659, 784, 1047], 0.085],
+    good: [[523, 659, 784], 0.065], risk: [[330, 262], 0.085],
+    rewind: [[587, 440, 330], 0.045], complete: [[523, 659, 784, 1047], 0.095]
+  };
+
+  function WebSoundBank() {
+    this.enabled = true;
+    this.ctx = null;
+  }
+  WebSoundBank.prototype.play = function (name) {
+    if (!this.enabled || !WEB_SOUNDS[name] || typeof window === "undefined") { return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { return; }
+    try {
+      if (!this.ctx) { this.ctx = new AC(); }
+      if (this.ctx.state === "suspended" && this.ctx.resume) { this.ctx.resume(); }
+      var spec = WEB_SOUNDS[name], notes = spec[0], dur = spec[1], now = this.ctx.currentTime;
+      for (var i = 0; i < notes.length; i++) {
+        var osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+        osc.type = "sine"; osc.frequency.value = notes[i];
+        gain.gain.setValueAtTime(0.001, now + i * dur);
+        gain.gain.linearRampToValueAtTime(0.11, now + i * dur + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + (i + 1) * dur);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now + i * dur); osc.stop(now + (i + 1) * dur + 0.01);
+      }
+    } catch (_e) {}
+  };
+  WebSoundBank.prototype.toggle = function () {
+    this.enabled = !this.enabled;
+    if (this.enabled) { this.play("click"); }
+    return this.enabled;
+  };
+
+  function screenToPitch(pos) {
+    if (pos[0] < PITCH.x || pos[0] > PITCH.x + PITCH.width || pos[1] < PITCH.y || pos[1] > PITCH.y + PITCH.height) {
+      return null;
+    }
+    return [
+      Math.max(0.0, Math.min(100.0, ((pos[0] - PITCH.x) * 100.0) / PITCH.width)),
+      Math.max(0.0, Math.min(100.0, ((pos[1] - PITCH.y) * 100.0) / PITCH.height))
+    ];
+  }
+
+  var MATCH_BANNER = {
+    goal: ["GOAL!!", GREEN], won_ball: ["CLEAN REGAIN!", GREEN], rebound: ["REBOUND!", GOLD],
+    corner: ["CORNER KICK!", GOLD], saved: ["KEEPER SAVE!", GOLD], offside: ["OFFSIDE FLAG!", CORAL],
+    intercepted: ["INTERCEPTED!", CORAL], conceded: ["CONCEDED!", CORAL],
+    out_of_bounds: ["OUT OF PLAY", GOLD], kept_ball: ["NICE PLAY!", GREEN]
+  };
+
+  function defaultCupStore() {
+    return { match_results: {}, badges: [], radar: { vision: 35, spacing: 35, timing: 35, defending: 35 }, rules_tier: "7v7" };
+  }
+
+  function MatchBrowser(data, cupStore) {
+    this.cupStore = cupStore;
+    this.matches = [];
+    (data.cups || []).forEach(function (cup) {
+      cup.matches.forEach(function (m) { this.matches.push(m); }, this);
+    }, this);
+  }
+  MatchBrowser.prototype.numberAction = function (num) {
+    return (num >= 0 && num < this.matches.length) ? "match_start:" + this.matches[num].id : null;
+  };
+  MatchBrowser.prototype.buttons = function () {
+    var res = this.cupStore.match_results || {};
+    var rows = this.matches.map(function (m, i) {
+      var rec = res[m.id] || {}, stars = "";
+      for (var k = 0; k < (rec.stars || 0); k++) { stars += "*"; }
+      var tag = ("[" + m.rules_mode + "] " + stars).trim();
+      return makeButton(814, 286 + i * 68, 410, 60, m.title + "\n" + tag + " / " + m.opponent_style.replace("_", " "), "match_start:" + m.id, String(i + 1));
+    });
+    var tier = (this.cupStore.rules_tier || "7v7").toUpperCase();
+    rows.push(makeButton(814, 704, 198, 48, "Rules: " + tier + " / T", "match_tier", ""));
+    rows.push(makeButton(1024, 704, 200, 48, "Main menu / Esc", "menu", ""));
+    return rows;
+  };
+  MatchBrowser.prototype.draw = function (p) {
+    p.text("MATCH DAY CUP", { x: 814, y: 158, width: 410, height: 44 }, 38, GREEN);
+    p.text("Freeze-frame 2D tactics. Tap or drag the pitch to pass, run, loft, or shoot!", { x: 814, y: 206, width: 410, height: 72 }, 22, MUTED);
+    var radar = this.cupStore.radar || defaultCupStore().radar;
+    var axes = ["vision", "spacing", "timing", "defending"];
+    p.text("SOCCER IQ RADAR", { x: 80, y: 210, width: 420, height: 36 }, 30, GOLD);
+    for (var i = 0; i < axes.length; i++) {
+      var ax = axes[i], val = radar[ax] || 35, y = 266 + i * 54;
+      p.text(ax.toUpperCase() + ": " + val, { x: 84, y: y, width: 180, height: 28 }, 23, INK);
+      p.panel({ x: 264, y: y + 4, width: 340, height: 20 }, NAVY, 8);
+      p.panel({ x: 264, y: y + 4, width: Math.max(8, Math.floor(340 * val / 100)), height: 20 }, val >= 60 ? GREEN : GOLD, 8);
+    }
+    var badges = this.cupStore.badges || [];
+    p.text("TACTICAL BADGES", { x: 80, y: 504, width: 420, height: 32 }, 26, GOLD);
+    p.text(badges.length ? badges.slice(0, 6).join(", ") : "Play Match Day to earn tactical badges!", { x: 84, y: 544, width: 620, height: 90 }, 23, badges.length ? GREEN : MUTED);
+    p.text("Squad: YOU #8 / Maya #7 (Speed) / Leo #10 (Playmaker) / Sam #4 (Anchor)", { x: 74, y: 678, width: 646, height: 62 }, 22, INK);
+  };
+
+  function MatchSession(data, matchId) {
+    var found = null;
+    (data.cups || []).forEach(function (c) { c.matches.forEach(function (m) { if (m.id === matchId) found = m; }); });
+    if (!found) { throw new Error("Unknown match id: " + matchId); }
+    this.match = found;
+    this.momentIndex = 0;
+    this.homeGoals = found.base_home;
+    this.awayGoals = found.base_away;
+    this.phase = "intro";
+    this.elapsed = 0.0;
+    this.loft = false;
+    this.offballIntent = "call";
+    this.proVision = false;
+    this.previewAction = null;
+    this.stateStack = [];
+    this.beatResults = [];
+    this.coachResults = [];
+    this.coachIndex = 0;
+    this.momentStars = [];
+    this.earnedBadges = [];
+    this.radarDelta = { vision: 0, spacing: 0, timing: 0, defending: 0 };
+    this._loadMoment();
+  }
+  Object.defineProperty(MatchSession.prototype, "moment", { get: function () { return this.match.moments[this.momentIndex]; } });
+  Object.defineProperty(MatchSession.prototype, "state", { get: function () { return this.stateStack[this.stateStack.length - 1]; } });
+  Object.defineProperty(MatchSession.prototype, "activeResult", {
+    get: function () {
+      if (this.phase === "coach" && this.coachResults.length) { return this.coachResults[Math.min(this.coachIndex, this.coachResults.length - 1)]; }
+      return this.beatResults.length ? this.beatResults[this.beatResults.length - 1] : null;
+    }
+  });
+  Object.defineProperty(MatchSession.prototype, "currentFrame", {
+    get: function () {
+      var res = this.activeResult;
+      if ((this.phase === "resolve" || this.phase === "coach") && res && res.frames.length) {
+        var frac = Math.min(1.0, this.elapsed / 1.35);
+        return res.frames[Math.min(res.frames.length - 1, Math.floor(frac * (res.frames.length - 1)))];
+      }
+      if (this.phase === "review" && res && res.frames.length) { return res.frames[res.frames.length - 1]; }
+      var st = this.state;
+      return {
+        players: st.players.map(function (pl) { return [pl.key, pl.x, pl.y, pl.hx, pl.hy]; }),
+        ball: [st.ball.x, st.ball.y, st.ball.z],
+        offside_line: SIM ? SIM.offsideLineY(st) : null,
+        build_out_active: st.build_out_active,
+        event: st.event
+      };
+    }
+  });
+  MatchSession.prototype._loadMoment = function () {
+    var st = clone(this.moment.initial_state);
+    st.home_score = this.homeGoals;
+    st.away_score = this.awayGoals;
+    this.stateStack = [st];
+    this.beatResults = [];
+    this.coachResults = [];
+    this.coachIndex = 0;
+    this.loft = false;
+    this.offballIntent = "call";
+    this.previewAction = null;
+    this.phase = "intro";
+    this.elapsed = 0.0;
+  };
+  MatchSession.prototype.tick = function (seconds) {
+    if (seconds < 0) { return null; }
+    if (this.phase === "intro") {
+      this.elapsed += seconds;
+      if (this.elapsed >= 0.65) { this.phase = "freeze"; this.elapsed = 0.0; }
+      return null;
+    }
+    if (this.phase === "resolve") {
+      this.elapsed += seconds;
+      if (this.elapsed >= 1.35) { return this._finishResolve(); }
+      return null;
+    }
+    if (this.phase === "coach") {
+      this.elapsed += seconds;
+      if (this.elapsed >= 1.35) {
+        if (this.coachIndex + 1 < this.coachResults.length) { this.coachIndex += 1; this.elapsed = 0.0; }
+        else { this.phase = "review"; this.elapsed = 0.0; }
+      }
+    }
+    return null;
+  };
+  MatchSession.prototype._finishResolve = function () {
+    var res = this.beatResults[this.beatResults.length - 1];
+    this.stateStack.push(res.end_state);
+    this.elapsed = 0.0;
+    this.previewAction = null;
+    var terms = ["goal", "conceded", "saved", "offside", "out_of_bounds", "corner"];
+    var endNow = terms.indexOf(res.outcome) !== -1 || this.beatResults.length >= 4
+      || (res.outcome === "intercepted" && this.beatResults.length >= 2)
+      || (res.outcome === "won_ball" && this.moment.objective === "defend");
+    this.phase = endNow ? "review" : "freeze";
+    return res.outcome;
+  };
+  MatchSession.prototype.previewPoint = function (x, y) {
+    if (this.phase !== "freeze" || !SIM) { return null; }
+    this.previewAction = SIM.snapAction(this.state, x, y, this.loft, this.offballIntent);
+    return this.previewAction;
+  };
+  MatchSession.prototype.commitAction = function (act) {
+    if (this.phase !== "freeze" || !SIM) { return null; }
+    var res = SIM.simulateBeat(this.state, act);
+    this.beatResults.push(res);
+    this.previewAction = act;
+    this.phase = "resolve";
+    this.elapsed = 0.0;
+    return res;
+  };
+  MatchSession.prototype.commitPoint = function (x, y) {
+    if (!SIM) { return null; }
+    return this.commitAction(SIM.snapAction(this.state, x, y, this.loft, this.offballIntent));
+  };
+  MatchSession.prototype.rewindBeat = function () {
+    if (!this.beatResults.length || (this.phase !== "freeze" && this.phase !== "review")) { return false; }
+    if ((this.phase === "review" || this.stateStack.length > this.beatResults.length) && this.stateStack.length > 1) {
+      this.stateStack.pop();
+    }
+    this.beatResults.pop();
+    this.previewAction = null;
+    this.phase = "freeze";
+    this.elapsed = 0.0;
+    return true;
+  };
+  MatchSession.prototype.startCoachDemo = function () {
+    if (!SIM || (this.phase !== "review" && this.phase !== "freeze")) { return false; }
+    var st = this.stateStack[0], resList = [];
+    for (var i = 0; i < this.moment.coach_actions.length; i++) {
+      var r = SIM.simulateBeat(st, this.moment.coach_actions[i]);
+      resList.push(r);
+      st = r.end_state;
+    }
+    if (!resList.length) { return false; }
+    this.coachResults = resList;
+    this.coachIndex = 0;
+    this.phase = "coach";
+    this.elapsed = 0.0;
+    return true;
+  };
+  MatchSession.prototype.skipPhase = function () {
+    if (this.phase === "intro") { this.phase = "freeze"; this.elapsed = 0.0; }
+    else if (this.phase === "resolve") { this._finishResolve(); }
+    else if (this.phase === "coach") { this.phase = "review"; this.elapsed = 0.0; }
+  };
+  MatchSession.prototype.nextMoment = function () {
+    if (this.phase !== "review") { return false; }
+    if (this.beatResults.length) {
+      var last = this.beatResults[this.beatResults.length - 1], bestS = 1;
+      this.homeGoals = last.end_state.home_score;
+      this.awayGoals = last.end_state.away_score;
+      for (var i = 0; i < this.beatResults.length; i++) {
+        bestS = Math.max(bestS, this.beatResults[i].stars);
+        this.beatResults[i].badges.forEach(function (b) { if (this.earnedBadges.indexOf(b) === -1) this.earnedBadges.push(b); }, this);
+        var rd = this.beatResults[i].radar_delta || {};
+        ["vision", "spacing", "timing", "defending"].forEach(function (k) { this.radarDelta[k] += rd[k] || 0; }, this);
+      }
+      this.momentStars.push(bestS);
+    }
+    if (this.momentIndex + 1 < this.match.moments.length) { this.momentIndex += 1; this._loadMoment(); }
+    else { this.phase = "match_summary"; }
+    return true;
+  };
+  MatchSession.prototype.summary = function () {
+    var sum = this.momentStars.reduce(function (a, b) { return a + b; }, 0);
+    var avg = Math.round(sum / Math.max(1, this.momentStars.length));
+    var won = this.homeGoals >= this.awayGoals && (this.homeGoals > this.awayGoals || avg >= 2);
+    return [avg, won, this.homeGoals, this.awayGoals];
+  };
 
   function makeRng(seed) {
     var state = (seed >>> 0) + 0x6d2b79f5;
@@ -951,7 +1224,12 @@
     this.history = {};
     this.book = null;
     this.playBrowser = null;
+    this.matchBrowser = null;
+    this.matchSession = null;
+    this.coachInfo = false;
+    this.sound = new WebSoundBank();
     this.savedResults = this._loadProgress();
+    this.cupStore = this._loadCupStore();
     this.menuCards = data.sections.map(function (section) {
       var idStr = (section.id < 10 ? "0" : "") + section.id;
       return [idStr + " / " + section.title, "3 topics: " + section.description, "stage:" + section.id];
@@ -959,7 +1237,8 @@
       ["05 / Mixed round", "All 4 sections: 6 practice + 2 transfer", "stage:5"],
       ["06 / Practice cards", "7 technique demos & adult activities", "cards:0"],
       ["07 / Book companion", "57 topics / original practice", "book"],
-      ["08 / Continuous Play", "24 openings / linked decisions", "continuous"]
+      ["08 / Continuous Play", "24 openings / linked decisions", "continuous"],
+      ["09 / Match Day Cup", "7v7 & 9v9 live 2D tactics / pitch play", "match_cup"]
     ]);
   }
 
@@ -995,7 +1274,73 @@
     }
   };
 
+  SoccerSmartWebApp.prototype._loadCupStore = function () {
+    var base = defaultCupStore();
+    if (!this.storage) { return base; }
+    try {
+      var raw = this.storage.getItem(CUP_STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          base.match_results = parsed.match_results || {};
+          base.badges = parsed.badges || [];
+          base.radar = Object.assign(base.radar, parsed.radar || {});
+          base.rules_tier = parsed.rules_tier === "9v9" ? "9v9" : "7v7";
+        }
+      }
+    } catch (_e) {}
+    return base;
+  };
+
+  SoccerSmartWebApp.prototype._saveCupStore = function () {
+    if (!this.storage) { return; }
+    try { this.storage.setItem(CUP_STORAGE_KEY, JSON.stringify(this.cupStore)); } catch (_e) {}
+  };
+
+  SoccerSmartWebApp.prototype._matchButtons = function () {
+    var ms = this.matchSession;
+    if (ms.phase === "match_summary") {
+      return [
+        makeButton(814, 672, 410, 56, "Play Match Again / R", "match_replay", ""),
+        makeButton(814, 738, 410, 56, "Cup Select / B", "match_back", "")
+      ];
+    }
+    if (ms.phase === "freeze") {
+      var btns = [
+        makeButton(814, 540, 198, 48, ms.loft ? "Loft: ON / L" : "Loft: OFF / L", "match_loft", ""),
+        makeButton(1026, 540, 198, 48, "Off-ball: " + ms.offballIntent.toUpperCase() + " / D", "match_intent", ""),
+        makeButton(814, 600, 198, 48, ms.proVision ? "Pro Vision: ON / V" : "Pro Vision: OFF / V", "match_vision", ""),
+        makeButton(1026, 600, 198, 48, "Rewind 1 Beat / Z", "match_rewind", "")
+      ];
+      if (ms.moment.guided && SIM) {
+        var anchors = SIM.guidedAnchors(ms.state).slice(0, 3);
+        for (var i = 0; i < anchors.length; i++) {
+          btns.push(makeButton(814, 344 + i * 60, 410, 52, anchors[i][0], "match_anchor:" + i, String(i + 1)));
+        }
+      }
+      btns.push(makeButton(814, 668, 410, 50, "Coach Demo / C", "match_coach", ""));
+      btns.push(makeButton(814, 730, 410, 50, "Cup Select / B", "match_back", ""));
+      return btns;
+    }
+    if (ms.phase === "review") {
+      return [
+        makeButton(814, 558, 198, 48, "Rewind 1 Beat / Z", "match_rewind", ""),
+        makeButton(1026, 558, 198, 48, "Pro Vision / V", "match_vision", ""),
+        makeButton(814, 618, 410, 50, "Watch Coach Demo / C", "match_coach", ""),
+        makeButton(814, 678, 410, 50, "Next Moment / N", "match_next", ""),
+        makeButton(814, 738, 410, 46, "Cup Select / B", "match_back", "")
+      ];
+    }
+    return [makeButton(814, 730, 410, 54, "Skip Animation / SPACE", "match_skip", "")];
+  };
+
   SoccerSmartWebApp.prototype.buttons = function () {
+    if (this.matchSession !== null) {
+      return this._matchButtons();
+    }
+    if (this.matchBrowser !== null) {
+      return this.matchBrowser.buttons();
+    }
     if (this.playBrowser !== null && this.session === null) {
       return this.playBrowser.buttons();
     }
@@ -1023,7 +1368,7 @@
     var s = this.session;
     if (s === null) {
       return this.menuCards.map(function (item, i) {
-        return makeButton(814, 264 + i * 62, 410, 58, item[0] + "\n" + item[1], item[2], "");
+        return makeButton(814, 240 + i * 59, 410, 55, item[0] + "\n" + item[1], item[2], "");
       });
     }
     if (s.phase === "decide") {
@@ -1045,45 +1390,96 @@
     return [makeButton(814, 732, 410, 58, label, "skip", "")];
   };
 
+  SoccerSmartWebApp.prototype._clearModes = function () {
+    this.playBrowser = null;
+    this.book = null;
+    this.matchBrowser = null;
+    this.matchSession = null;
+    this.session = null;
+    this.cardIndex = null;
+  };
+
   SoccerSmartWebApp.prototype.activate = function (action) {
     this.touchPreviewChoice = null;
-    if (action === "continuous") {
+    if (action === "match_cup") {
+      this._clearModes();
+      this.matchBrowser = new MatchBrowser(this.data, this.cupStore);
+      this.sound.play("click");
+    } else if (action.indexOf("match_") === 0) {
+      this._matchAction(action);
+    } else if (action === "continuous") {
+      this._clearModes();
       this.playBrowser = new PlayBrowser(this.data);
-      this.book = null;
-      this.session = null;
-      this.cardIndex = null;
     } else if (action.indexOf("play_") === 0 && this.playBrowser !== null) {
       this._playAction(action);
     } else if (action === "book") {
-      this.playBrowser = null;
+      this._clearModes();
       this.book = new BookBrowser(this.data);
-      this.session = null;
-      this.cardIndex = null;
     } else if (action.indexOf("book_") === 0 && this.book !== null) {
       this._bookAction(action);
     } else if (action.indexOf("stage:") === 0) {
-      this.playBrowser = null;
-      this.book = null;
+      this._clearModes();
       this.session = new Session(this.data, parseInt(action.split(":")[1], 10), this.seed);
-      this.cardIndex = null;
       this.seed += 1;
       this.history = {};
     } else if (action.indexOf("cards:") === 0) {
-      this.playBrowser = null;
-      this.book = null;
+      this._clearModes();
       this.cards = this.data.starter_cards.slice();
-      this.session = null;
       this.cardIndex = parseInt(action.split(":")[1], 10) % this.cards.length;
       this.cardElapsed = 0.0;
     } else if (action === "menu") {
-      this.playBrowser = null;
-      this.book = null;
-      this.session = null;
-      this.cardIndex = null;
+      this._clearModes();
+    } else if (action === "toggle_info") {
+      this.coachInfo = !this.coachInfo;
+    } else if (action === "toggle_sound") {
+      this.sound.toggle();
     } else if (this.cardIndex !== null) {
       this._cardAction(action);
     } else if (this.session !== null) {
       this._sessionAction(action);
+    }
+  };
+
+  SoccerSmartWebApp.prototype._matchAction = function (action) {
+    if (action === "match_tier") {
+      this.cupStore.rules_tier = this.cupStore.rules_tier === "7v7" ? "9v9" : "7v7";
+      this._saveCupStore();
+      this.sound.play("click");
+    } else if (action.indexOf("match_start:") === 0) {
+      this.matchSession = new MatchSession(this.data, action.split(":")[1]);
+      this.sound.play("whistle");
+    } else if (action === "match_back") {
+      this.matchSession = null;
+      this.matchBrowser = new MatchBrowser(this.data, this.cupStore);
+    } else if (this.matchSession !== null) {
+      var ms = this.matchSession;
+      if (action === "match_loft") { ms.loft = !ms.loft; this.sound.play("click"); }
+      else if (action === "match_intent") { ms.offballIntent = ms.offballIntent === "call" ? "decoy" : "call"; this.sound.play("click"); }
+      else if (action === "match_vision") { ms.proVision = !ms.proVision; this.sound.play("click"); }
+      else if (action === "match_rewind") { if (ms.rewindBeat()) { this.sound.play("rewind"); } }
+      else if (action === "match_coach") { if (ms.startCoachDemo()) { this.sound.play("whistle"); } }
+      else if (action === "match_skip") { ms.skipPhase(); }
+      else if (action === "match_replay") { this.matchSession = new MatchSession(this.data, ms.match.id); this.sound.play("whistle"); }
+      else if (action === "match_next") {
+        if (ms.nextMoment() && ms.phase === "match_summary") {
+          var sm = ms.summary();
+          var prev = this.cupStore.match_results[ms.match.id] || {};
+          this.cupStore.match_results[ms.match.id] = { stars: Math.max(sm[0], prev.stars || 0), won: Boolean(sm[1] || prev.won), home: sm[2], away: sm[3] };
+          ms.earnedBadges.forEach(function (b) { if (this.cupStore.badges.indexOf(b) === -1) this.cupStore.badges.push(b); }, this);
+          ["vision", "spacing", "timing", "defending"].forEach(function (k) {
+            this.cupStore.radar[k] = Math.max(0, Math.min(100, (this.cupStore.radar[k] || 35) + (ms.radarDelta[k] || 0)));
+          }, this);
+          this._saveCupStore();
+          this.sound.play("complete");
+        }
+      } else if (action.indexOf("match_anchor:") === 0 && SIM) {
+        var idx = parseInt(action.split(":")[1], 10), anchors = SIM.guidedAnchors(ms.state);
+        if (idx >= 0 && idx < anchors.length) {
+          var act = Object.assign({}, anchors[idx][1]);
+          if (ms.loft && (act.kind === "pass" || act.kind === "shoot")) { act.loft = true; }
+          if (ms.commitAction(act)) { this.sound.play(act.loft ? "loft" : "kick"); }
+        }
+      }
     }
   };
 
@@ -1165,6 +1561,12 @@
   };
 
   SoccerSmartWebApp.prototype.handlePointerMove = function (logicalPos, pointerType) {
+    if (this.matchSession !== null && this.matchSession.phase === "freeze") {
+      var pt = screenToPitch(logicalPos);
+      if (pt !== null) {
+        this.matchSession.previewPoint(pt[0], pt[1]);
+      }
+    }
     if (pointerType === "touch") {
       return;
     }
@@ -1173,9 +1575,20 @@
 
   SoccerSmartWebApp.prototype.handlePointerDown = function (logicalPos, pointerType) {
     var menuRect = { x: 1120, y: 35, width: 125, height: 40 };
-    if ((this.session !== null || this.cardIndex !== null || this.book !== null || this.playBrowser !== null) && collidePoint(menuRect, logicalPos)) {
+    var inSub = this.session !== null || this.cardIndex !== null || this.book !== null
+      || this.playBrowser !== null || this.matchBrowser !== null || this.matchSession !== null;
+    if (inSub && collidePoint(menuRect, logicalPos)) {
       this.activate("menu");
       return;
+    }
+    if (this.matchSession !== null && this.matchSession.phase === "freeze") {
+      var pt = screenToPitch(logicalPos);
+      if (pt !== null) {
+        if (this.matchSession.commitPoint(pt[0], pt[1])) {
+          this.sound.play(this.matchSession.loft ? "loft" : "kick");
+        }
+        return;
+      }
     }
     var btns = this.buttons();
     for (var i = 0; i < btns.length; i++) {
@@ -1199,16 +1612,48 @@
     }
   };
 
+  SoccerSmartWebApp.prototype._matchKey = function (key) {
+    if (this.matchSession !== null) {
+      var map = {
+        l: "match_loft", L: "match_loft", d: "match_intent", D: "match_intent",
+        v: "match_vision", V: "match_vision", z: "match_rewind", Z: "match_rewind",
+        c: "match_coach", C: "match_coach", n: "match_next", N: "match_next",
+        b: "match_back", B: "match_back", r: "match_replay", R: "match_replay",
+        " ": "match_skip", Spacebar: "match_skip", Escape: "menu"
+      };
+      if (map[key]) { this.activate(map[key]); return true; }
+      if (key >= "1" && key <= "4" && this.matchSession.phase === "freeze") {
+        this.activate("match_anchor:" + (parseInt(key, 10) - 1));
+        return true;
+      }
+      return false;
+    }
+    if (this.matchBrowser === null) { return false; }
+    if (key === "t" || key === "T") { this.activate("match_tier"); return true; }
+    if (key === "Escape") { this.activate("menu"); return true; }
+    if (key >= "1" && key <= "6") {
+      var act = this.matchBrowser.numberAction(parseInt(key, 10) - 1);
+      if (act !== null) { this.activate(act); }
+      return true;
+    }
+    return false;
+  };
+
   SoccerSmartWebApp.prototype.handleKeyDown = function (key) {
+    if (this._matchKey(key)) { return; }
     if (this._playKey(key)) { return; }
     if (this._bookKey(key)) {
       return;
     }
     if (key === "Escape") {
       this.activate("menu");
-    } else if (key >= "1" && key <= "8") {
+    } else if (key === "i" || key === "I") {
+      this.activate("toggle_info");
+    } else if (key === "m" || key === "M") {
+      this.activate("toggle_sound");
+    } else if (key >= "1" && key <= "9") {
       var number = parseInt(key, 10) - 1;
-      if (this.session === null && this.cardIndex === null) {
+      if (this.session === null && this.cardIndex === null && number < this.menuCards.length) {
         this.activate(this.menuCards[number][2]);
       } else if (this.session !== null && this.session.phase === "decide" && number < 3) {
         this.activate("choice:" + number);
@@ -1266,6 +1711,12 @@
   };
 
   SoccerSmartWebApp.prototype.tick = function (seconds) {
+    if (this.matchSession !== null) {
+      var ev = this.matchSession.tick(seconds);
+      if (ev === "goal") { this.sound.play("goal"); }
+      else if (ev === "saved" || ev === "rebound" || ev === "corner") { this.sound.play("save"); }
+      else if (ev === "intercepted" || ev === "offside" || ev === "conceded") { this.sound.play("intercept"); }
+    }
     if (this.session !== null) {
       this.session.tick(seconds);
     }
@@ -1288,6 +1739,30 @@
         previewed: self.touchPreviewChoice !== null && b.action === "choice:" + self.touchPreviewChoice
       };
     });
+    if (this.matchSession !== null) {
+      var ms = this.matchSession, st = ms.state;
+      if (ms.phase === "match_summary") {
+        var sm = ms.summary();
+        return { badge: "MATCH COMPLETE", title: "YOU " + sm[2] + " - " + sm[3] + " " + ms.match.opponent,
+          subtitle: "Rating: " + sm[0] + "/3 stars", body: ms.earnedBadges.length ? "Badges: " + ms.earnedBadges.join(", ") : "Try Rewind to unlock tactical badges!",
+          note: sm[1] ? "VICTORY!" : "GREAT FIGHT!", buttons: btns };
+      }
+      var res = ms.activeResult;
+      return {
+        badge: "MATCH DAY | YOU " + st.home_score + "-" + st.away_score + " | " + st.minute + "' | " + st.rules_mode.toUpperCase(),
+        title: ms.moment.title,
+        subtitle: "Moment " + (ms.momentIndex + 1) + "/" + ms.match.moments.length + " | Beat " + (st.beat + 1) + "/4",
+        body: (ms.phase === "review" && res) ? res.feedback : ms.moment.cue,
+        note: (ms.phase === "review" && res && res.badges.length) ? ("Badges: " + res.badges.join(", ")) : "Tap directly on the pitch to pass, run, or shoot!",
+        buttons: btns
+      };
+    }
+    if (this.matchBrowser !== null) {
+      var r = this.cupStore.radar || defaultCupStore().radar;
+      return { badge: "MATCH DAY CUP", title: "Choose a Cup Match", subtitle: "7v7 Build-Out & 9v9 Live Offside",
+        body: "Tap the pitch directly to pass, lead through-balls, loft over pressure, or shoot.",
+        note: "IQ Radar: V" + r.vision + " / S" + r.spacing + " / T" + r.timing + " / D" + r.defending, buttons: btns };
+    }
     if (this.playBrowser !== null && this.session === null) {
       return {badge:"CONTINUOUS PLAY",title:"Choose a match task",subtitle:"8 tasks / 24 openings",
         body:"Each play has 2-3 linked decisions. Pass, support and recover as the picture changes.",
@@ -1414,13 +1889,27 @@
     var role = "";
     if (this.session !== null && this.session.phase !== "summary") {
       role = this.session.scene.role;
+    } else if (this.matchSession !== null && this.matchSession.phase !== "match_summary") {
+      role = this.matchSession.state.rules_mode + " captain";
     }
     drawPitch(p, role);
     if (!this.mobileMode) {
       p.panel(SIDE, PANEL, 18);
     }
-    if (this.playBrowser !== null && this.session === null) {
-      p.text("MENU / ESC",{x:1120,y:43,width:128,height:35},23,GREEN);
+    if (this.matchSession !== null) {
+      if (!this.mobileMode) {
+        p.text("MENU / ESC", { x: 1120, y: 43, width: 128, height: 35 }, 23, GREEN);
+      }
+      this._drawMatch();
+    } else if (this.matchBrowser !== null) {
+      if (!this.mobileMode) {
+        p.text("MENU / ESC", { x: 1120, y: 43, width: 128, height: 35 }, 23, GREEN);
+      }
+      this.matchBrowser.draw(p);
+    } else if (this.playBrowser !== null && this.session === null) {
+      if (!this.mobileMode) {
+        p.text("MENU / ESC", { x: 1120, y: 43, width: 128, height: 35 }, 23, GREEN);
+      }
       this.playBrowser.draw(p);
     } else if (this.cardIndex !== null) {
       if (!this.mobileMode) {
@@ -1447,7 +1936,7 @@
         p.button(btn, collidePoint(btn.rect, self.hover), isTouchPreview);
       });
       p.text(
-        "YOU = your player / BACK, CM, LW, RW, M, N = teammates / A, A2, R = opponents\nBlue = your team / Coral = opponents / Gold = keeper",
+        "YOU = your player / Blue = teammates / Coral = opponents / Gold = keeper\nPress M = Sound / I = Coach Info",
         { x: 32, y: 829, width: 740, height: 45 },
         21,
         MUTED
@@ -1455,7 +1944,7 @@
       p.text("No countdown. Think it through.", { x: 850, y: 835, width: 390, height: 28 }, 23, MUTED);
     } else {
       p.text(
-        "YOU (gold) / Blue = teammates / Coral = opponents",
+        "YOU (blue + green ring) / Blue = mates / Coral = opp / Gold = GK",
         { x: 52, y: 766, width: 694, height: 24 },
         19,
         MUTED
@@ -1463,6 +1952,113 @@
     }
     if (this.mobileMode && this.ctx.restore) {
       this.ctx.restore();
+    }
+  };
+
+  SoccerSmartWebApp.prototype._drawDashedLine = function (yVal, color, label) {
+    var y = pitchPoint([0.0, yVal])[1];
+    for (var x = PITCH.x + 6; x < PITCH.x + PITCH.width - 12; x += 22) {
+      drawLine(this.ctx, [x, y], [Math.min(x + 12, PITCH.x + PITCH.width - 4), y], color, 3);
+    }
+    this.painter.text(label, { x: PITCH.x + 10, y: Math.max(PITCH.y + 4, y - 22), width: 220, height: 22 }, 19, color);
+  };
+
+  SoccerSmartWebApp.prototype._drawProVision = function (st) {
+    if (!SIM) { return; }
+    var ctx = this.ctx, bx = st.ball.x, by = st.ball.y;
+    for (var i = 0; i < st.players.length; i++) {
+      var a = st.players[i];
+      if (a.team === "away" && a.role !== "gk") {
+        var tri = SIM.coverShadowTriangle(bx, by, a.x, a.y).map(pitchPoint);
+        ctx.fillStyle = "rgba(249, 143, 121, 0.26)";
+        ctx.beginPath(); ctx.moveTo(tri[0][0], tri[0][1]); ctx.lineTo(tri[1][0], tri[1][1]); ctx.lineTo(tri[2][0], tri[2][1]); ctx.closePath(); ctx.fill();
+      }
+    }
+    var fan = SIM.gkCoverageFan(st);
+    if (fan) {
+      var fpts = fan.map(pitchPoint);
+      ctx.fillStyle = "rgba(255, 207, 107, 0.28)";
+      ctx.beginPath(); ctx.moveTo(fpts[0][0], fpts[0][1]); ctx.lineTo(fpts[1][0], fpts[1][1]); ctx.lineTo(fpts[2][0], fpts[2][1]); ctx.closePath(); ctx.fill();
+    }
+    SIM.openPockets(st).forEach(function (pk) {
+      var pt = pitchPoint(pk);
+      ctx.fillStyle = "rgba(159, 235, 164, 0.34)";
+      ctx.beginPath(); ctx.arc(pt[0], pt[1], 22, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = GREEN; ctx.lineWidth = 2; ctx.stroke();
+    });
+  };
+
+  SoccerSmartWebApp.prototype._drawMatch = function () {
+    var ms = this.matchSession, p = this.painter, ctx = this.ctx;
+    if (ms.phase === "match_summary") {
+      var sm = ms.summary();
+      p.text("MATCH COMPLETE!", { x: 814, y: 162, width: 410, height: 48 }, 40, sm[1] ? GREEN : GOLD);
+      p.text("YOU " + sm[2] + " - " + sm[3] + " " + ms.match.opponent, { x: 814, y: 218, width: 410, height: 44 }, 34, GOLD);
+      p.text("Rating: " + sm[0] + "/3 stars", { x: 814, y: 272, width: 410, height: 36 }, 28, INK);
+      p.text("Badges earned:\n" + (ms.earnedBadges.length ? ms.earnedBadges.join(", ") : "Keep trying Rewind!"), { x: 814, y: 326, width: 410, height: 120 }, 24, GREEN);
+      p.text(sm[1] ? "VICTORY!" : "GREAT FIGHT!", { x: 150, y: 340, width: 520, height: 160 }, 82, sm[1] ? GREEN : GOLD);
+      return;
+    }
+    var st = ms.state, frame = ms.currentFrame;
+    if (st.rules_mode === "7v7" && frame.build_out_active) { this._drawDashedLine(SIM.BUILD_OUT_Y, CYAN, "BUILD-OUT LINE"); }
+    var offY = frame.offside_line !== null ? frame.offside_line : (SIM ? SIM.offsideLineY(st) : null);
+    if (offY !== null) { this._drawDashedLine(offY, CORAL, "OFFSIDE LINE"); }
+    if (ms.proVision) { this._drawProVision(st); }
+    var res = ms.activeResult;
+    if (res && (ms.phase === "resolve" || ms.phase === "coach" || ms.phase === "review") && res.frames.length >= 2) {
+      ctx.strokeStyle = GOLD; ctx.lineWidth = 3; ctx.beginPath();
+      res.frames.forEach(function (f, i) {
+        var pt = pitchPoint([f.ball[0], f.ball[1]]);
+        if (i === 0) ctx.moveTo(pt[0], pt[1]); else ctx.lineTo(pt[0], pt[1]);
+      });
+      ctx.stroke();
+    }
+    if (ms.moment.guided && ms.phase === "freeze" && SIM) {
+      SIM.guidedAnchors(st).forEach(function (pair, i) {
+        var pt = pitchPoint([pair[1].tx, pair[1].ty]);
+        ctx.strokeStyle = GOLD; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(pt[0], pt[1], 16, 0, Math.PI * 2); ctx.stroke();
+        p.text(String(i + 1), { x: pt[0] - 6, y: pt[1] - 10, width: 18, height: 22 }, 20, GOLD);
+      });
+    }
+    var byKey = {};
+    st.players.forEach(function (pl) { byKey[pl.key] = pl; });
+    frame.players.forEach(function (row) {
+      var pl = byKey[row[0]], team = pl.role === "gk" ? "keeper" : pl.team;
+      var tag = pl.key === "you" ? "YOU" : (pl.name + " #" + pl.number);
+      drawPlayer(p, [row[1], row[2]], tag, team, [row[3], row[4]]);
+    });
+    drawBall(p, [frame.ball[0], frame.ball[1]], frame.ball[2] * 1.4);
+    if (ms.phase === "freeze" && ms.previewAction && byKey.you) {
+      var act = ms.previewAction, sPt = pitchPoint([byKey.you.x, byKey.you.y]), ePt = pitchPoint([act.tx, act.ty]);
+      var col = act.kind === "run_decoy" ? CYAN : (act.kind === "run_call" ? GREEN : GOLD);
+      if (act.loft || act.kind === "run_call" || act.kind === "run_decoy" || act.kind === "defend") dashedArrow(ctx, sPt, ePt, col);
+      else arrow(ctx, sPt, ePt, col);
+      if (act.kind === "pass" && act.target_key && byKey[act.target_key]) {
+        var mate = byKey[act.target_key];
+        if (Math.abs(mate.x - act.tx) > 3.0 || Math.abs(mate.y - act.ty) > 3.0) dashedArrow(ctx, pitchPoint([mate.x, mate.y]), ePt, GREEN);
+      }
+    }
+    if (ms.phase === "review" && res) {
+      var bn = MATCH_BANNER[res.outcome] || ["PLAY DONE", GOLD];
+      var box = { x: PITCH.x + PITCH.width / 2 - 160, y: PITCH.y + 28, width: 320, height: 48 };
+      p.panel(box, NAVY, 12);
+      ctx.strokeStyle = bn[1]; ctx.lineWidth = 3; ctx.strokeRect(box.x, box.y, box.width, box.height);
+      p.text(bn[0], { x: box.x + 28, y: box.y + 8, width: 280, height: 36 }, 34, bn[1]);
+    }
+    if (!this.mobileMode) {
+      p.text("YOU " + st.home_score + "-" + st.away_score + " " + ms.match.opponent + "  |  " + st.minute + "'  |  " + st.rules_mode.toUpperCase(), { x: 814, y: 156, width: 410, height: 28 }, 22, GREEN);
+      p.text(ms.moment.title, { x: 814, y: 188, width: 410, height: 42 }, 31, INK);
+      p.text("Moment " + (ms.momentIndex + 1) + "/" + ms.match.moments.length + "  |  Beat " + (st.beat + 1) + "/4", { x: 814, y: 232, width: 410, height: 26 }, 22, GOLD);
+      if (ms.phase === "review" && res) {
+        p.text("Stars: " + res.stars + "/3  (" + res.outcome.replace("_", " ").toUpperCase() + ")", { x: 814, y: 270, width: 410, height: 34 }, 27, res.stars >= 3 ? GREEN : (res.stars === 2 ? GOLD : CORAL));
+        p.text(res.feedback, { x: 814, y: 314, width: 410, height: 120 }, 24, INK);
+        p.text(res.badges.length ? ("Badges: " + res.badges.join(", ")) : "Tip: Press Z to rewind 1 beat and try another route!", { x: 814, y: 444, width: 410, height: 96 }, 22, GOLD);
+      } else {
+        p.text(ms.moment.cue, { x: 814, y: 264, width: 410, height: 76 }, 22, INK);
+        if (ms.phase === "freeze" && !ms.moment.guided) {
+          p.text("9v9 Free Read: Click/drag directly on the pitch!\nTap mate=pass, ahead=through, goal=shoot, self=shield.", { x: 814, y: 360, width: 410, height: 150 }, 23, MUTED);
+        }
+      }
     }
   };
 
@@ -1478,13 +2074,13 @@
       drawPlayer(p, item[0], item[1], item[2], [0.0, -1.0]);
     });
     drawBall(p, [44.0, 55.0], 0.0);
-    p.text("Choose a tactical section.", { x: 814, y: 160, width: 410, height: 46 }, 34, INK);
-    p.text("6 practice plays + 2 transfer layouts.\nMultiple roles attacking the top goal.", { x: 814, y: 212, width: 410, height: 64 }, 24, MUTED);
+    p.text("Choose a mode or Match Day Cup.", { x: 814, y: 152, width: 410, height: 42 }, 31, INK);
+    p.text("Try 09 Match Day Cup for live 7v7 & 9v9 pitch play!", { x: 814, y: 198, width: 410, height: 36 }, 22, GOLD);
     var savedCount = Object.keys(this.savedResults).length;
     var footer = savedCount > 0
-      ? "Starter: 12 topics / 36 scenes / 7 cards (" + savedCount + " scenes practiced)"
-      : "Starter: 12 topics / 36 scenes / 7 cards.";
-    p.text(footer, { x: 814, y: 780, width: 410, height: 28 }, 22, GREEN);
+      ? "Starter: 36 scenes / 6 Cup matches (" + savedCount + " practiced)"
+      : "Starter: 36 scenes / 7 cards / 6 Cup matches.";
+    p.text(footer, { x: 814, y: 780, width: 410, height: 28 }, 21, GREEN);
   };
 
   SoccerSmartWebApp.prototype._drawCard = function () {
@@ -1772,7 +2368,7 @@
     });
 
     canvas.addEventListener("pointerdown", function (evt) {
-      if (!app.mobileMode) {
+      if (!app.mobileMode || (app.matchSession !== null && app.matchSession.phase === "freeze")) {
         evt.preventDefault();
         app.handlePointerDown(logicalFromEvent(evt), evt.pointerType || "mouse");
       }
@@ -1814,6 +2410,8 @@
     SoccerSmartWebApp: SoccerSmartWebApp,
     Session: Session,
     ContinuousSession: ContinuousSession,
+    MatchSession: MatchSession,
+    MatchBrowser: MatchBrowser,
     PlayBrowser: PlayBrowser,
     BookBrowser: BookBrowser,
     positions: positions,

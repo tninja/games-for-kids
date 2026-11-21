@@ -10,7 +10,29 @@ access limitations, and evidence labels. [SPEC.md](SPEC.md) records the
 approved executable specification; [EVIDENCE.md](EVIDENCE.md) reports the
 reproducible verification gauntlet results.
 
-## New: Continuous Play
+## New: Match Day Cup (7v7 & 9v9 Freeze-Frame 2D Tactics)
+
+Choose **9 / Match Day Cup** for live freeze-frame 2D tactical soccer across
+three Cup tiers (**Neighborhood 7v7 Cup**, **Regional 7v7 Challenge**, and
+**Academy 9v9 Cup** -- 6 matches, 18 playable moments) with trait-driven
+teammates (`Maya #7` speed, `Leo #10` playmaker, `Sam #4` anchor, `Alex #1`
+keeper):
+
+- **Direct pitch play (desktop & touch)**: click or tap teammates to pass to
+  feet, tap/drag space ahead for a through-ball, tap open grass to dribble, tap
+  a goal corner to shoot, or tap yourself to shield and pull pressers.
+- **Tactical controls**: `L` toggles **Loft** (ground speed vs aerial chip),
+  `D` toggles off-ball **Call** vs **Decoy** runs, `V` toggles **Pro Vision**
+  (cover shadows, passing pockets, GK angle cone, live offside laser & 7v7
+  build-out line), `Z` rewinds 1 beat for instant What-If experiments, `C` runs
+  the Coach Demo in the same deterministic 2D physics kernel, `M` toggles
+  procedural sound, and `I` toggles the Parent/Coach metadata view.
+- **Deterministic dual-platform kernel**: [sim_kernel.py](sim_kernel.py) and
+  [docs/soccer_smart/sim_kernel.js](../../docs/soccer_smart/sim_kernel.js) share
+  exact frame-by-frame kinematics, AI, offside/build-out rules, tactical badges,
+  and 4-axis Soccer IQ radar progress.
+
+## Continuous Play
 
 The latest update adds task-specific keeper recycling, midfield layoffs,
 overlaps/cutbacks, throw-in combinations, one-twos and counterattacks. Good
@@ -109,6 +131,7 @@ second tap.
   - `7` Book companion (57 indexed topics across Skills, Tactics, Watch a player,
     For adults and Getting started)
   - `8` Continuous Play (8 match tasks, 24 openings, selected-action branches)
+  - `9` Match Day Cup (3 tiers, 6 matches, 7v7 Build-Out & 9v9 Live Offside 2D pitch tactics)
 - **Book companion**:
   - Choose a category, then `1`-`6` or click a topic. Left/Right changes pages.
   - `B` or Book topics returns to the same topic page. Esc opens the main menu.

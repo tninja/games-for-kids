@@ -53,12 +53,12 @@ def keeper_root(family: int, variant: str, title: str) -> Scenario:
         ball = actor_point(people,"gk")
         choices = (delivery(people,ball,"show","Show diagonally for the keeper",(30.,78.),"receive"),
                    delivery(people,ball,"drop","Offer a deeper return angle",(40.,86.),"receive"),
-                   option("hide","Stand behind the pressing player",0,(30.,68.),ball,"move",
+                   option("hide","Hold a higher central spot",0,(30.,68.),ball,"move",
                           "The marker screens that outlet. Stay visible to the keeper."))
         return root(family,variant,title,people,ball,"The keeper has held the ball. Make a useful receiving angle before asking for the pass.",choices)
     choices = (delivery(people,john,"recycle","Recycle to the keeper",actor_point(people,"gk")),
                delivery(people,john,"switch","Lift the ball toward N",actor_point(people,"n"),"clear",45),
-               delivery(people,john,"rush","Push straight into the press",actor_point(people,"a"),"dribble"))
+               delivery(people,john,"rush","Drive forward down the middle",actor_point(people,"a"),"dribble"))
     return root(family,variant,title,people,john,"Two opponents narrow your short outlets. Compare recycling with the distant landing space.",choices,(50.,94.))
 
 
@@ -83,7 +83,7 @@ def pressure_root(family: int, variant: str, title: str) -> Scenario:
     outlet = actor_point(people,"m" if variant == "C" else "gk")
     choices = (delivery(people,ball,"recycle","Use the supporting outlet",outlet),
                delivery(people,ball,"clear","Lift clear toward N's landing space",actor_point(people,"n"),"clear",48),
-               delivery(people,ball,"rush","Touch through the nearest presser",actor_point(people,"a"),"dribble"))
+               delivery(people,ball,"rush","Carry forward into midfield",actor_point(people,"a"),"dribble"))
     cue = {"A":"A presses from ahead. Your keeper is free behind; N offers a distant landing space.",
            "B":"The keeper's return lane is screened. Read the forward landing space instead of forcing the back pass.",
            "C":"M has checked back on the left. Compare the short release with the lifted forward delivery."}[variant]
@@ -165,7 +165,7 @@ def transition_root(family: int, variant: str, title: str) -> Scenario:
         return root(family,variant,heading,people,ball,cue,choices,(41.,52.))
     choices = (delivery(people,ball,"counter","Release N before the defense recovers",actor_point(people,"n")),
                delivery(people,ball,"settle","Settle possession through M",actor_point(people,"m")),
-               delivery(people,ball,"burst","Carry through the closing opponent",actor_point(people,"a"),"dribble"))
+               delivery(people,ball,"burst","Drive forward at pace",actor_point(people,"a"),"dribble"))
     return root(family,variant,title,people,ball,"You have secured the regain. A closes ahead; compare the early forward pass with retaining possession.",choices)
 
 
@@ -174,7 +174,7 @@ def keeper_follow(people: People, ball: Point, holder: Actor) -> Decision:
         return ("Reposition for the keeper","The keeper has the ball. Reposition for the next outlet rather than following your original pass.",
                 (delivery(people,ball,"show","Show a different receiving angle",(36.,84.),"receive"),
                  delivery(people,ball,"drop","Offer a closer keeper outlet",(42.,88.),"receive"),
-                 option("hide","Stay in A's cover shadow",0,actor_point(people,"a"),ball,"move",
+                 option("hide","Hold higher near the middle",0,actor_point(people,"a"),ball,"move",
                         "The opponent screens this receiving position. Offer a visible angle to the keeper.")))
     if holder.key in ("m","n"):
         john = actor_point(people,"john")
@@ -196,7 +196,7 @@ def midfield_follow(people: People, ball: Point, holder: Actor) -> Decision:
                 (delivery(people,ball,"bounce","Meet M's return outside pressure",(40.,52.),"receive"),
                  option("decoy","Move away to leave N space",2,(24.,54.),ball,"move",
                         "Your movement leaves the inside route available. M keeps the ball while the shape changes."),
-                 option("crowd","Follow the pass into M's feet",0,actor_point(people,"m"),ball,"move",
+                 option("crowd","Move straight toward M",0,actor_point(people,"m"),ball,"move",
                         "That run occupies the carrier's space instead of creating a return angle.")))
     return ("Read the second defender","You control the ball from a new angle. Compare the diagonal lane with the supporting layoff.",
             (delivery(people,ball,"diagonal","Find N on the diagonal",actor_point(people,"n")),
@@ -279,7 +279,7 @@ def cross_follow(people: People, ball: Point, holder: Actor) -> Decision:
                     "You protect the receiver's route toward goal. This is cover, not an automatic interception."),
              option("cutback","Protect the central cutback zone",2,(45.,82.),ball,"move",
                     "Your central position protects the cutback while M can pressure the wide carrier."),
-             option("doublepress","Join M beside the wide carrier",0,actor_point(people,"a"),ball,"move",
+             option("doublepress","Double-team wide beside M",0,actor_point(people,"a"),ball,"move",
                     "Both defenders would chase the same wide player, leaving the central receiver uncovered.")))
 
 
