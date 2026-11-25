@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Foosball 3D - Table Soccer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: rgb(14, 29, 40);
+      --panel: rgb(24, 44, 57);
+      --card: rgb(34, 59, 73);
+      --border: rgb(67, 95, 107);
+      --ink: rgb(231, 241, 244);
+      --muted: rgb(157, 181, 190);
+      --green: rgb(159, 235, 164);
+      --gold: rgb(255, 207, 107);
+      --blue: rgb(74, 158, 255);
+      --red: rgb(245, 101, 101);
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100dvh;
+      background: var(--navy);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    body {
+      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+    .topbar {
+      width: 100%;
+      max-width: 1040px;
+      padding: 4px 2px 6px 2px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .topbar a {
+      color: var(--green);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .topbar a:hover {
+      text-decoration: underline;
+    }
+    .scoreboard {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+    .score-blue-txt {
+      color: var(--blue);
+    }
+    .score-red-txt {
+      color: var(--red);
+    }
+    .score-num {
+      font-size: 1.2rem;
+      color: #ffffff;
+      min-width: 22px;
+      text-align: center;
+    }
+    .stage-wrap {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-banner {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--ink);
+    }
+    .practice-hud {
+      display: none;
+      width: 100%;
+      background: rgba(255, 207, 107, 0.14);
+      border: 1px solid rgba(255, 207, 107, 0.45);
+      border-radius: 8px;
+      padding: 5px 12px;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .viewport-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      max-height: 62dvh;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+      background: rgb(15, 27, 36);
+    }
+    canvas#game-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(9, 19, 27, 0.82);
+      backdrop-filter: blur(4px);
+      padding: 14px;
+      z-index: 10;
+    }
+    .modal {
+      width: 100%;
+      max-width: 560px;
+      max-height: 100%;
+      overflow-y: auto;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+    }
+    .modal h1, .modal h2 {
+      margin: 0;
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+    .modal h1 {
+      font-size: 1.6rem;
+      color: var(--gold);
+    }
+    .modal .sub {
+      margin: 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .option-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .option-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pill-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+      gap: 7px;
+    }
+    .pill {
+      min-height: 38px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.86rem;
+      cursor: pointer;
+    }
+    .pill.selected {
+      background: var(--green);
+      color: var(--navy);
+      border-color: var(--green);
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .primary-btn {
+      min-height: 46px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, rgb(125, 224, 140), rgb(255, 207, 107));
+      color: rgb(14, 29, 40);
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+    .toolbar {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
+    }
+    .tool-btn {
+      min-height: 36px;
+      padding: 6px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tool-btn:hover {
+      background: var(--card);
+      border-color: var(--green);
+    }
+    .touch-dock {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 12px;
+      padding: 4px 0;
+    }
+    .touch-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .touch-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .touch-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .slider-track {
+      position: relative;
+      width: 58px;
+      height: 128px;
+      border-radius: 999px;
+      background: rgb(16, 33, 44);
+      border: 2px solid var(--border);
+      touch-action: none;
+      flex-shrink: 0;
+    }
+    .slider-knob {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 44px;
+      height: 44px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgb(210, 224, 232), rgb(135, 160, 175));
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+      pointer-events: none;
+    }
+    .action-btn {
+      min-height: 54px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 0.92rem;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .action-btn.kick {
+      background: rgb(42, 114, 72);
+      border-color: var(--green);
+    }
+    .action-btn.pressed {
+      transform: scale(0.95);
+      filter: brightness(1.25);
+    }
+    .legend {
+      width: 100%;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../index.html">&lt;- Games Hub</a>
+    <div class="scoreboard">
+      <span id="name-blue" class="score-blue-txt">BLUE</span>
+      <span id="score-blue" class="score-num">0</span>
+      <span>-</span>
+      <span id="score-red" class="score-num">0</span>
+      <span id="name-red" class="score-red-txt">RED</span>
+    </div>
+    <span>Foosball 3D</span>
+  </div>
+
+  <main class="stage-wrap">
+    <div id="status-banner" class="status-banner">Choose a mode and kick off!</div>
+    <div id="practice-hud" class="practice-hud">Target Hits: 0 | Streak: 0 | Best: 0</div>
+
+    <div class="viewport-box">
+      <canvas id="game-canvas" aria-label="3D Foosball Table"></canvas>
+
+      <div id="menu-overlay" class="overlay">
+        <div class="modal">
+          <h1>FOOSBALL 3D</h1>
+          <p class="sub">Classic 8-rod table soccer. Tap to flick, hold to charge power shots, slide while kicking for angled pull shots.</p>
+
+          <div class="option-row">
+            <div class="option-label">Play Mode</div>
+            <div class="pill-group">
+              <button class="pill selected" data-mode="1p">1P vs AI</button>
+              <button class="pill" data-mode="2p_coop">2P Co-op vs AI</button>
+              <button class="pill" data-mode="2p_pvp">2P 1v1</button>
+              <button class="pill" data-mode="practice">Free Practice</button>
+            </div>
+          </div>
+
+          <div id="menu-ai-row" class="option-row">
+            <div class="option-label">Computer Level</div>
+            <div class="pill-group">
+              <button class="pill selected" data-ai="rookie">Rookie</button>
+              <button class="pill" data-ai="amateur">Amateur</button>
+              <button class="pill" data-ai="pro">Pro</button>
+              <button class="pill" data-ai="legend">Legend</button>
+            </div>
+          </div>
+
+          <div id="menu-score-row" class="option-row">
+            <div class="option-label">Match Length</div>
+            <div class="pill-group">
+              <button class="pill selected" data-score="5">First to 5</button>
+              <button class="pill" data-score="7">First to 7</button>
+              <button class="pill" data-score="10">First to 10</button>
+            </div>
+          </div>
+
+          <div class="option-row">
+            <div class="option-label">Rod Control</div>
+            <div class="pill-group">
+              <button class="pill selected" data-ctrl="sync">Easy Sync (All Rods)</button>
+              <button class="pill" data-ctrl="advanced">Advanced (Single Rod)</button>
+            </div>
+          </div>
+
+          <label class="checkbox-row">
+            <input id="opt-strict-spin" type="checkbox">
+            <span>Show official No-Spinning reminder notice</span>
+          </label>
+
+          <button id="btn-start-match" class="primary-btn">KICK OFF</button>
+        </div>
+      </div>
+
+      <div id="gameover-overlay" class="overlay" style="display: none;">
+        <div class="modal">
+          <h1 id="winner-title">BLUE WINS!</h1>
+          <p id="winner-sub" class="sub">Final Score: 5 - 3</p>
+          <button id="btn-rematch" class="primary-btn">PLAY AGAIN</button>
+          <button id="btn-menu-from-over" class="tool-btn">CHANGE MODE / SETTINGS</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="btn-camera" class="tool-btn">Cam: ANGLED</button>
+      <button id="btn-ctrl-mode" class="tool-btn">Rods: Sync</button>
+      <button id="btn-swap-coop" class="tool-btn" style="display: none;">Swap (P1 Def)</button>
+      <button id="btn-theme" class="tool-btn">Colors: BLUE/RED</button>
+      <button id="btn-mute" class="tool-btn">Sound: ON</button>
+      <button id="btn-restart" class="tool-btn">Restart</button>
+      <button id="btn-menu" class="tool-btn">Menu</button>
+    </div>
+
+    <div id="touch-dock" class="touch-dock" style="display: none;">
+      <div id="touch-p1" class="touch-panel">
+        <div id="slider-p1" class="slider-track" aria-label="Player 1 Slide">
+          <div class="slider-knob"></div>
+        </div>
+        <div class="touch-col">
+          <div id="touch-p1-title" class="touch-title">P1 BLUE</div>
+          <button id="touch-p1-kick" class="action-btn kick">KICK / HOLD</button>
+          <button id="touch-p1-lift" class="action-btn">LIFT RODS</button>
+        </div>
+      </div>
+
+      <div id="touch-p2" class="touch-panel" style="display: none;">
+        <div class="touch-col">
+          <div id="touch-p2-title" class="touch-title">P2 RED</div>
+          <button id="touch-p2-kick" class="action-btn kick">KICK / HOLD</button>
+          <button id="touch-p2-lift" class="action-btn">LIFT RODS</button>
+        </div>
+        <div id="slider-p2" class="slider-track" aria-label="Player 2 Slide">
+          <div class="slider-knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="controls-legend" class="legend">
+      W/S or Up/Down: Slide | Space / D / Right: Tap Kick or Hold Power Shot | A / Left: Lift Rods | V: Cam
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

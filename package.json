@@ -8,7 +8,9 @@
     "build:battleship": "node battleship/ts/build.mjs",
     "typecheck:flappybird": "tsc --noEmit",
     "build:flappybird": "node flappybird/ts/build.mjs",
-    "build:flappybird3d": "node flappybird/ts/build3d.mjs"
+    "build:flappybird3d": "node flappybird/ts/build3d.mjs",
+    "typecheck:foosball": "tsc --noEmit",
+    "build:foosball": "node foosball/ts/build.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.187.0",
