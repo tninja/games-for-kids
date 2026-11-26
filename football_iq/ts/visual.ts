@@ -6,7 +6,7 @@ type Frame = { x: number; y: number; w: number; h: number };
 type Display = { setOrigin(x: number, y?: number): Display; setDepth(n: number): Display; setPosition(x:number,y:number): Display; setFrame(f:string): Display; setVisible(v:boolean):Display; setText(t:string):Display; setScale(n:number):Display };
 type Graphics = { setDepth(n:number):Graphics; clear():Graphics; fillStyle(c:number,a?:number):Graphics; fillEllipse(x:number,y:number,w:number,h:number):Graphics; fillCircle(x:number,y:number,r:number):Graphics; lineStyle(w:number,c:number,a?:number):Graphics; strokeCircle(x:number,y:number,r:number):Graphics; lineBetween(x:number,y:number,a:number,b:number):Graphics };
 type Scene = { textures: {addCanvas(key:string,canvas:HTMLCanvasElement): {add(name:string,index:number,x:number,y:number,w:number,h:number):unknown}|null}; add: { image(x:number,y:number,k:string):Display; sprite(x:number,y:number,k:string,f?:string):Display; graphics():Graphics; text(x:number,y:number,t:string,style:Record<string,unknown>):Display } };
-type PhaserAPI = { AUTO: number; Game: new(config:Record<string,unknown>)=>{destroy(removeCanvas:boolean):void} };
+type PhaserAPI = { AUTO: number; CANVAS: number; Game: new(config:Record<string,unknown>)=>{destroy(removeCanvas:boolean):void} };
 type Mark = { kind:"ellipse"|"ring"|"line"|"dot"; x:number;y:number;a:number;b:number;color:number;alpha:number;width:number };
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
@@ -228,11 +228,10 @@ export async function createVisual(canvas:HTMLCanvasElement):Promise<Visual>{
   const field=stadium(),players=atlas(),ball=ballArt();
   const phaser=await loadPhaser();
   if(!phaser)return canvasVisual(canvas,field,players,ball);
-  try{
-    return await new Promise<Visual>((resolve,reject)=>{
+  const boot=(type:number,target:HTMLCanvasElement)=>new Promise<Visual>((resolve,reject)=>{
       let game:{destroy(removeCanvas:boolean):void}|undefined;
       const timeout=window.setTimeout(()=>{game?.destroy(false);reject(new Error("Phaser scene timeout"));},3000);
-      game=new phaser.Game({type:phaser.AUTO,canvas,width:WIDTH,height:HEIGHT,pixelArt:true,roundPixels:true,transparent:false,
+      game=new phaser.Game({type,canvas:target,parent:target.parentElement??undefined,width:WIDTH,height:HEIGHT,pixelArt:true,roundPixels:true,transparent:false,
         banner:false,audio:{noAudio:true},input:{keyboard:false,mouse:false,touch:false,gamepad:false},
         scene:{create(this:Scene ){
           try{
@@ -267,9 +266,18 @@ export async function createVisual(canvas:HTMLCanvasElement):Promise<Visual>{
         }}
       });
     });
-  }catch{
-    // A WebGL canvas cannot be reused as 2D, so replace the element on failure.
-    const replacement=canvas.cloneNode(false) as HTMLCanvasElement;canvas.replaceWith(replacement);
-    return canvasVisual(replacement,field,players,ball);
+  // A canvas that acquired a WebGL context cannot also acquire a 2D context.
+  const fresh=(old:HTMLCanvasElement)=>{
+    const replacement=old.cloneNode(false) as HTMLCanvasElement;old.replaceWith(replacement);return replacement;
+  };
+  try{return await boot(phaser.AUTO,canvas);}
+  catch(err){
+    console.warn("Football IQ: Phaser AUTO failed",err);
+    canvas=fresh(canvas);
   }
+  if(typeof phaser.CANVAS==="number"){
+    try{return await boot(phaser.CANVAS,canvas);}
+    catch(err){console.warn("Football IQ: Phaser CANVAS failed",err);canvas=fresh(canvas);}
+  }
+  return canvasVisual(canvas,field,players,ball);
 }
