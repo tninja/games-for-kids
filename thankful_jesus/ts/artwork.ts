@@ -708,6 +708,85 @@ export function drawSpeechBubble(
   ctx.restore();
 }
 
+export function drawWindGustLeaf(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  scale = 1,
+  timeSec = 0
+): void {
+  const s = safeR(scale);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(Math.sin(timeSec * 8 + cy * 0.05) * 0.45);
+  ctx.scale(s, s);
+
+  // Swirling breeze lines
+  ctx.strokeStyle = "rgba(110, 146, 168, 0.85)";
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(-16, -6);
+  ctx.quadraticCurveTo(0, -14, 14, -4);
+  ctx.moveTo(-14, 8);
+  ctx.quadraticCurveTo(2, 14, 16, 4);
+  ctx.stroke();
+
+  // Dry tumbling autumn twig/leaf to dodge
+  ctx.fillStyle = "#8C5835";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  safeEllipse(ctx, 0, 0, 11, 5.5, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawAdventurerTimerAndCombo(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  timeLeftSec: number,
+  totalTimeSec: number,
+  streak: number
+): void {
+  const ratio = Math.max(0, Math.min(1, totalTimeSec > 0 ? timeLeftSec / totalTimeSec : 1));
+  const barX = 16;
+  const barY = 12;
+  const barW = w - 32;
+  const barH = 12;
+
+  ctx.save();
+  drawRoundedRect(ctx, barX, barY, barW, barH, 6);
+  ctx.fillStyle = "rgba(46, 36, 30, 0.25)";
+  ctx.fill();
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  const fillW = Math.max(8, (barW - 4) * ratio);
+  drawRoundedRect(ctx, barX + 2, barY + 2, fillW, barH - 4, 4);
+  ctx.fillStyle = timeLeftSec <= 7 ? "#D94A38" : timeLeftSec <= 14 ? "#E89B2D" : "#F6C453";
+  ctx.fill();
+
+  if (streak >= 3) {
+    const mult = streak >= 6 ? "x3" : "x2";
+    const bx = w - 76;
+    const by = 29;
+    drawRoundedRect(ctx, bx, by, 60, 24, 12);
+    ctx.fillStyle = streak >= 6 ? "#D46A43" : "#E5A93B";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#FFFDF8";
+    ctx.font = "800 13px system-ui, -apple-system, sans-serif";
+    ctx.fillText(mult + "!", bx + 30, by + 16);
+  }
+  ctx.restore();
+}
+
 export function drawStorybookFrame(
   ctx: CanvasRenderingContext2D,
   w: number,

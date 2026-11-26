@@ -63,15 +63,12 @@ function enterCurrentStage(state: GameState): void {
 }
 
 export function createInitialState(config: GameConfig = {}): GameState {
-  const playMode = config.playMode || "solo";
-  const requestedCount = config.playerCount ?? (playMode === "pass_and_play" ? 2 : 1);
-  const playerCount = playMode === "solo" ? 1 : Math.max(2, Math.min(4, requestedCount));
   return {
     phase: "title",
     ageMode: config.ageMode || "explorer",
     langMode: config.langMode || "dual",
-    playMode,
-    playerCount,
+    playMode: "solo",
+    playerCount: 1,
     activePlayerIndex: 0,
     stageIndex: 0,
     stageState: null,
@@ -183,12 +180,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       state.unlockedVerses = [];
       state.prayers = [];
       state.totalStars = 0;
-      if (state.playMode === "pass_and_play" && state.playerCount > 1) {
-        state.stageState = null;
-        state.phase = "pass_banner";
-      } else {
-        enterCurrentStage(state);
-      }
+      enterCurrentStage(state);
       break;
     case "CONFIRM_PASS":
       if (state.phase === "pass_banner") {
@@ -249,13 +241,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       if (state.phase === "stage_complete") {
         if (state.stageIndex + 1 < STAGE_SEQUENCE.length) {
           state.stageIndex += 1;
-          if (state.playMode === "pass_and_play" && state.playerCount > 1) {
-            state.activePlayerIndex = (state.activePlayerIndex + 1) % state.playerCount;
-            state.stageState = null;
-            state.phase = "pass_banner";
-          } else {
-            enterCurrentStage(state);
-          }
+          enterCurrentStage(state);
         } else {
           state.stageState = null;
           state.phase = "prayer_card";

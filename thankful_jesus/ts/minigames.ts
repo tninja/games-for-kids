@@ -11,7 +11,13 @@ import {
   StageResult,
   VerseBuilderStageState
 } from "./types";
-import { ADVENTURER_QUIZ_ORDER, BUILDER_VERSE_QUEUE, QUIZ_QUESTIONS, getVerseTiles } from "./verses";
+import {
+  ADVENTURER_QUIZ_ORDER,
+  BUILDER_VERSE_QUEUE,
+  QUIZ_QUESTIONS,
+  getVerseDecoyTile,
+  getVerseTiles
+} from "./verses";
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
@@ -25,7 +31,6 @@ function shuffleIds(ids: string[], rng: () => number): string[] {
     arr[i] = arr[j];
     arr[j] = tmp;
   }
-  // Ensure the shuffled list is not identical to the solved order when length > 1
   if (arr.length > 1) {
     let same = true;
     for (let i = 0; i < arr.length; i++) {
@@ -41,6 +46,23 @@ function shuffleIds(ids: string[], rng: () => number): string[] {
     }
   }
   return arr;
+}
+
+function buildShuffledVerseIds(
+  verseId: (typeof BUILDER_VERSE_QUEUE)[number],
+  ageMode: AgeMode,
+  rng: () => number
+): { shuffledTileIds: string[]; decoyTileId: string | null } {
+  const tiles = getVerseTiles(verseId, ageMode);
+  const ids = tiles.map((t) => t.id);
+  const decoy = getVerseDecoyTile(verseId, ageMode);
+  if (decoy) {
+    ids.push(decoy.id);
+  }
+  return {
+    shuffledTileIds: shuffleIds(ids, rng),
+    decoyTileId: decoy ? decoy.id : null
+  };
 }
 
 export function createStageState(
@@ -63,7 +85,11 @@ export function createStageState(
       streak: 0,
       score: 0,
       timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
-      spawnTimer: 0.35,
+      totalTimeSec: spec.adventurerTimeSec,
+      wobbleTimer: 0,
+      doveRescueTimer: 0,
+      doveRescueX: 0.5,
+      spawnTimer: 0.3,
       nextItemId: 1,
       items: [],
       lastPopKey: "",
@@ -80,10 +106,12 @@ export function createStageState(
       targetSparkles: isExplorer ? spec.explorerTarget : spec.adventurerTarget,
       roadProgress: 0,
       turnBackProgress: 0,
+      streak: 0,
       wobbleTimer: 0,
       score: 0,
       timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
-      spawnTimer: 0.3,
+      totalTimeSec: spec.adventurerTimeSec,
+      spawnTimer: 0.28,
       nextItemId: 1,
       items: [],
       lastPopKey: "",
@@ -99,9 +127,13 @@ export function createStageState(
       streak: 0,
       score: 0,
       timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
+      totalTimeSec: spec.adventurerTimeSec,
       spawnTimer: 0.35,
+      doubleBeatPending: false,
       melodyStep: 0,
       missedCounter: 0,
+      doveRescueTimer: 0,
+      doveRescueX: 0.5,
       nextNoteId: 1,
       notes: [],
       stringGlow: [0, 0, 0, 0],
@@ -111,18 +143,17 @@ export function createStageState(
   }
 
   const firstVerse = BUILDER_VERSE_QUEUE[0];
-  const tiles = getVerseTiles(firstVerse, ageMode);
+  const initialTiles = buildShuffledVerseIds(firstVerse, ageMode, rng);
   return {
     kind: "verse_builder",
     subPhase: "tiles",
     verseQueue: BUILDER_VERSE_QUEUE.slice(),
     verseCursor: 0,
     placedTileIds: [],
-    shuffledTileIds: shuffleIds(
-      tiles.map((t) => t.id),
-      rng
-    ),
+    shuffledTileIds: initialTiles.shuffledTileIds,
+    decoyTileId: initialTiles.decoyTileId,
     wrongShakeTileId: null,
+    wrongShakeWasDecoy: false,
     wrongShakeTimer: 0,
     mistakes: 0,
     versesCompleted: 0,
@@ -149,6 +180,12 @@ export function stepLoavesStage(
   if (stage.prayGlowTimer > 0) {
     stage.prayGlowTimer = Math.max(0, stage.prayGlowTimer - dt);
   }
+  if (stage.wobbleTimer > 0) {
+    stage.wobbleTimer = Math.max(0, stage.wobbleTimer - dt);
+  }
+  if (stage.doveRescueTimer > 0) {
+    stage.doveRescueTimer = Math.max(0, stage.doveRescueTimer - dt);
+  }
 
   if (!stage.prayedWithJesus) {
     if (input.primaryTap) {
@@ -169,44 +206,63 @@ export function stepLoavesStage(
   if (input.pointerXNorm !== null) {
     stage.basketX = clamp(input.pointerXNorm, 0.14, 0.86);
   } else if (input.moveDir !== 0) {
-    stage.basketX = clamp(stage.basketX + input.moveDir * dt * 0.92, 0.14, 0.86);
+    stage.basketX = clamp(stage.basketX + input.moveDir * dt * 0.96, 0.14, 0.86);
   }
 
   stage.spawnTimer -= dt;
   if (stage.spawnTimer <= 0) {
     const r = rng();
-    const itemType: "loaf" | "fish" | "blessing" =
-      r < 0.24 ? "blessing" : r < 0.64 ? "loaf" : "fish";
+    let itemType: "loaf" | "fish" | "blessing" | "gust";
+    if (isExplorer) {
+      itemType = r < 0.28 ? "blessing" : r < 0.66 ? "loaf" : "fish";
+    } else {
+      itemType = r < 0.22 ? "gust" : r < 0.42 ? "blessing" : r < 0.72 ? "loaf" : "fish";
+    }
     stage.items.push({
       id: stage.nextItemId++,
-      x: 0.15 + rng() * 0.70,
+      x: 0.16 + rng() * 0.68,
       y: 0.10,
-      vy: (isExplorer ? 0.30 : 0.42) + rng() * 0.10,
+      vy: isExplorer ? 0.25 + rng() * 0.07 : 0.44 + rng() * 0.12,
+      swayPhase: rng() * Math.PI * 2,
       itemType
     });
-    stage.spawnTimer = isExplorer ? 0.78 : 0.56;
+    stage.spawnTimer = isExplorer ? 0.88 : 0.48;
   }
 
-  const catchRadius = isExplorer ? 0.165 : 0.125;
+  const catchRadius = isExplorer ? 0.18 : 0.12;
   const remaining = [];
   for (let i = 0; i < stage.items.length; i++) {
     const item = stage.items[i];
     item.y += item.vy * dt;
-    // Gentle breeze in Explorer mode guides blessing baskets toward the child's basket
-    if (isExplorer && item.itemType === "blessing" && item.y > 0.38) {
-      item.x += (stage.basketX - item.x) * Math.min(1, dt * 2.2);
+
+    if (isExplorer) {
+      if (item.itemType === "blessing" && item.y > 0.34) {
+        item.x += (stage.basketX - item.x) * Math.min(1, dt * 2.5);
+      }
+    } else {
+      // Galilee sea breeze gently sways falling items in Adventurer mode
+      item.x = clamp(item.x + Math.sin(item.swayPhase + item.y * 8.5) * dt * 0.24, 0.12, 0.88);
     }
 
-    if (item.y >= 0.73 && item.y <= 0.88 && Math.abs(item.x - stage.basketX) <= catchRadius) {
+    if (item.y >= 0.72 && item.y <= 0.88 && Math.abs(item.x - stage.basketX) <= catchRadius) {
+      if (item.itemType === "gust") {
+        stage.wobbleTimer = 0.6;
+        stage.streak = 0;
+        stage.lastPopKey = "popWindGust";
+        stage.lastPopTimer = 0.75;
+        sounds.push("gentle_bump");
+        continue;
+      }
       stage.sharedCount += 1;
       stage.streak += 1;
+      const mult = !isExplorer && stage.streak >= 6 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
       if (item.itemType === "blessing") {
         stage.blessingsCollected += 1;
-        stage.score += 120 + stage.streak * 15;
+        stage.score += 120 * mult;
         stage.lastPopKey = "popBlessing";
         sounds.push("blessing_token");
       } else {
-        stage.score += 65 + stage.streak * 10;
+        stage.score += 65 * mult;
         stage.lastPopKey = "popShared";
         sounds.push("good_catch");
       }
@@ -214,8 +270,19 @@ export function stepLoavesStage(
       continue;
     }
 
-    if (item.y > 1.02) {
-      stage.streak = 0;
+    if (item.y > 0.92) {
+      if (isExplorer && item.itemType !== "gust") {
+        // Explorer Dove Helper rescues missed loaves/fish so 6-7 kids always feel supported!
+        stage.sharedCount += 1;
+        stage.score += 55;
+        stage.doveRescueTimer = 0.95;
+        stage.doveRescueX = item.x;
+        stage.lastPopKey = "popDoveHelp";
+        stage.lastPopTimer = 0.75;
+        sounds.push("blessing_token");
+      } else if (item.itemType !== "gust") {
+        stage.streak = 0;
+      }
       continue;
     }
     remaining.push(item);
@@ -261,24 +328,51 @@ export function stepRunBackStage(
       stage.lane = stage.lane === 0 ? 1 : 2;
     }
 
-    stage.roadProgress = clamp(stage.roadProgress + dt * (isExplorer ? 0.048 : 0.056), 0, 1);
+    // In Adventurer mode, hitting an obstacle pauses forward road progress briefly
+    if (isExplorer || stage.wobbleTimer <= 0) {
+      stage.roadProgress = clamp(stage.roadProgress + dt * (isExplorer ? 0.055 : 0.042), 0, 1);
+    }
 
     stage.spawnTimer -= dt;
     if (stage.spawnTimer <= 0) {
-      const r = rng();
-      const lane = (Math.floor(rng() * 3) % 3) as 0 | 1 | 2;
-      const itemType: "sparkle" | "cart" | "toy" =
-        r < (isExplorer ? 0.72 : 0.62) ? "sparkle" : r < 0.84 ? "cart" : "toy";
-      stage.items.push({
-        id: stage.nextItemId++,
-        lane,
-        y: 0.08,
-        itemType
-      });
-      stage.spawnTimer = isExplorer ? 0.80 : 0.56;
+      if (isExplorer) {
+        const r = rng();
+        const lane = (Math.floor(rng() * 3) % 3) as 0 | 1 | 2;
+        const itemType: "sparkle" | "cart" | "toy" =
+          r < 0.78 ? "sparkle" : r < 0.90 ? "cart" : "toy";
+        stage.items.push({ id: stage.nextItemId++, lane, y: 0.08, itemType });
+        stage.spawnTimer = 0.86;
+      } else {
+        // Adventurer: 50% of waves spawn a 2-lane obstacle wall + 1 sparkle in the safe lane!
+        const safeLane = (Math.floor(rng() * 3) % 3) as 0 | 1 | 2;
+        if (rng() < 0.52) {
+          stage.items.push({ id: stage.nextItemId++, lane: safeLane, y: 0.08, itemType: "sparkle" });
+          const lanes: (0 | 1 | 2)[] = [0, 1, 2];
+          for (let li = 0; li < lanes.length; li++) {
+            const ln = lanes[li];
+            if (ln !== safeLane) {
+              stage.items.push({
+                id: stage.nextItemId++,
+                lane: ln,
+                y: 0.08,
+                itemType: ln % 2 === 0 ? "cart" : "toy"
+              });
+            }
+          }
+          stage.spawnTimer = 0.68;
+        } else {
+          stage.items.push({
+            id: stage.nextItemId++,
+            lane: safeLane,
+            y: 0.08,
+            itemType: rng() < 0.65 ? "sparkle" : "cart"
+          });
+          stage.spawnTimer = 0.48;
+        }
+      }
     }
 
-    const speed = isExplorer ? 0.42 : 0.56;
+    const speed = isExplorer ? 0.34 : 0.60;
     const remaining = [];
     for (let i = 0; i < stage.items.length; i++) {
       const it = stage.items[i];
@@ -286,13 +380,16 @@ export function stepRunBackStage(
       if (it.y >= 0.72 && it.y <= 0.87 && it.lane === stage.lane) {
         if (it.itemType === "sparkle") {
           stage.sparklesCollected += 1;
-          stage.roadProgress = clamp(stage.roadProgress + 0.09, 0, 1);
-          stage.score += 80;
+          stage.streak += 1;
+          stage.roadProgress = clamp(stage.roadProgress + (isExplorer ? 0.12 : 0.075), 0, 1);
+          const mult = !isExplorer && stage.streak >= 5 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
+          stage.score += 80 * mult;
           stage.lastPopKey = "popGrace";
           stage.lastPopTimer = 0.7;
           sounds.push("blessing_token");
         } else {
-          stage.wobbleTimer = 0.45;
+          stage.wobbleTimer = isExplorer ? 0.35 : 0.75;
+          stage.streak = 0;
           stage.lastPopKey = "popOops";
           stage.lastPopTimer = 0.65;
           sounds.push("gentle_bump");
@@ -309,7 +406,7 @@ export function stepRunBackStage(
     if (
       stage.sparklesCollected >= stage.targetSparkles ||
       stage.roadProgress >= 1 ||
-      (!isExplorer && stage.timeLeftSec <= 8)
+      (!isExplorer && stage.timeLeftSec <= 7.5)
     ) {
       stage.subPhase = "turn_back";
       stage.items = [];
@@ -320,17 +417,17 @@ export function stepRunBackStage(
     return false;
   }
 
-  // Turn-back climax: tap to run joyfully back to Jesus' feet!
+  // Turn-back climax: Explorer has effortless 5 taps & zero decay; Adventurer has brisk sprint!
   const tapped = input.primaryTap || input.lanePick !== null;
   if (tapped) {
-    const step = isExplorer ? 18 : 14;
+    const step = isExplorer ? 22 : 11;
     stage.turnBackProgress = clamp(stage.turnBackProgress + step, 0, 100);
     stage.score += 45;
     stage.lastPopKey = "popThankJesus";
     stage.lastPopTimer = 0.65;
     sounds.push("turn_step");
-  } else if (stage.turnBackProgress > 12) {
-    stage.turnBackProgress = Math.max(12, stage.turnBackProgress - dt * (isExplorer ? 2.5 : 5.0));
+  } else if (!isExplorer && stage.turnBackProgress > 10) {
+    stage.turnBackProgress = Math.max(10, stage.turnBackProgress - dt * 12.0);
   }
 
   if (stage.turnBackProgress >= 100) {
@@ -359,6 +456,9 @@ export function stepDavidHarpStage(
   if (stage.lastPopTimer > 0) {
     stage.lastPopTimer = Math.max(0, stage.lastPopTimer - dt);
   }
+  if (stage.doveRescueTimer > 0) {
+    stage.doveRescueTimer = Math.max(0, stage.doveRescueTimer - dt);
+  }
   for (let i = 0; i < 4; i++) {
     if (stage.stringGlow[i] > 0) {
       stage.stringGlow[i] = Math.max(0, stage.stringGlow[i] - dt);
@@ -368,27 +468,36 @@ export function stepDavidHarpStage(
     stage.timeLeftSec = Math.max(0, stage.timeLeftSec - dt);
   }
 
-  // Spawn joyful musical praise notes along a pentatonic contour
+  // Spawn praise notes; Adventurer adds brisk double-beat melodic runs!
   stage.spawnTimer -= dt;
   if (stage.spawnTimer <= 0) {
     const baseStr = HARP_MELODY_PATTERN[stage.melodyStep % HARP_MELODY_PATTERN.length];
     stage.melodyStep += 1;
     const stringIndex: 0 | 1 | 2 | 3 =
-      rng() < 0.72 ? baseStr : ((Math.floor(rng() * 4) % 4) as 0 | 1 | 2 | 3);
+      rng() < 0.74 ? baseStr : ((Math.floor(rng() * 4) % 4) as 0 | 1 | 2 | 3);
     stage.notes.push({
       id: stage.nextNoteId++,
       stringIndex,
       y: 0.12,
       golden: stage.melodyStep % 4 === 0
     });
-    stage.spawnTimer = isExplorer ? 0.92 : 0.64;
+    if (isExplorer) {
+      stage.spawnTimer = 0.98;
+    } else if (stage.doubleBeatPending) {
+      stage.doubleBeatPending = false;
+      stage.spawnTimer = 0.62;
+    } else if (rng() < 0.36) {
+      stage.doubleBeatPending = true;
+      stage.spawnTimer = 0.28;
+    } else {
+      stage.spawnTimer = 0.56;
+    }
   }
 
-  const fallSpeed = isExplorer ? 0.34 : 0.48;
-  const zoneMin = isExplorer ? 0.56 : 0.65;
-  const zoneMax = isExplorer ? 0.96 : 0.92;
+  const fallSpeed = isExplorer ? 0.28 : 0.54;
+  const zoneMin = isExplorer ? 0.54 : 0.66;
+  const zoneMax = isExplorer ? 0.96 : 0.90;
 
-  // Handle player plucking one of the 4 harp strings
   if (input.harpString !== null) {
     const s = input.harpString;
     stage.stringGlow[s] = 0.45;
@@ -399,7 +508,7 @@ export function stepDavidHarpStage(
     for (let i = 0; i < stage.notes.length; i++) {
       const n = stage.notes[i];
       if (n.stringIndex === s && n.y >= zoneMin && n.y <= zoneMax) {
-        const dist = Math.abs(n.y - 0.79);
+        const dist = Math.abs(n.y - 0.78);
         if (dist < bestDist) {
           bestDist = dist;
           bestIdx = i;
@@ -412,7 +521,8 @@ export function stepDavidHarpStage(
       stage.notes.splice(bestIdx, 1);
       stage.notesPlayed += 1;
       stage.streak += 1;
-      stage.score += (hit.golden ? 120 : 75) + stage.streak * 12;
+      const mult = !isExplorer && stage.streak >= 6 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
+      stage.score += (hit.golden ? 120 : 75) * mult;
       stage.lastPopKey = hit.golden || stage.streak >= 3 ? "popHarmony" : "popPraise";
       stage.lastPopTimer = 0.72;
       if (hit.golden) {
@@ -423,7 +533,6 @@ export function stepDavidHarpStage(
     }
   }
 
-  // Advance falling notes; in Explorer mode, a singing dove gently rescues every 3rd missed note
   const remaining = [];
   for (let i = 0; i < stage.notes.length; i++) {
     const n = stage.notes[i];
@@ -431,12 +540,14 @@ export function stepDavidHarpStage(
     if (n.y > 0.98) {
       stage.missedCounter += 1;
       stage.streak = 0;
-      if (isExplorer && stage.missedCounter % 3 === 0) {
+      if (isExplorer && stage.missedCounter % 2 === 0) {
         stage.notesPlayed += 1;
-        stage.score += 50;
-        stage.stringGlow[n.stringIndex] = 0.35;
-        stage.lastPopKey = "popPraise";
-        stage.lastPopTimer = 0.6;
+        stage.score += 55;
+        stage.stringGlow[n.stringIndex] = 0.4;
+        stage.doveRescueTimer = 0.85;
+        stage.doveRescueX = 0.16 + n.stringIndex * 0.22;
+        stage.lastPopKey = "popDoveHelp";
+        stage.lastPopTimer = 0.7;
         sounds.push(HARP_SOUND_BY_STRING[n.stringIndex]);
       }
       continue;
@@ -459,6 +570,7 @@ export function stepVerseBuilderStage(stage: VerseBuilderStageState, dt: number)
     stage.wrongShakeTimer = Math.max(0, stage.wrongShakeTimer - dt);
     if (stage.wrongShakeTimer === 0) {
       stage.wrongShakeTileId = null;
+      stage.wrongShakeWasDecoy = false;
     }
   }
   if (stage.quizFeedbackTimer > 0) {
@@ -492,6 +604,7 @@ export function handleVerseTileTap(
   if (tileId === nextExpected.id) {
     stage.placedTileIds.push(tileId);
     stage.wrongShakeTileId = null;
+    stage.wrongShakeWasDecoy = false;
     stage.wrongShakeTimer = 0;
     stage.score += 90;
     sounds.push("tile_place");
@@ -502,12 +615,10 @@ export function handleVerseTileTap(
       if (stage.verseCursor + 1 < stage.verseQueue.length) {
         stage.verseCursor += 1;
         const nextVerseId = stage.verseQueue[stage.verseCursor];
-        const nextDefs = getVerseTiles(nextVerseId, ageMode);
+        const nextPack = buildShuffledVerseIds(nextVerseId, ageMode, rng);
         stage.placedTileIds = [];
-        stage.shuffledTileIds = shuffleIds(
-          nextDefs.map((t) => t.id),
-          rng
-        );
+        stage.shuffledTileIds = nextPack.shuffledTileIds;
+        stage.decoyTileId = nextPack.decoyTileId;
       } else if (stage.quizQueue.length > 0) {
         stage.subPhase = "quiz";
         stage.quizCursor = 0;
@@ -521,7 +632,8 @@ export function handleVerseTileTap(
 
   stage.mistakes += 1;
   stage.wrongShakeTileId = tileId;
-  stage.wrongShakeTimer = 0.55;
+  stage.wrongShakeWasDecoy = tileId === stage.decoyTileId;
+  stage.wrongShakeTimer = stage.wrongShakeWasDecoy ? 1.1 : 0.55;
   sounds.push("tile_hint");
   return false;
 }
@@ -586,7 +698,7 @@ export function computeStageResult(
   if (stage.kind === "run_back_to_jesus") {
     const ratio = stage.targetSparkles > 0 ? stage.sparklesCollected / stage.targetSparkles : 1;
     const stars: 1 | 2 | 3 =
-      stage.turnBackProgress >= 100 && (isExplorer || ratio >= 0.8)
+      stage.turnBackProgress >= 100 && (isExplorer || ratio >= 0.75)
         ? 3
         : stage.turnBackProgress >= 80
           ? 2

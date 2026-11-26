@@ -289,6 +289,26 @@ export const UI_TEXT = {
   popHarmony: {
     en: "+1 Joyful Harmony!",
     zh: "+1 \u548c\u8c10\u611f\u6069\uff01"
+  },
+  explorerDesc: {
+    en: "Relaxed: Dove Helper rescues misses, glowing harp keys, verse hints, no timer!",
+    zh: "\u8f7b\u677e\u6a21\u5f0f\uff1a\u767d\u9e3d\u5e2e\u624b\u81ea\u52a8\u6551\u63f4\u3001\u7ad6\u7434\u7434\u5f26\u4eae\u706f\u5f15\u5bfc\u3001\u7ecf\u6587\u9ad8\u4eae\u63d0\u793a\u3001\u65e0\u5012\u8ba1\u65f6\uff01"
+  },
+  adventurerDesc: {
+    en: "Challenge: Countdown bar, Galilee wind & 2-lane dodges, double-beat harp, decoy word + 3 Bible quizzes!",
+    zh: "\u6311\u6218\u6a21\u5f0f\uff1a\u9876\u90e8\u5012\u8ba1\u65f6\u6761\u3001\u52a0\u5229\u5229\u6d77\u98ce\u4e0e\u53cc\u9053\u969c\u788d\u3001\u5feb\u62cd\u53cc\u8fde\u97f3\u7ad6\u7434\u3001\u5e72\u6270\u8bcd\u5757 + 3\u9053\u5723\u7ecf\u95ee\u7b54\uff01"
+  },
+  popDoveHelp: {
+    en: "Dove Helped!",
+    zh: "\u767d\u9e3d\u5e2e\u624b\u63a5\u4f4f\u5566\uff01"
+  },
+  popWindGust: {
+    en: "Wind Gust! Dodge!",
+    zh: "\u6d77\u98ce\u5439\u6765\u843d\u53f6\uff0c\u5feb\u8eb2\u5f00\uff01"
+  },
+  s3DecoyHint: {
+    en: "Oops! That's an extra decoy word!",
+    zh: "\u54ce\u5440\uff0c\u8fd9\u662f\u591a\u51fa\u6765\u7684\u5e72\u6270\u8bcd\u5757\u54e6\uff01"
   }
 } as const;
 

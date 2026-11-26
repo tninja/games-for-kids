@@ -98,6 +98,7 @@ export interface VerseDef {
   text: LocalizedText;
   explorerTiles: VerseTileDef[];
   adventurerTiles: VerseTileDef[];
+  adventurerDecoy?: VerseTileDef;
 }
 
 export interface StickerPreset {
@@ -130,7 +131,8 @@ export interface LoavesDropItem {
   x: number; // 0.1..0.9
   y: number; // 0..1
   vy: number;
-  itemType: "loaf" | "fish" | "blessing";
+  swayPhase: number;
+  itemType: "loaf" | "fish" | "blessing" | "gust";
 }
 
 export type PopKey =
@@ -143,7 +145,9 @@ export type PopKey =
   | "popTurnBack"
   | "popThankJesus"
   | "popPraise"
-  | "popHarmony";
+  | "popHarmony"
+  | "popDoveHelp"
+  | "popWindGust";
 
 export interface LoavesStageState {
   kind: "loaves_and_fish";
@@ -156,6 +160,10 @@ export interface LoavesStageState {
   streak: number;
   score: number;
   timeLeftSec: number;
+  totalTimeSec: number;
+  wobbleTimer: number;
+  doveRescueTimer: number;
+  doveRescueX: number;
   spawnTimer: number;
   nextItemId: number;
   items: LoavesDropItem[];
@@ -178,9 +186,11 @@ export interface RunBackStageState {
   targetSparkles: number;
   roadProgress: number; // 0..1 until crossroads
   turnBackProgress: number; // 0..100
+  streak: number;
   wobbleTimer: number;
   score: number;
   timeLeftSec: number;
+  totalTimeSec: number;
   spawnTimer: number;
   nextItemId: number;
   items: RoadObstacle[];
@@ -195,7 +205,9 @@ export interface VerseBuilderStageState {
   verseCursor: number;
   placedTileIds: string[];
   shuffledTileIds: string[];
+  decoyTileId: string | null;
   wrongShakeTileId: string | null;
+  wrongShakeWasDecoy: boolean;
   wrongShakeTimer: number;
   mistakes: number;
   versesCompleted: number;
@@ -220,9 +232,13 @@ export interface DavidHarpStageState {
   streak: number;
   score: number;
   timeLeftSec: number;
+  totalTimeSec: number;
   spawnTimer: number;
+  doubleBeatPending: boolean;
   melodyStep: number;
   missedCounter: number;
+  doveRescueTimer: number;
+  doveRescueX: number;
   nextNoteId: number;
   notes: HarpNoteItem[];
   stringGlow: [number, number, number, number];

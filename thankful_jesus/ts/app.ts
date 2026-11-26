@@ -44,6 +44,7 @@ import {
   VERSES,
   VERSE_ORDER,
   getVerseById,
+  getVerseDecoyTile,
   getVerseTiles
 } from "./verses";
 
@@ -86,6 +87,7 @@ export {
   getEasterLine,
   getStickerPreset,
   getVerseById,
+  getVerseDecoyTile,
   getVerseTiles,
   renderPostcardCanvas,
   renderStageCanvas,
@@ -351,7 +353,7 @@ export function mountThankfulJesusApp(): void {
       );
       return;
     }
-    if (state.phase === "pass_banner" || state.phase === "stage_intro") {
+    if (state.phase === "stage_intro") {
       const stageId = STAGE_SEQUENCE[state.stageIndex];
       hudTitle.textContent =
         String(state.stageIndex + 1) +
@@ -359,10 +361,10 @@ export function mountThankfulJesusApp(): void {
         String(STAGE_SEQUENCE.length) +
         " " +
         formatPrimary(STAGE_TEXT[stageId].shortTitle, state.langMode);
-      hudMeter.textContent =
-        formatPrimary(UI_TEXT.friendPrefix, state.langMode) +
-        " " +
-        String(state.activePlayerIndex + 1);
+      hudMeter.textContent = formatPrimary(
+        state.ageMode === "explorer" ? UI_TEXT.explorerLabel : UI_TEXT.adventurerLabel,
+        state.langMode
+      );
       return;
     }
     if (state.phase === "stage_play" && state.stageState) {
@@ -381,19 +383,25 @@ export function mountThankfulJesusApp(): void {
           String(state.stageState.targetCount) +
           timerStr;
       } else if (state.stageState.kind === "run_back_to_jesus") {
+        const timerStr =
+          state.ageMode === "adventurer"
+            ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s"
+            : "";
         if (state.stageState.subPhase === "turn_back") {
           hudMeter.textContent =
             formatPrimary(UI_TEXT.s2HudTurn, state.langMode) +
             " " +
             String(Math.round(state.stageState.turnBackProgress)) +
-            "%";
+            "%" +
+            timerStr;
         } else {
           hudMeter.textContent =
             formatPrimary(UI_TEXT.s2HudRoad, state.langMode) +
             " " +
             String(state.stageState.sparklesCollected) +
             "/" +
-            String(state.stageState.targetSparkles);
+            String(state.stageState.targetSparkles) +
+            timerStr;
         }
       } else if (state.stageState.kind === "david_harp") {
         const timerStr =
@@ -463,6 +471,8 @@ export function mountThankfulJesusApp(): void {
           ":" +
           String(state.stageState.wrongShakeTileId || "") +
           ":" +
+          String(state.stageState.wrongShakeWasDecoy) +
+          ":" +
           String(state.stageState.quizCursor) +
           ":" +
           state.stageState.quizFeedback;
@@ -519,36 +529,16 @@ export function mountThankfulJesusApp(): void {
       }
       stack.appendChild(ageRow);
 
-      // Player count selector (1P Solo, 2P, 3P, 4P Pass-and-Play)
-      const playerRow = document.createElement("div");
-      playerRow.className = "seg-row";
-      const playerOptions: { count: number; text: LocalizedText }[] = [
-        { count: 1, text: UI_TEXT.soloLabel },
-        { count: 2, text: UI_TEXT.pass2Label },
-        { count: 3, text: UI_TEXT.pass3Label },
-        { count: 4, text: UI_TEXT.pass4Label }
-      ];
-      for (let i = 0; i < playerOptions.length; i++) {
-        const opt = playerOptions[i];
-        const btn = document.createElement("button");
-        btn.type = "button";
-        const active =
-          (opt.count === 1 && state.playMode === "solo") ||
-          (opt.count > 1 && state.playMode === "pass_and_play" && state.playerCount === opt.count);
-        btn.className = "seg-btn" + (active ? " active" : "");
-        btn.textContent = formatPrimary(opt.text, state.langMode);
-        btn.addEventListener("click", () => {
-          unlockAudio();
-          applyAction(state, {
-            type: "SET_PLAY_MODE",
-            playMode: opt.count === 1 ? "solo" : "pass_and_play",
-            playerCount: opt.count
-          });
-          syncAll(true);
-        });
-        playerRow.appendChild(btn);
-      }
-      stack.appendChild(playerRow);
+      // Vivid bilingual description showing exactly how 6-7 vs 8-9 plays differently
+      const modeDesc = document.createElement("div");
+      modeDesc.className = "mode-desc " + (state.ageMode === "adventurer" ? "adventurer" : "explorer");
+      modeDesc.appendChild(
+        makeBilingualBlock(
+          state.ageMode === "explorer" ? UI_TEXT.explorerDesc : UI_TEXT.adventurerDesc,
+          state.langMode
+        )
+      );
+      stack.appendChild(modeDesc);
 
       // Auto-read toggle (Web Speech)
       if (speech.isSupported()) {
@@ -786,6 +776,7 @@ export function mountThankfulJesusApp(): void {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "harp-btn";
+          btn.dataset.harpString = String(spec.index);
           btn.style.background = spec.color;
           const noteSpan = document.createElement("span");
           noteSpan.className = "harp-note";
@@ -847,19 +838,25 @@ export function mountThankfulJesusApp(): void {
 
       // Verse Tiles grid
       const hint = document.createElement("div");
-      hint.className = "deck-note";
-      hint.textContent = formatPrimary(UI_TEXT.s3Hint, state.langMode);
+      hint.className = "deck-note" + (vb.wrongShakeWasDecoy && vb.wrongShakeTimer > 0 ? " retry-note" : "");
+      hint.textContent =
+        vb.wrongShakeWasDecoy && vb.wrongShakeTimer > 0
+          ? formatLocalized(UI_TEXT.s3DecoyHint, state.langMode, " / ")
+          : formatPrimary(UI_TEXT.s3Hint, state.langMode);
       stack.appendChild(hint);
 
       const verseId = vb.verseQueue[vb.verseCursor];
       const allTiles = getVerseTiles(verseId, state.ageMode);
+      const decoyDef = getVerseDecoyTile(verseId, state.ageMode);
       const nextExpected = allTiles[vb.placedTileIds.length];
 
       const tileGrid = document.createElement("div");
       tileGrid.className = "tile-grid";
       for (let i = 0; i < vb.shuffledTileIds.length; i++) {
         const tid = vb.shuffledTileIds[i];
-        const def = allTiles.find((t) => t.id === tid);
+        const def =
+          allTiles.find((t) => t.id === tid) ||
+          (decoyDef && decoyDef.id === tid ? decoyDef : undefined);
         if (!def) {
           continue;
         }
@@ -1360,6 +1357,23 @@ export function mountThankfulJesusApp(): void {
     flushSounds();
     updateHud();
     buildDeck(false);
+    // Live golden guide pulse on Explorer (6-7) harp string buttons when a note enters the Praise Zone
+    if (
+      state.phase === "stage_play" &&
+      state.stageState &&
+      state.stageState.kind === "david_harp"
+    ) {
+      const harpButtons = controlDeck.querySelectorAll<HTMLButtonElement>(".harp-btn[data-harp-string]");
+      for (let i = 0; i < harpButtons.length; i++) {
+        const idx = Number(harpButtons[i].dataset.harpString);
+        const shouldGlow =
+          state.ageMode === "explorer" &&
+          state.stageState.notes.some(
+            (n) => n.stringIndex === idx && n.y >= 0.50 && n.y <= 0.96
+          );
+        harpButtons[i].classList.toggle("guide-glow", shouldGlow);
+      }
+    }
     if (state.phase !== prevPhase) {
       maybeAutoRead();
     }

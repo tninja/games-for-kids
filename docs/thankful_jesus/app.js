@@ -66,6 +66,7 @@ var __ThankfulJesusBundle = (() => {
     getEasterLine: () => getEasterLine,
     getStickerPreset: () => getStickerPreset,
     getVerseById: () => getVerseById,
+    getVerseDecoyTile: () => getVerseDecoyTile,
     getVerseTiles: () => getVerseTiles,
     mountThankfulJesusApp: () => mountThankfulJesusApp,
     renderPostcardCanvas: () => renderPostcardCanvas,
@@ -116,23 +117,23 @@ var __ThankfulJesusBundle = (() => {
     loaves_and_fish: {
       id: "loaves_and_fish",
       verseId: "john_6_11",
-      explorerTarget: 10,
-      adventurerTarget: 16,
-      adventurerTimeSec: 36
+      explorerTarget: 8,
+      adventurerTarget: 18,
+      adventurerTimeSec: 28
     },
     run_back_to_jesus: {
       id: "run_back_to_jesus",
       verseId: "luke_17_15_16",
-      explorerTarget: 8,
-      adventurerTarget: 12,
-      adventurerTimeSec: 34
+      explorerTarget: 6,
+      adventurerTarget: 14,
+      adventurerTimeSec: 26
     },
     david_harp: {
       id: "david_harp",
       verseId: "psalm_100_4",
-      explorerTarget: 10,
-      adventurerTarget: 16,
-      adventurerTimeSec: 34
+      explorerTarget: 8,
+      adventurerTarget: 18,
+      adventurerTimeSec: 28
     },
     verse_builder: {
       id: "verse_builder",
@@ -664,6 +665,64 @@ var __ThankfulJesusBundle = (() => {
       ctx.font = "700 12px system-ui, -apple-system, sans-serif";
       const trimSec = secondary.length > 26 ? secondary.slice(0, 25) + "..." : secondary;
       ctx.fillText(trimSec, x + boxW / 2, y + 38);
+    }
+    ctx.restore();
+  }
+  function drawWindGustLeaf(ctx, cx, cy, scale = 1, timeSec = 0) {
+    const s = safeR(scale);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.sin(timeSec * 8 + cy * 0.05) * 0.45);
+    ctx.scale(s, s);
+    ctx.strokeStyle = "rgba(110, 146, 168, 0.85)";
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-16, -6);
+    ctx.quadraticCurveTo(0, -14, 14, -4);
+    ctx.moveTo(-14, 8);
+    ctx.quadraticCurveTo(2, 14, 16, 4);
+    ctx.stroke();
+    ctx.fillStyle = "#8C5835";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    safeEllipse(ctx, 0, 0, 11, 5.5, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawAdventurerTimerAndCombo(ctx, w, timeLeftSec, totalTimeSec, streak) {
+    const ratio = Math.max(0, Math.min(1, totalTimeSec > 0 ? timeLeftSec / totalTimeSec : 1));
+    const barX = 16;
+    const barY = 12;
+    const barW = w - 32;
+    const barH = 12;
+    ctx.save();
+    drawRoundedRect(ctx, barX, barY, barW, barH, 6);
+    ctx.fillStyle = "rgba(46, 36, 30, 0.25)";
+    ctx.fill();
+    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    const fillW = Math.max(8, (barW - 4) * ratio);
+    drawRoundedRect(ctx, barX + 2, barY + 2, fillW, barH - 4, 4);
+    ctx.fillStyle = timeLeftSec <= 7 ? "#D94A38" : timeLeftSec <= 14 ? "#E89B2D" : "#F6C453";
+    ctx.fill();
+    if (streak >= 3) {
+      const mult = streak >= 6 ? "x3" : "x2";
+      const bx = w - 76;
+      const by = 29;
+      drawRoundedRect(ctx, bx, by, 60, 24, 12);
+      ctx.fillStyle = streak >= 6 ? "#D46A43" : "#E5A93B";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#FFFDF8";
+      ctx.font = "800 13px system-ui, -apple-system, sans-serif";
+      ctx.fillText(mult + "!", bx + 30, by + 16);
     }
     ctx.restore();
   }
@@ -1922,6 +1981,26 @@ var __ThankfulJesusBundle = (() => {
     popHarmony: {
       en: "+1 Joyful Harmony!",
       zh: "+1 \u548C\u8C10\u611F\u6069\uFF01"
+    },
+    explorerDesc: {
+      en: "Relaxed: Dove Helper rescues misses, glowing harp keys, verse hints, no timer!",
+      zh: "\u8F7B\u677E\u6A21\u5F0F\uFF1A\u767D\u9E3D\u5E2E\u624B\u81EA\u52A8\u6551\u63F4\u3001\u7AD6\u7434\u7434\u5F26\u4EAE\u706F\u5F15\u5BFC\u3001\u7ECF\u6587\u9AD8\u4EAE\u63D0\u793A\u3001\u65E0\u5012\u8BA1\u65F6\uFF01"
+    },
+    adventurerDesc: {
+      en: "Challenge: Countdown bar, Galilee wind & 2-lane dodges, double-beat harp, decoy word + 3 Bible quizzes!",
+      zh: "\u6311\u6218\u6A21\u5F0F\uFF1A\u9876\u90E8\u5012\u8BA1\u65F6\u6761\u3001\u52A0\u5229\u5229\u6D77\u98CE\u4E0E\u53CC\u9053\u969C\u788D\u3001\u5FEB\u62CD\u53CC\u8FDE\u97F3\u7AD6\u7434\u3001\u5E72\u6270\u8BCD\u5757 + 3\u9053\u5723\u7ECF\u95EE\u7B54\uFF01"
+    },
+    popDoveHelp: {
+      en: "Dove Helped!",
+      zh: "\u767D\u9E3D\u5E2E\u624B\u63A5\u4F4F\u5566\uFF01"
+    },
+    popWindGust: {
+      en: "Wind Gust! Dodge!",
+      zh: "\u6D77\u98CE\u5439\u6765\u843D\u53F6\uFF0C\u5FEB\u8EB2\u5F00\uFF01"
+    },
+    s3DecoyHint: {
+      en: "Oops! That's an extra decoy word!",
+      zh: "\u54CE\u5440\uFF0C\u8FD9\u662F\u591A\u51FA\u6765\u7684\u5E72\u6270\u8BCD\u5757\u54E6\uFF01"
     }
   };
   var JESUS_EASTER_LINES = [
@@ -2299,7 +2378,12 @@ var __ThankfulJesusBundle = (() => {
         { id: "pa4", icon: "heart", text: { en: "his love", zh: "\u4ED6\u7684\u6148\u7231" } },
         { id: "pa5", icon: "scroll", text: { en: "endures", zh: "\u6C38\u8FDC" } },
         { id: "pa6", icon: "star", text: { en: "forever.", zh: "\u957F\u5B58\uFF01" } }
-      ]
+      ],
+      adventurerDecoy: {
+        id: "pa_decoy",
+        icon: "sun",
+        text: { en: "tall mountains", zh: "\u9AD8\u9AD8\u5C71\u4E18" }
+      }
     },
     thess_5_18: {
       id: "thess_5_18",
@@ -2324,7 +2408,12 @@ var __ThankfulJesusBundle = (() => {
         { id: "ta4", icon: "cross", text: { en: "in Christ Jesus", zh: "\u5728\u57FA\u7763\u8036\u7A23\u91CC" } },
         { id: "ta5", icon: "heart", text: { en: "will for you", zh: "\u5411\u4F60\u4EEC\u6240\u5B9A\u7684" } },
         { id: "ta6", icon: "star", text: { en: "always.", zh: "\u65E8\u610F\u3002" } }
-      ]
+      ],
+      adventurerDecoy: {
+        id: "ta_decoy",
+        icon: "scroll",
+        text: { en: "maybe tomorrow", zh: "\u660E\u5929\u518D\u8BF4" }
+      }
     }
   };
   var BUILDER_VERSE_QUEUE = ["psalm_107_1", "thess_5_18"];
@@ -2419,6 +2508,12 @@ var __ThankfulJesusBundle = (() => {
     const verse = VERSES[verseId];
     return ageMode === "adventurer" ? verse.adventurerTiles : verse.explorerTiles;
   }
+  function getVerseDecoyTile(verseId, ageMode) {
+    if (ageMode !== "adventurer") {
+      return null;
+    }
+    return VERSES[verseId].adventurerDecoy || null;
+  }
 
   // thankful_jesus/ts/minigames.ts
   function clamp(v, lo, hi) {
@@ -2448,6 +2543,18 @@ var __ThankfulJesusBundle = (() => {
     }
     return arr;
   }
+  function buildShuffledVerseIds(verseId, ageMode, rng) {
+    const tiles = getVerseTiles(verseId, ageMode);
+    const ids = tiles.map((t) => t.id);
+    const decoy = getVerseDecoyTile(verseId, ageMode);
+    if (decoy) {
+      ids.push(decoy.id);
+    }
+    return {
+      shuffledTileIds: shuffleIds(ids, rng),
+      decoyTileId: decoy ? decoy.id : null
+    };
+  }
   function createStageState(stageId, ageMode, rng) {
     const spec = STAGE_SPECS[stageId];
     const isExplorer = ageMode === "explorer";
@@ -2463,7 +2570,11 @@ var __ThankfulJesusBundle = (() => {
         streak: 0,
         score: 0,
         timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
-        spawnTimer: 0.35,
+        totalTimeSec: spec.adventurerTimeSec,
+        wobbleTimer: 0,
+        doveRescueTimer: 0,
+        doveRescueX: 0.5,
+        spawnTimer: 0.3,
         nextItemId: 1,
         items: [],
         lastPopKey: "",
@@ -2479,10 +2590,12 @@ var __ThankfulJesusBundle = (() => {
         targetSparkles: isExplorer ? spec.explorerTarget : spec.adventurerTarget,
         roadProgress: 0,
         turnBackProgress: 0,
+        streak: 0,
         wobbleTimer: 0,
         score: 0,
         timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
-        spawnTimer: 0.3,
+        totalTimeSec: spec.adventurerTimeSec,
+        spawnTimer: 0.28,
         nextItemId: 1,
         items: [],
         lastPopKey: "",
@@ -2497,9 +2610,13 @@ var __ThankfulJesusBundle = (() => {
         streak: 0,
         score: 0,
         timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
+        totalTimeSec: spec.adventurerTimeSec,
         spawnTimer: 0.35,
+        doubleBeatPending: false,
         melodyStep: 0,
         missedCounter: 0,
+        doveRescueTimer: 0,
+        doveRescueX: 0.5,
         nextNoteId: 1,
         notes: [],
         stringGlow: [0, 0, 0, 0],
@@ -2508,18 +2625,17 @@ var __ThankfulJesusBundle = (() => {
       };
     }
     const firstVerse = BUILDER_VERSE_QUEUE[0];
-    const tiles = getVerseTiles(firstVerse, ageMode);
+    const initialTiles = buildShuffledVerseIds(firstVerse, ageMode, rng);
     return {
       kind: "verse_builder",
       subPhase: "tiles",
       verseQueue: BUILDER_VERSE_QUEUE.slice(),
       verseCursor: 0,
       placedTileIds: [],
-      shuffledTileIds: shuffleIds(
-        tiles.map((t) => t.id),
-        rng
-      ),
+      shuffledTileIds: initialTiles.shuffledTileIds,
+      decoyTileId: initialTiles.decoyTileId,
       wrongShakeTileId: null,
+      wrongShakeWasDecoy: false,
       wrongShakeTimer: 0,
       mistakes: 0,
       versesCompleted: 0,
@@ -2538,6 +2654,12 @@ var __ThankfulJesusBundle = (() => {
     if (stage.prayGlowTimer > 0) {
       stage.prayGlowTimer = Math.max(0, stage.prayGlowTimer - dt);
     }
+    if (stage.wobbleTimer > 0) {
+      stage.wobbleTimer = Math.max(0, stage.wobbleTimer - dt);
+    }
+    if (stage.doveRescueTimer > 0) {
+      stage.doveRescueTimer = Math.max(0, stage.doveRescueTimer - dt);
+    }
     if (!stage.prayedWithJesus) {
       if (input.primaryTap) {
         stage.prayedWithJesus = true;
@@ -2555,47 +2677,76 @@ var __ThankfulJesusBundle = (() => {
     if (input.pointerXNorm !== null) {
       stage.basketX = clamp(input.pointerXNorm, 0.14, 0.86);
     } else if (input.moveDir !== 0) {
-      stage.basketX = clamp(stage.basketX + input.moveDir * dt * 0.92, 0.14, 0.86);
+      stage.basketX = clamp(stage.basketX + input.moveDir * dt * 0.96, 0.14, 0.86);
     }
     stage.spawnTimer -= dt;
     if (stage.spawnTimer <= 0) {
       const r = rng();
-      const itemType = r < 0.24 ? "blessing" : r < 0.64 ? "loaf" : "fish";
+      let itemType;
+      if (isExplorer) {
+        itemType = r < 0.28 ? "blessing" : r < 0.66 ? "loaf" : "fish";
+      } else {
+        itemType = r < 0.22 ? "gust" : r < 0.42 ? "blessing" : r < 0.72 ? "loaf" : "fish";
+      }
       stage.items.push({
         id: stage.nextItemId++,
-        x: 0.15 + rng() * 0.7,
+        x: 0.16 + rng() * 0.68,
         y: 0.1,
-        vy: (isExplorer ? 0.3 : 0.42) + rng() * 0.1,
+        vy: isExplorer ? 0.25 + rng() * 0.07 : 0.44 + rng() * 0.12,
+        swayPhase: rng() * Math.PI * 2,
         itemType
       });
-      stage.spawnTimer = isExplorer ? 0.78 : 0.56;
+      stage.spawnTimer = isExplorer ? 0.88 : 0.48;
     }
-    const catchRadius = isExplorer ? 0.165 : 0.125;
+    const catchRadius = isExplorer ? 0.18 : 0.12;
     const remaining = [];
     for (let i = 0; i < stage.items.length; i++) {
       const item = stage.items[i];
       item.y += item.vy * dt;
-      if (isExplorer && item.itemType === "blessing" && item.y > 0.38) {
-        item.x += (stage.basketX - item.x) * Math.min(1, dt * 2.2);
+      if (isExplorer) {
+        if (item.itemType === "blessing" && item.y > 0.34) {
+          item.x += (stage.basketX - item.x) * Math.min(1, dt * 2.5);
+        }
+      } else {
+        item.x = clamp(item.x + Math.sin(item.swayPhase + item.y * 8.5) * dt * 0.24, 0.12, 0.88);
       }
-      if (item.y >= 0.73 && item.y <= 0.88 && Math.abs(item.x - stage.basketX) <= catchRadius) {
+      if (item.y >= 0.72 && item.y <= 0.88 && Math.abs(item.x - stage.basketX) <= catchRadius) {
+        if (item.itemType === "gust") {
+          stage.wobbleTimer = 0.6;
+          stage.streak = 0;
+          stage.lastPopKey = "popWindGust";
+          stage.lastPopTimer = 0.75;
+          sounds.push("gentle_bump");
+          continue;
+        }
         stage.sharedCount += 1;
         stage.streak += 1;
+        const mult = !isExplorer && stage.streak >= 6 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
         if (item.itemType === "blessing") {
           stage.blessingsCollected += 1;
-          stage.score += 120 + stage.streak * 15;
+          stage.score += 120 * mult;
           stage.lastPopKey = "popBlessing";
           sounds.push("blessing_token");
         } else {
-          stage.score += 65 + stage.streak * 10;
+          stage.score += 65 * mult;
           stage.lastPopKey = "popShared";
           sounds.push("good_catch");
         }
         stage.lastPopTimer = 0.65;
         continue;
       }
-      if (item.y > 1.02) {
-        stage.streak = 0;
+      if (item.y > 0.92) {
+        if (isExplorer && item.itemType !== "gust") {
+          stage.sharedCount += 1;
+          stage.score += 55;
+          stage.doveRescueTimer = 0.95;
+          stage.doveRescueX = item.x;
+          stage.lastPopKey = "popDoveHelp";
+          stage.lastPopTimer = 0.75;
+          sounds.push("blessing_token");
+        } else if (item.itemType !== "gust") {
+          stage.streak = 0;
+        }
         continue;
       }
       remaining.push(item);
@@ -2630,21 +2781,46 @@ var __ThankfulJesusBundle = (() => {
       } else if (input.moveDir > 0) {
         stage.lane = stage.lane === 0 ? 1 : 2;
       }
-      stage.roadProgress = clamp(stage.roadProgress + dt * (isExplorer ? 0.048 : 0.056), 0, 1);
+      if (isExplorer || stage.wobbleTimer <= 0) {
+        stage.roadProgress = clamp(stage.roadProgress + dt * (isExplorer ? 0.055 : 0.042), 0, 1);
+      }
       stage.spawnTimer -= dt;
       if (stage.spawnTimer <= 0) {
-        const r = rng();
-        const lane = Math.floor(rng() * 3) % 3;
-        const itemType = r < (isExplorer ? 0.72 : 0.62) ? "sparkle" : r < 0.84 ? "cart" : "toy";
-        stage.items.push({
-          id: stage.nextItemId++,
-          lane,
-          y: 0.08,
-          itemType
-        });
-        stage.spawnTimer = isExplorer ? 0.8 : 0.56;
+        if (isExplorer) {
+          const r = rng();
+          const lane = Math.floor(rng() * 3) % 3;
+          const itemType = r < 0.78 ? "sparkle" : r < 0.9 ? "cart" : "toy";
+          stage.items.push({ id: stage.nextItemId++, lane, y: 0.08, itemType });
+          stage.spawnTimer = 0.86;
+        } else {
+          const safeLane = Math.floor(rng() * 3) % 3;
+          if (rng() < 0.52) {
+            stage.items.push({ id: stage.nextItemId++, lane: safeLane, y: 0.08, itemType: "sparkle" });
+            const lanes = [0, 1, 2];
+            for (let li = 0; li < lanes.length; li++) {
+              const ln = lanes[li];
+              if (ln !== safeLane) {
+                stage.items.push({
+                  id: stage.nextItemId++,
+                  lane: ln,
+                  y: 0.08,
+                  itemType: ln % 2 === 0 ? "cart" : "toy"
+                });
+              }
+            }
+            stage.spawnTimer = 0.68;
+          } else {
+            stage.items.push({
+              id: stage.nextItemId++,
+              lane: safeLane,
+              y: 0.08,
+              itemType: rng() < 0.65 ? "sparkle" : "cart"
+            });
+            stage.spawnTimer = 0.48;
+          }
+        }
       }
-      const speed = isExplorer ? 0.42 : 0.56;
+      const speed = isExplorer ? 0.34 : 0.6;
       const remaining = [];
       for (let i = 0; i < stage.items.length; i++) {
         const it = stage.items[i];
@@ -2652,13 +2828,16 @@ var __ThankfulJesusBundle = (() => {
         if (it.y >= 0.72 && it.y <= 0.87 && it.lane === stage.lane) {
           if (it.itemType === "sparkle") {
             stage.sparklesCollected += 1;
-            stage.roadProgress = clamp(stage.roadProgress + 0.09, 0, 1);
-            stage.score += 80;
+            stage.streak += 1;
+            stage.roadProgress = clamp(stage.roadProgress + (isExplorer ? 0.12 : 0.075), 0, 1);
+            const mult = !isExplorer && stage.streak >= 5 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
+            stage.score += 80 * mult;
             stage.lastPopKey = "popGrace";
             stage.lastPopTimer = 0.7;
             sounds.push("blessing_token");
           } else {
-            stage.wobbleTimer = 0.45;
+            stage.wobbleTimer = isExplorer ? 0.35 : 0.75;
+            stage.streak = 0;
             stage.lastPopKey = "popOops";
             stage.lastPopTimer = 0.65;
             sounds.push("gentle_bump");
@@ -2671,7 +2850,7 @@ var __ThankfulJesusBundle = (() => {
         remaining.push(it);
       }
       stage.items = remaining;
-      if (stage.sparklesCollected >= stage.targetSparkles || stage.roadProgress >= 1 || !isExplorer && stage.timeLeftSec <= 8) {
+      if (stage.sparklesCollected >= stage.targetSparkles || stage.roadProgress >= 1 || !isExplorer && stage.timeLeftSec <= 7.5) {
         stage.subPhase = "turn_back";
         stage.items = [];
         stage.lastPopKey = "popTurnBack";
@@ -2682,14 +2861,14 @@ var __ThankfulJesusBundle = (() => {
     }
     const tapped = input.primaryTap || input.lanePick !== null;
     if (tapped) {
-      const step = isExplorer ? 18 : 14;
+      const step = isExplorer ? 22 : 11;
       stage.turnBackProgress = clamp(stage.turnBackProgress + step, 0, 100);
       stage.score += 45;
       stage.lastPopKey = "popThankJesus";
       stage.lastPopTimer = 0.65;
       sounds.push("turn_step");
-    } else if (stage.turnBackProgress > 12) {
-      stage.turnBackProgress = Math.max(12, stage.turnBackProgress - dt * (isExplorer ? 2.5 : 5));
+    } else if (!isExplorer && stage.turnBackProgress > 10) {
+      stage.turnBackProgress = Math.max(10, stage.turnBackProgress - dt * 12);
     }
     if (stage.turnBackProgress >= 100) {
       stage.score += 180;
@@ -2708,6 +2887,9 @@ var __ThankfulJesusBundle = (() => {
     if (stage.lastPopTimer > 0) {
       stage.lastPopTimer = Math.max(0, stage.lastPopTimer - dt);
     }
+    if (stage.doveRescueTimer > 0) {
+      stage.doveRescueTimer = Math.max(0, stage.doveRescueTimer - dt);
+    }
     for (let i = 0; i < 4; i++) {
       if (stage.stringGlow[i] > 0) {
         stage.stringGlow[i] = Math.max(0, stage.stringGlow[i] - dt);
@@ -2720,18 +2902,28 @@ var __ThankfulJesusBundle = (() => {
     if (stage.spawnTimer <= 0) {
       const baseStr = HARP_MELODY_PATTERN[stage.melodyStep % HARP_MELODY_PATTERN.length];
       stage.melodyStep += 1;
-      const stringIndex = rng() < 0.72 ? baseStr : Math.floor(rng() * 4) % 4;
+      const stringIndex = rng() < 0.74 ? baseStr : Math.floor(rng() * 4) % 4;
       stage.notes.push({
         id: stage.nextNoteId++,
         stringIndex,
         y: 0.12,
         golden: stage.melodyStep % 4 === 0
       });
-      stage.spawnTimer = isExplorer ? 0.92 : 0.64;
+      if (isExplorer) {
+        stage.spawnTimer = 0.98;
+      } else if (stage.doubleBeatPending) {
+        stage.doubleBeatPending = false;
+        stage.spawnTimer = 0.62;
+      } else if (rng() < 0.36) {
+        stage.doubleBeatPending = true;
+        stage.spawnTimer = 0.28;
+      } else {
+        stage.spawnTimer = 0.56;
+      }
     }
-    const fallSpeed = isExplorer ? 0.34 : 0.48;
-    const zoneMin = isExplorer ? 0.56 : 0.65;
-    const zoneMax = isExplorer ? 0.96 : 0.92;
+    const fallSpeed = isExplorer ? 0.28 : 0.54;
+    const zoneMin = isExplorer ? 0.54 : 0.66;
+    const zoneMax = isExplorer ? 0.96 : 0.9;
     if (input.harpString !== null) {
       const s = input.harpString;
       stage.stringGlow[s] = 0.45;
@@ -2741,7 +2933,7 @@ var __ThankfulJesusBundle = (() => {
       for (let i = 0; i < stage.notes.length; i++) {
         const n = stage.notes[i];
         if (n.stringIndex === s && n.y >= zoneMin && n.y <= zoneMax) {
-          const dist = Math.abs(n.y - 0.79);
+          const dist = Math.abs(n.y - 0.78);
           if (dist < bestDist) {
             bestDist = dist;
             bestIdx = i;
@@ -2753,7 +2945,8 @@ var __ThankfulJesusBundle = (() => {
         stage.notes.splice(bestIdx, 1);
         stage.notesPlayed += 1;
         stage.streak += 1;
-        stage.score += (hit.golden ? 120 : 75) + stage.streak * 12;
+        const mult = !isExplorer && stage.streak >= 6 ? 3 : !isExplorer && stage.streak >= 3 ? 2 : 1;
+        stage.score += (hit.golden ? 120 : 75) * mult;
         stage.lastPopKey = hit.golden || stage.streak >= 3 ? "popHarmony" : "popPraise";
         stage.lastPopTimer = 0.72;
         if (hit.golden) {
@@ -2770,12 +2963,14 @@ var __ThankfulJesusBundle = (() => {
       if (n.y > 0.98) {
         stage.missedCounter += 1;
         stage.streak = 0;
-        if (isExplorer && stage.missedCounter % 3 === 0) {
+        if (isExplorer && stage.missedCounter % 2 === 0) {
           stage.notesPlayed += 1;
-          stage.score += 50;
-          stage.stringGlow[n.stringIndex] = 0.35;
-          stage.lastPopKey = "popPraise";
-          stage.lastPopTimer = 0.6;
+          stage.score += 55;
+          stage.stringGlow[n.stringIndex] = 0.4;
+          stage.doveRescueTimer = 0.85;
+          stage.doveRescueX = 0.16 + n.stringIndex * 0.22;
+          stage.lastPopKey = "popDoveHelp";
+          stage.lastPopTimer = 0.7;
           sounds.push(HARP_SOUND_BY_STRING[n.stringIndex]);
         }
         continue;
@@ -2796,6 +2991,7 @@ var __ThankfulJesusBundle = (() => {
       stage.wrongShakeTimer = Math.max(0, stage.wrongShakeTimer - dt);
       if (stage.wrongShakeTimer === 0) {
         stage.wrongShakeTileId = null;
+        stage.wrongShakeWasDecoy = false;
       }
     }
     if (stage.quizFeedbackTimer > 0) {
@@ -2821,6 +3017,7 @@ var __ThankfulJesusBundle = (() => {
     if (tileId === nextExpected.id) {
       stage.placedTileIds.push(tileId);
       stage.wrongShakeTileId = null;
+      stage.wrongShakeWasDecoy = false;
       stage.wrongShakeTimer = 0;
       stage.score += 90;
       sounds.push("tile_place");
@@ -2830,12 +3027,10 @@ var __ThankfulJesusBundle = (() => {
         if (stage.verseCursor + 1 < stage.verseQueue.length) {
           stage.verseCursor += 1;
           const nextVerseId = stage.verseQueue[stage.verseCursor];
-          const nextDefs = getVerseTiles(nextVerseId, ageMode);
+          const nextPack = buildShuffledVerseIds(nextVerseId, ageMode, rng);
           stage.placedTileIds = [];
-          stage.shuffledTileIds = shuffleIds(
-            nextDefs.map((t) => t.id),
-            rng
-          );
+          stage.shuffledTileIds = nextPack.shuffledTileIds;
+          stage.decoyTileId = nextPack.decoyTileId;
         } else if (stage.quizQueue.length > 0) {
           stage.subPhase = "quiz";
           stage.quizCursor = 0;
@@ -2848,7 +3043,8 @@ var __ThankfulJesusBundle = (() => {
     }
     stage.mistakes += 1;
     stage.wrongShakeTileId = tileId;
-    stage.wrongShakeTimer = 0.55;
+    stage.wrongShakeWasDecoy = tileId === stage.decoyTileId;
+    stage.wrongShakeTimer = stage.wrongShakeWasDecoy ? 1.1 : 0.55;
     sounds.push("tile_hint");
     return false;
   }
@@ -2895,7 +3091,7 @@ var __ThankfulJesusBundle = (() => {
     }
     if (stage.kind === "run_back_to_jesus") {
       const ratio = stage.targetSparkles > 0 ? stage.sparklesCollected / stage.targetSparkles : 1;
-      const stars2 = stage.turnBackProgress >= 100 && (isExplorer || ratio >= 0.8) ? 3 : stage.turnBackProgress >= 80 ? 2 : 1;
+      const stars2 = stage.turnBackProgress >= 100 && (isExplorer || ratio >= 0.75) ? 3 : stage.turnBackProgress >= 80 ? 2 : 1;
       return {
         stageId: stage.kind,
         playerIndex,
@@ -2967,15 +3163,12 @@ var __ThankfulJesusBundle = (() => {
     state.phase = "stage_intro";
   }
   function createInitialState(config = {}) {
-    const playMode = config.playMode || "solo";
-    const requestedCount = config.playerCount ?? (playMode === "pass_and_play" ? 2 : 1);
-    const playerCount = playMode === "solo" ? 1 : Math.max(2, Math.min(4, requestedCount));
     return {
       phase: "title",
       ageMode: config.ageMode || "explorer",
       langMode: config.langMode || "dual",
-      playMode,
-      playerCount,
+      playMode: "solo",
+      playerCount: 1,
       activePlayerIndex: 0,
       stageIndex: 0,
       stageState: null,
@@ -3078,12 +3271,7 @@ var __ThankfulJesusBundle = (() => {
         state.unlockedVerses = [];
         state.prayers = [];
         state.totalStars = 0;
-        if (state.playMode === "pass_and_play" && state.playerCount > 1) {
-          state.stageState = null;
-          state.phase = "pass_banner";
-        } else {
-          enterCurrentStage(state);
-        }
+        enterCurrentStage(state);
         break;
       case "CONFIRM_PASS":
         if (state.phase === "pass_banner") {
@@ -3131,13 +3319,7 @@ var __ThankfulJesusBundle = (() => {
         if (state.phase === "stage_complete") {
           if (state.stageIndex + 1 < STAGE_SEQUENCE.length) {
             state.stageIndex += 1;
-            if (state.playMode === "pass_and_play" && state.playerCount > 1) {
-              state.activePlayerIndex = (state.activePlayerIndex + 1) % state.playerCount;
-              state.stageState = null;
-              state.phase = "pass_banner";
-            } else {
-              enterCurrentStage(state);
-            }
+            enterCurrentStage(state);
           } else {
             state.stageState = null;
             state.phase = "prayer_card";
@@ -3538,6 +3720,20 @@ var __ThankfulJesusBundle = (() => {
     for (let i = 0; i < seats.length; i++) {
       drawChildFriend(ctx, w * seats[i], h - 18, 0.65, tunics[i], stage.sharedCount > i * 2, timeSec + i);
     }
+    if (state.ageMode === "adventurer") {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 253, 245, 0.45)";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const wx = (timeSec * 90 + i * 140) % (w + 60) - 30;
+        const wy = 195 + i * 58;
+        ctx.beginPath();
+        ctx.moveTo(wx, wy);
+        ctx.quadraticCurveTo(wx + 22, wy - 7, wx + 44, wy);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
     for (let i = 0; i < stage.items.length; i++) {
       const it = stage.items[i];
       const ix = it.x * w;
@@ -3546,11 +3742,23 @@ var __ThankfulJesusBundle = (() => {
         drawBarleyLoaf(ctx, ix, iy, 1.05);
       } else if (it.itemType === "fish") {
         drawFish(ctx, ix, iy, 1.05);
+      } else if (it.itemType === "gust") {
+        drawWindGustLeaf(ctx, ix, iy, 1.05, timeSec);
       } else {
         drawBlessingToken(ctx, ix, iy, 1, timeSec);
       }
     }
-    drawWovenBasket(ctx, stage.basketX * w, h * 0.81, 1.15, stage.sharedCount);
+    if (stage.doveRescueTimer > 0) {
+      const p = 1 - stage.doveRescueTimer / 0.95;
+      const dx = stage.doveRescueX * w + (stage.basketX * w - stage.doveRescueX * w) * p;
+      const dy = h * (0.86 - Math.sin(p * Math.PI) * 0.16);
+      drawWhiteDove(ctx, dx, dy, 1.15, timeSec * 1.8);
+    }
+    const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 44) * 7 : 0;
+    drawWovenBasket(ctx, stage.basketX * w + wobbleX, h * 0.81, 1.15, stage.sharedCount);
+    if (state.ageMode === "adventurer") {
+      drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+    }
     if (stage.lastPopTimer > 0 && stage.lastPopKey) {
       const pop = UI_TEXT[stage.lastPopKey];
       drawSpeechBubble(
@@ -3595,15 +3803,18 @@ var __ThankfulJesusBundle = (() => {
       }
       const tScale = 1.15 - p * 0.22;
       drawChildFriend(ctx, w * 0.5, ty, tScale, "#D46A43", true, timeSec * 1.6);
-      drawRoundedRect(ctx, 52, 22, w - 104, 24, 12);
+      drawRoundedRect(ctx, 52, 28, w - 104, 24, 12);
       ctx.fillStyle = "#FFF8EB";
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = PALETTE.ink;
       ctx.stroke();
-      drawRoundedRect(ctx, 56, 26, Math.max(12, (w - 112) * p), 16, 8);
+      drawRoundedRect(ctx, 56, 32, Math.max(12, (w - 112) * p), 16, 8);
       ctx.fillStyle = PALETTE.sunGold;
       ctx.fill();
+      if (state.ageMode === "adventurer") {
+        drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+      }
       if (stage.lastPopTimer > 0 && stage.lastPopKey) {
         const pop = UI_TEXT[stage.lastPopKey];
         drawSpeechBubble(
@@ -3656,6 +3867,9 @@ var __ThankfulJesusBundle = (() => {
     }
     const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 42) * 7 : 0;
     drawChildFriend(ctx, laneX[stage.lane] + wobbleX, h - 26, 1.05, "#D46A43", stage.wobbleTimer === 0, timeSec);
+    if (state.ageMode === "adventurer") {
+      drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+    }
     if (stage.lastPopTimer > 0 && stage.lastPopKey) {
       const pop = UI_TEXT[stage.lastPopKey];
       drawSpeechBubble(
@@ -3702,7 +3916,7 @@ var __ThankfulJesusBundle = (() => {
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
     const zoneCenterY = boardY + boardH * 0.78;
-    const zoneH = state.ageMode === "explorer" ? 54 : 42;
+    const zoneH = state.ageMode === "explorer" ? 62 : 36;
     drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
     const zoneGrad = ctx.createLinearGradient(boardX, zoneCenterY - zoneH / 2, boardX, zoneCenterY + zoneH / 2);
     zoneGrad.addColorStop(0, "rgba(255, 236, 158, 0.52)");
@@ -3744,6 +3958,12 @@ var __ThankfulJesusBundle = (() => {
       const nx = boardX + colW * (n.stringIndex + 0.5);
       const ny = boardY + 14 + n.y * (boardH - 40);
       drawMusicNote(ctx, nx, ny, 1, spec.color, n.golden);
+    }
+    if (stage.doveRescueTimer > 0) {
+      drawWhiteDove(ctx, stage.doveRescueX * w, zoneCenterY - 18, 1.08, timeSec * 2);
+    }
+    if (state.ageMode === "adventurer") {
+      drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
     }
     if (stage.lastPopTimer > 0 && stage.lastPopKey) {
       const pop = UI_TEXT[stage.lastPopKey];
@@ -4505,10 +4725,13 @@ var __ThankfulJesusBundle = (() => {
         );
         return;
       }
-      if (state.phase === "pass_banner" || state.phase === "stage_intro") {
+      if (state.phase === "stage_intro") {
         const stageId = STAGE_SEQUENCE[state.stageIndex];
         hudTitle.textContent = String(state.stageIndex + 1) + "/" + String(STAGE_SEQUENCE.length) + " " + formatPrimary(STAGE_TEXT[stageId].shortTitle, state.langMode);
-        hudMeter.textContent = formatPrimary(UI_TEXT.friendPrefix, state.langMode) + " " + String(state.activePlayerIndex + 1);
+        hudMeter.textContent = formatPrimary(
+          state.ageMode === "explorer" ? UI_TEXT.explorerLabel : UI_TEXT.adventurerLabel,
+          state.langMode
+        );
         return;
       }
       if (state.phase === "stage_play" && state.stageState) {
@@ -4518,10 +4741,11 @@ var __ThankfulJesusBundle = (() => {
           const timerStr = state.ageMode === "adventurer" ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s" : "";
           hudMeter.textContent = formatPrimary(UI_TEXT.s1HudUnit, state.langMode) + " " + String(state.stageState.sharedCount) + "/" + String(state.stageState.targetCount) + timerStr;
         } else if (state.stageState.kind === "run_back_to_jesus") {
+          const timerStr = state.ageMode === "adventurer" ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s" : "";
           if (state.stageState.subPhase === "turn_back") {
-            hudMeter.textContent = formatPrimary(UI_TEXT.s2HudTurn, state.langMode) + " " + String(Math.round(state.stageState.turnBackProgress)) + "%";
+            hudMeter.textContent = formatPrimary(UI_TEXT.s2HudTurn, state.langMode) + " " + String(Math.round(state.stageState.turnBackProgress)) + "%" + timerStr;
           } else {
-            hudMeter.textContent = formatPrimary(UI_TEXT.s2HudRoad, state.langMode) + " " + String(state.stageState.sparklesCollected) + "/" + String(state.stageState.targetSparkles);
+            hudMeter.textContent = formatPrimary(UI_TEXT.s2HudRoad, state.langMode) + " " + String(state.stageState.sparklesCollected) + "/" + String(state.stageState.targetSparkles) + timerStr;
           }
         } else if (state.stageState.kind === "david_harp") {
           const timerStr = state.ageMode === "adventurer" ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s" : "";
@@ -4559,7 +4783,7 @@ var __ThankfulJesusBundle = (() => {
         } else if (state.stageState.kind === "david_harp") {
           extra = "harp";
         } else {
-          extra = state.stageState.subPhase + ":" + String(state.stageState.verseCursor) + ":" + String(state.stageState.placedTileIds.length) + ":" + String(state.stageState.wrongShakeTileId || "") + ":" + String(state.stageState.quizCursor) + ":" + state.stageState.quizFeedback;
+          extra = state.stageState.subPhase + ":" + String(state.stageState.verseCursor) + ":" + String(state.stageState.placedTileIds.length) + ":" + String(state.stageState.wrongShakeTileId || "") + ":" + String(state.stageState.wrongShakeWasDecoy) + ":" + String(state.stageState.quizCursor) + ":" + state.stageState.quizFeedback;
         }
       }
       return [
@@ -4608,33 +4832,15 @@ var __ThankfulJesusBundle = (() => {
           ageRow.appendChild(btn);
         }
         stack.appendChild(ageRow);
-        const playerRow = document.createElement("div");
-        playerRow.className = "seg-row";
-        const playerOptions = [
-          { count: 1, text: UI_TEXT.soloLabel },
-          { count: 2, text: UI_TEXT.pass2Label },
-          { count: 3, text: UI_TEXT.pass3Label },
-          { count: 4, text: UI_TEXT.pass4Label }
-        ];
-        for (let i = 0; i < playerOptions.length; i++) {
-          const opt = playerOptions[i];
-          const btn = document.createElement("button");
-          btn.type = "button";
-          const active = opt.count === 1 && state.playMode === "solo" || opt.count > 1 && state.playMode === "pass_and_play" && state.playerCount === opt.count;
-          btn.className = "seg-btn" + (active ? " active" : "");
-          btn.textContent = formatPrimary(opt.text, state.langMode);
-          btn.addEventListener("click", () => {
-            unlockAudio();
-            applyAction(state, {
-              type: "SET_PLAY_MODE",
-              playMode: opt.count === 1 ? "solo" : "pass_and_play",
-              playerCount: opt.count
-            });
-            syncAll(true);
-          });
-          playerRow.appendChild(btn);
-        }
-        stack.appendChild(playerRow);
+        const modeDesc = document.createElement("div");
+        modeDesc.className = "mode-desc " + (state.ageMode === "adventurer" ? "adventurer" : "explorer");
+        modeDesc.appendChild(
+          makeBilingualBlock(
+            state.ageMode === "explorer" ? UI_TEXT.explorerDesc : UI_TEXT.adventurerDesc,
+            state.langMode
+          )
+        );
+        stack.appendChild(modeDesc);
         if (speech.isSupported()) {
           const speechRow = document.createElement("div");
           speechRow.className = "seg-row";
@@ -4847,6 +5053,7 @@ var __ThankfulJesusBundle = (() => {
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "harp-btn";
+            btn.dataset.harpString = String(spec.index);
             btn.style.background = spec.color;
             const noteSpan = document.createElement("span");
             noteSpan.className = "harp-note";
@@ -4902,17 +5109,18 @@ var __ThankfulJesusBundle = (() => {
           return;
         }
         const hint = document.createElement("div");
-        hint.className = "deck-note";
-        hint.textContent = formatPrimary(UI_TEXT.s3Hint, state.langMode);
+        hint.className = "deck-note" + (vb.wrongShakeWasDecoy && vb.wrongShakeTimer > 0 ? " retry-note" : "");
+        hint.textContent = vb.wrongShakeWasDecoy && vb.wrongShakeTimer > 0 ? formatLocalized(UI_TEXT.s3DecoyHint, state.langMode, " / ") : formatPrimary(UI_TEXT.s3Hint, state.langMode);
         stack.appendChild(hint);
         const verseId = vb.verseQueue[vb.verseCursor];
         const allTiles = getVerseTiles(verseId, state.ageMode);
+        const decoyDef = getVerseDecoyTile(verseId, state.ageMode);
         const nextExpected = allTiles[vb.placedTileIds.length];
         const tileGrid = document.createElement("div");
         tileGrid.className = "tile-grid";
         for (let i = 0; i < vb.shuffledTileIds.length; i++) {
           const tid = vb.shuffledTileIds[i];
-          const def = allTiles.find((t) => t.id === tid);
+          const def = allTiles.find((t) => t.id === tid) || (decoyDef && decoyDef.id === tid ? decoyDef : void 0);
           if (!def) {
             continue;
           }
@@ -5338,6 +5546,16 @@ var __ThankfulJesusBundle = (() => {
       flushSounds();
       updateHud();
       buildDeck(false);
+      if (state.phase === "stage_play" && state.stageState && state.stageState.kind === "david_harp") {
+        const harpButtons = controlDeck.querySelectorAll(".harp-btn[data-harp-string]");
+        for (let i = 0; i < harpButtons.length; i++) {
+          const idx = Number(harpButtons[i].dataset.harpString);
+          const shouldGlow = state.ageMode === "explorer" && state.stageState.notes.some(
+            (n) => n.stringIndex === idx && n.y >= 0.5 && n.y <= 0.96
+          );
+          harpButtons[i].classList.toggle("guide-glow", shouldGlow);
+        }
+      }
       if (state.phase !== prevPhase) {
         maybeAutoRead();
       }

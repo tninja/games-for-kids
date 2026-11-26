@@ -1,4 +1,5 @@
 import {
+  drawAdventurerTimerAndCombo,
   drawBarleyLoaf,
   drawBlessingToken,
   drawChildFriend,
@@ -20,6 +21,8 @@ import {
   drawStorybookFrame,
   drawSunRays,
   drawToyBlock,
+  drawWhiteDove,
+  drawWindGustLeaf,
   drawWovenBasket,
   safeArc
 } from "./artwork";
@@ -183,7 +186,23 @@ function renderLoavesPlay(
     drawChildFriend(ctx, w * seats[i], h - 18, 0.65, tunics[i], stage.sharedCount > i * 2, timeSec + i);
   }
 
-  // Falling loaves, fish, and golden blessing tokens
+  // Subtle Galilee sea breeze lines in Adventurer mode
+  if (state.ageMode === "adventurer") {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 253, 245, 0.45)";
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const wx = ((timeSec * 90 + i * 140) % (w + 60)) - 30;
+      const wy = 195 + i * 58;
+      ctx.beginPath();
+      ctx.moveTo(wx, wy);
+      ctx.quadraticCurveTo(wx + 22, wy - 7, wx + 44, wy);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Falling loaves, fish, golden blessing tokens, and Adventurer wind gusts
   for (let i = 0; i < stage.items.length; i++) {
     const it = stage.items[i];
     const ix = it.x * w;
@@ -192,13 +211,28 @@ function renderLoavesPlay(
       drawBarleyLoaf(ctx, ix, iy, 1.05);
     } else if (it.itemType === "fish") {
       drawFish(ctx, ix, iy, 1.05);
+    } else if (it.itemType === "gust") {
+      drawWindGustLeaf(ctx, ix, iy, 1.05, timeSec);
     } else {
       drawBlessingToken(ctx, ix, iy, 1.0, timeSec);
     }
   }
 
-  // Player's woven sharing basket
-  drawWovenBasket(ctx, stage.basketX * w, h * 0.81, 1.15, stage.sharedCount);
+  // Explorer Dove Helper swooping to catch a missed loaf/fish
+  if (stage.doveRescueTimer > 0) {
+    const p = 1 - stage.doveRescueTimer / 0.95;
+    const dx = stage.doveRescueX * w + (stage.basketX * w - stage.doveRescueX * w) * p;
+    const dy = h * (0.86 - Math.sin(p * Math.PI) * 0.16);
+    drawWhiteDove(ctx, dx, dy, 1.15, timeSec * 1.8);
+  }
+
+  // Player's woven sharing basket (wobbles if hit by Adventurer wind gust)
+  const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 44) * 7 : 0;
+  drawWovenBasket(ctx, stage.basketX * w + wobbleX, h * 0.81, 1.15, stage.sharedCount);
+
+  if (state.ageMode === "adventurer") {
+    drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+  }
 
   if (stage.lastPopTimer > 0 && stage.lastPopKey) {
     const pop = UI_TEXT[stage.lastPopKey];
@@ -260,15 +294,19 @@ function renderRunBackPlay(
     drawChildFriend(ctx, w * 0.5, ty, tScale, "#D46A43", true, timeSec * 1.6);
 
     // Golden progress ribbon
-    drawRoundedRect(ctx, 52, 22, w - 104, 24, 12);
+    drawRoundedRect(ctx, 52, 28, w - 104, 24, 12);
     ctx.fillStyle = "#FFF8EB";
     ctx.fill();
     ctx.lineWidth = 2;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
-    drawRoundedRect(ctx, 56, 26, Math.max(12, (w - 112) * p), 16, 8);
+    drawRoundedRect(ctx, 56, 32, Math.max(12, (w - 112) * p), 16, 8);
     ctx.fillStyle = PALETTE.sunGold;
     ctx.fill();
+
+    if (state.ageMode === "adventurer") {
+      drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+    }
 
     if (stage.lastPopTimer > 0 && stage.lastPopKey) {
       const pop = UI_TEXT[stage.lastPopKey];
@@ -330,6 +368,10 @@ function renderRunBackPlay(
 
   const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 42) * 7 : 0;
   drawChildFriend(ctx, laneX[stage.lane] + wobbleX, h - 26, 1.05, "#D46A43", stage.wobbleTimer === 0, timeSec);
+
+  if (state.ageMode === "adventurer") {
+    drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
+  }
 
   if (stage.lastPopTimer > 0 && stage.lastPopKey) {
     const pop = UI_TEXT[stage.lastPopKey];
@@ -396,7 +438,7 @@ function renderDavidHarpPlay(
 
   // Golden Praise Zone band near the bottom of the harp frame
   const zoneCenterY = boardY + boardH * 0.78;
-  const zoneH = state.ageMode === "explorer" ? 54 : 42;
+  const zoneH = state.ageMode === "explorer" ? 62 : 36;
   drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
   const zoneGrad = ctx.createLinearGradient(boardX, zoneCenterY - zoneH / 2, boardX, zoneCenterY + zoneH / 2);
   zoneGrad.addColorStop(0, "rgba(255, 236, 158, 0.52)");
@@ -446,6 +488,15 @@ function renderDavidHarpPlay(
     const nx = boardX + colW * (n.stringIndex + 0.5);
     const ny = boardY + 14 + n.y * (boardH - 40);
     drawMusicNote(ctx, nx, ny, 1.0, spec.color, n.golden);
+  }
+
+  // Explorer Dove Helper singing along on missed harp notes
+  if (stage.doveRescueTimer > 0) {
+    drawWhiteDove(ctx, stage.doveRescueX * w, zoneCenterY - 18, 1.08, timeSec * 2);
+  }
+
+  if (state.ageMode === "adventurer") {
+    drawAdventurerTimerAndCombo(ctx, w, stage.timeLeftSec, stage.totalTimeSec, stage.streak);
   }
 
   if (stage.lastPopTimer > 0 && stage.lastPopKey) {

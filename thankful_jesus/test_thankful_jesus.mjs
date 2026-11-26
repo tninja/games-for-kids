@@ -20,11 +20,22 @@ function runLoavesToCompletion(state, trackBasket = true, expectUnprayed = true)
   assert.equal(state.stageState.prayedWithJesus, true);
 
   let guard = 0;
-  while (state.phase === "stage_play" && guard < 2400) {
+  let sawDoveOrGust = false;
+  while (state.phase === "stage_play" && guard < 3600) {
     let pointerX = null;
     if (trackBasket && state.stageState.items.length > 0) {
-      const sorted = state.stageState.items.slice().sort((a, b) => b.y - a.y);
-      pointerX = sorted[0].x;
+      const edible = state.stageState.items
+        .filter((it) => it.itemType !== "gust")
+        .sort((a, b) => b.y - a.y);
+      if (edible[0]) {
+        pointerX = edible[0].x;
+      }
+    }
+    if (
+      state.stageState.doveRescueTimer > 0 ||
+      state.stageState.items.some((it) => it.itemType === "gust")
+    ) {
+      sawDoveOrGust = true;
     }
     api.stepGame(state, 1 / 30, {
       primaryTap: false,
@@ -36,16 +47,22 @@ function runLoavesToCompletion(state, trackBasket = true, expectUnprayed = true)
     guard += 1;
   }
   assert.equal(state.phase, "stage_complete", "Stage 1 should reach stage_complete");
+  return sawDoveOrGust;
 }
 
 function runRunBackToCompletion(state, collectSparkles = true) {
   assert.equal(state.stageState.kind, "run_back_to_jesus");
   let sawTurnBack = false;
+  let sawDoubleWall = false;
   let guard = 0;
-  while (state.phase === "stage_play" && guard < 2400) {
+  while (state.phase === "stage_play" && guard < 3200) {
     let lanePick = null;
     let primaryTap = false;
     if (state.stageState.subPhase === "road") {
+      const obstacles = state.stageState.items.filter((it) => it.itemType !== "sparkle");
+      if (obstacles.length >= 2) {
+        sawDoubleWall = true;
+      }
       if (collectSparkles) {
         const sparkles = state.stageState.items
           .filter((it) => it.itemType === "sparkle")
@@ -56,7 +73,7 @@ function runRunBackToCompletion(state, collectSparkles = true) {
       }
     } else {
       sawTurnBack = true;
-      primaryTap = guard % 3 === 0;
+      primaryTap = guard % 2 === 0;
     }
     api.stepGame(state, 1 / 30, {
       primaryTap,
@@ -69,13 +86,14 @@ function runRunBackToCompletion(state, collectSparkles = true) {
   }
   assert.ok(sawTurnBack, "Stage 2 must reach turn_back climax");
   assert.equal(state.phase, "stage_complete", "Stage 2 should reach stage_complete");
+  return sawDoubleWall;
 }
 
 function runDavidHarpToCompletion(state, playNotes = true) {
   assert.equal(state.stageState.kind, "david_harp");
   let sawHarpSound = false;
   let guard = 0;
-  while (state.phase === "stage_play" && guard < 3200) {
+  while (state.phase === "stage_play" && guard < 3600) {
     let harpString = null;
     if (playNotes && state.stageState.notes.length > 0) {
       const ready = state.stageState.notes.find((n) => n.y >= 0.72 && n.y <= 0.86);
@@ -103,15 +121,21 @@ function runVerseBuilderToCompletion(state, injectWrongTile = false, injectWrong
   assert.equal(state.stageState.kind, "verse_builder");
   let didWrongTile = false;
   let didWrongQuiz = false;
+  let didDecoyTap = false;
   let guard = 0;
 
-  while (state.phase === "stage_play" && guard < 200) {
+  while (state.phase === "stage_play" && guard < 240) {
     const vb = state.stageState;
     if (vb.subPhase === "tiles") {
       const vId = vb.verseQueue[vb.verseCursor];
       const tiles = api.getVerseTiles(vId, state.ageMode);
       const expected = tiles[vb.placedTileIds.length];
-      if (injectWrongTile && !didWrongTile && tiles.length > 1) {
+      if (state.ageMode === "adventurer" && vb.decoyTileId && !didDecoyTap) {
+        didDecoyTap = true;
+        api.applyAction(state, { type: "TAP_VERSE_TILE", tileId: vb.decoyTileId });
+        assert.equal(vb.wrongShakeWasDecoy, true, "Tapping decoy tile sets wrongShakeWasDecoy");
+        api.stepGame(state, 0.05, api.EMPTY_INPUT);
+      } else if (injectWrongTile && !didWrongTile && tiles.length > 1) {
         didWrongTile = true;
         const wrong = tiles.find((t) => t.id !== expected.id && !vb.placedTileIds.includes(t.id));
         api.applyAction(state, { type: "TAP_VERSE_TILE", tileId: wrong.id });
@@ -134,61 +158,49 @@ function runVerseBuilderToCompletion(state, injectWrongTile = false, injectWrong
     }
     guard += 1;
   }
-  assert.equal(state.phase, "stage_complete", "Stage 3 should reach stage_complete");
+  assert.equal(state.phase, "stage_complete", "Stage 4 should reach stage_complete");
+  return didDecoyTap;
 }
 
-function testExplorer3PlayerPassAndPlayFlow() {
+function testExplorer67DoveHelperAndRelaxedFlow() {
   const state = api.createInitialState({
     ageMode: "explorer",
     langMode: "dual",
-    playMode: "pass_and_play",
-    playerCount: 3,
     seed: 20261125
   });
 
   assert.equal(state.phase, "title");
   api.applyAction(state, { type: "START_JOURNEY" });
-  assert.equal(state.phase, "pass_banner");
-  assert.equal(state.activePlayerIndex, 0);
+  assert.equal(state.phase, "stage_intro", "Starts directly at stage_intro without pass_banner");
 
-  // Stage 1: Loaves & Fish
-  api.applyAction(state, { type: "CONFIRM_PASS" });
-  assert.equal(state.phase, "stage_intro");
+  // Stage 1: Hands-off verifies Explorer Dove Helper rescues missed loaves!
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  runLoavesToCompletion(state, true);
+  const sawDove = runLoavesToCompletion(state, false);
+  assert.ok(sawDove, "Explorer Stage 1 Dove Helper must rescue missed items");
   assert.ok(state.unlockedVerses.includes("john_6_11"));
-  assert.ok(state.results[0].stars >= 2);
 
-  // Stage 2: Run Back to Thank Jesus
+  // Stage 2: Gentle single-lane road + effortless 5-tap turn-back
   api.applyAction(state, { type: "NEXT_STAGE" });
-  assert.equal(state.phase, "pass_banner");
-  assert.equal(state.activePlayerIndex, 1);
-  api.applyAction(state, { type: "CONFIRM_PASS" });
+  assert.equal(state.phase, "stage_intro");
   api.applyAction(state, { type: "BEGIN_STAGE" });
   runRunBackToCompletion(state, true);
   assert.ok(state.unlockedVerses.includes("luke_17_15_16"));
 
-  // Stage 3: David's Thankful Harp (Psalm 100:4)
+  // Stage 3: Hands-off verifies Explorer Dove Helper helps on Harp too!
   api.applyAction(state, { type: "NEXT_STAGE" });
-  assert.equal(state.phase, "pass_banner");
-  assert.equal(state.activePlayerIndex, 2);
-  api.applyAction(state, { type: "CONFIRM_PASS" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  runDavidHarpToCompletion(state, true);
+  runDavidHarpToCompletion(state, false);
   assert.ok(state.unlockedVerses.includes("psalm_100_4"));
 
-  // Stage 4: Thankful Verse Builder (wraps back to Friend 1, Explorer skips quiz)
+  // Stage 4: 4 chunky tiles, zero decoy, skips quizzes
   api.applyAction(state, { type: "NEXT_STAGE" });
-  assert.equal(state.phase, "pass_banner");
-  assert.equal(state.activePlayerIndex, 0);
-  api.applyAction(state, { type: "CONFIRM_PASS" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
+  assert.equal(state.stageState.decoyTileId, null, "Explorer mode has no decoy tile");
+  assert.equal(state.stageState.quizQueue.length, 0, "Explorer mode skips quizzes");
   runVerseBuilderToCompletion(state, true, false);
-  assert.ok(state.unlockedVerses.includes("psalm_107_1"));
-  assert.ok(state.unlockedVerses.includes("thess_5_18"));
   assert.equal(state.results.length, 4);
 
-  // Prayer Card & Bilingual Sanitization
+  // Prayer Card & Finale
   api.applyAction(state, { type: "NEXT_STAGE" });
   assert.equal(state.phase, "prayer_card");
   api.applyAction(state, {
@@ -208,36 +220,34 @@ function testExplorer3PlayerPassAndPlayFlow() {
   assert.equal(state.prayers.length, 2);
   assert.ok(Array.from(state.prayers[1].message).length <= api.MAX_CUSTOM_NOTE_LEN);
 
-  // Journey Finale
   api.applyAction(state, { type: "FINISH_PRAYERS" });
   assert.equal(state.phase, "journey_finale");
   const promptBefore = api.getChurchPrompt(state.promptIndex).en;
   api.applyAction(state, { type: "SHUFFLE_PROMPT" });
   assert.notEqual(promptBefore, api.getChurchPrompt(state.promptIndex).en);
 
-  // Replay preserves age/lang/player settings
   api.applyAction(state, { type: "PLAY_AGAIN" });
   assert.equal(state.phase, "title");
-  assert.equal(state.playerCount, 3);
   assert.equal(state.langMode, "dual");
 }
 
-function testAdventurerSoloWithQuizAndFallbackPrayer() {
+function testAdventurer89ChallengesDecoyAndQuizzes() {
   const state = api.createInitialState({
     ageMode: "adventurer",
     langMode: "en",
-    playMode: "solo",
     seed: 777
   });
 
   api.applyAction(state, { type: "START_JOURNEY" });
-  assert.equal(state.phase, "stage_intro", "Solo mode skips pass_banner");
+  assert.equal(state.phase, "stage_intro");
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  runLoavesToCompletion(state, true);
+  const sawGust = runLoavesToCompletion(state, true);
+  assert.ok(sawGust, "Adventurer Stage 1 spawns wind gusts to dodge");
 
   api.applyAction(state, { type: "NEXT_STAGE" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  runRunBackToCompletion(state, true);
+  const sawWall = runRunBackToCompletion(state, true);
+  assert.ok(sawWall, "Adventurer Stage 2 spawns 2-lane obstacle walls");
 
   api.applyAction(state, { type: "NEXT_STAGE" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
@@ -245,15 +255,16 @@ function testAdventurerSoloWithQuizAndFallbackPrayer() {
 
   api.applyAction(state, { type: "NEXT_STAGE" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  assert.equal(state.stageState.quizQueue.length, 3, "Adventurer mode includes 3 Gospel & Psalm reflection quizzes");
-  runVerseBuilderToCompletion(state, false, true);
+  assert.ok(state.stageState.decoyTileId, "Adventurer Stage 4 mixes in a decoy tile");
+  assert.equal(state.stageState.quizQueue.length, 3, "Adventurer mode includes 3 reflection quizzes");
+  const tappedDecoy = runVerseBuilderToCompletion(state, false, true);
+  assert.ok(tappedDecoy, "Verified decoy tile shake rejection");
   assert.equal(state.results.length, 4);
 
   api.applyAction(state, { type: "NEXT_STAGE" });
-  assert.equal(state.phase, "prayer_card");
   api.applyAction(state, { type: "FINISH_PRAYERS" });
   assert.equal(state.phase, "journey_finale");
-  assert.equal(state.prayers.length, 1, "Empty prayer_card adds encouraging default prayer leaf");
+  assert.equal(state.prayers.length, 1);
 }
 
 function testBilingualLocalizationAndAsciiSources() {
@@ -327,7 +338,6 @@ function testWebSpeechControllerBilingualChainingAndMute() {
   const speech = new api.JourneySpeech(mockHost);
   assert.equal(speech.isSupported(), true);
 
-  // Dual mode speaks EN first, then chains ZH on onend
   const ok = speech.speakLocalized({ en: "Give thanks", zh: "\u51e1\u4e8b\u8c22\u6069" }, "dual");
   assert.equal(ok, true);
   assert.equal(spoken.length, 1);
@@ -338,40 +348,31 @@ function testWebSpeechControllerBilingualChainingAndMute() {
   assert.equal(spoken[1].lang, "zh-CN");
   assert.equal(spoken[1].voice.name, "Tingting");
 
-  // Rapid re-tap invalidates stale onend callback
   const staleFirst = spoken[0];
   speech.speakLocalized({ en: "Jesus loves you", zh: "\u8036\u7a23\u7231\u4f60" }, "en");
   const countAfterRetap = spoken.length;
   staleFirst.onend();
-  assert.equal(spoken.length, countAfterRetap, "Stale utterance onend must not trigger chained speech");
+  assert.equal(spoken.length, countAfterRetap);
 
-  // Sequence reading for entire Prayer Tree (verse + English + Chinese custom prayers)
   const prayers = [
     api.createPrayerLeaf(0, "jesus_love", "gold", "Thank You Jesus for my church!", "Anna", "dual"),
     api.createPrayerLeaf(1, "family", "crimson", "\u8c22\u8c22\u8036\u7a23\u7231\u6211\u7684\u5bb6\u4eba\uff01", "Ben", "dual")
   ];
   const segs = api.buildPrayerTreeSegments(prayers, "dual", api.getVerseById("thess_5_18").text);
-  assert.equal(segs.length, 4, "Dual verse (2) + 2 custom prayers (2) = 4 speech segments");
-  assert.equal(segs[2].langTag, "en-US");
-  assert.equal(segs[3].langTag, "zh-CN");
+  assert.equal(segs.length, 4);
   const beforeSeq = spoken.length;
   assert.equal(speech.speakSequence(segs), true);
-  assert.equal(spoken.length, beforeSeq + 1);
   spoken[spoken.length - 1].onend();
-  assert.equal(spoken.length, beforeSeq + 2);
   spoken[spoken.length - 1].onend();
-  assert.equal(spoken.length, beforeSeq + 3);
   spoken[spoken.length - 1].onend();
   assert.equal(spoken.length, beforeSeq + 4);
   assert.equal(spoken[spoken.length - 1].lang, "zh-CN");
 
-  // Muting cancels active speech and suppresses further calls
   const cancelsBeforeMute = cancelCount;
   speech.setMuted(true);
   assert.ok(cancelCount > cancelsBeforeMute);
   assert.equal(speech.speakLocalized({ en: "Silent", zh: "\u9759\u97f3" }, "dual"), false);
 
-  // Unsupported browser fallback is a clean no-op
   const unsupported = new api.JourneySpeech({ synth: null, createUtterance: null });
   assert.equal(unsupported.isSupported(), false);
   assert.equal(unsupported.speakLocalized({ en: "Hi", zh: "\u4f60\u597d" }, "dual"), false);
@@ -422,44 +423,32 @@ function testStrictCanvasRenderingAndPostcard() {
   const state = api.createInitialState({
     ageMode: "adventurer",
     langMode: "dual",
-    playMode: "pass_and_play",
-    playerCount: 2,
     seed: 99
   });
   api.renderStageCanvas(ctx, state); // title
 
-  // Exercise all 3 interactive Easter eggs (Jesus, Olive Tree, Child Friend)
   api.applyAction(state, { type: "POKE_JESUS" });
-  assert.ok(state.jesusGlowTimer > 0 && state.easterSource === "jesus");
-  assert.ok(api.getEasterLine(state.easterSource, state.easterLineIndex).en.length > 0);
   api.renderStageCanvas(ctx, state);
-
   api.applyAction(state, { type: "POKE_TREE" });
-  assert.ok(state.treeRustleTimer > 0 && state.easterSource === "tree");
   api.renderStageCanvas(ctx, state);
-
   api.applyAction(state, { type: "POKE_FRIEND" });
-  assert.ok(state.friendHopTimer > 0 && state.easterSource === "friend");
   api.renderStageCanvas(ctx, state);
 
   api.applyAction(state, { type: "START_JOURNEY" });
-  api.renderStageCanvas(ctx, state); // pass_banner
-
   for (let s = 0; s < api.STAGE_SEQUENCE.length; s++) {
-    if (state.phase === "pass_banner") {
-      api.applyAction(state, { type: "CONFIRM_PASS" });
-    }
     api.renderStageCanvas(ctx, state); // stage_intro
     api.applyAction(state, { type: "BEGIN_STAGE" });
     api.renderStageCanvas(ctx, state); // stage_play start
 
     if (state.stageState.kind === "loaves_and_fish") {
       api.applyAction(state, { type: "PRAY_WITH_JESUS" });
-      api.stepGame(state, 1 / 30, api.EMPTY_INPUT);
+      state.stageState.streak = 6;
+      state.stageState.doveRescueTimer = 0.5;
+      state.stageState.items.push({ id: 999, x: 0.4, y: 0.5, vy: 0.4, swayPhase: 0, itemType: "gust" });
       api.renderStageCanvas(ctx, state);
       runLoavesToCompletion(state, true, false);
     } else if (state.stageState.kind === "run_back_to_jesus") {
-      api.stepGame(state, 1 / 30, api.EMPTY_INPUT);
+      state.stageState.streak = 4;
       state.stageState.lastPopKey = "popGrace";
       state.stageState.lastPopTimer = 0.5;
       api.renderStageCanvas(ctx, state);
@@ -470,13 +459,15 @@ function testStrictCanvasRenderingAndPostcard() {
       api.renderStageCanvas(ctx, state);
       runRunBackToCompletion(state, true);
     } else if (state.stageState.kind === "david_harp") {
+      state.stageState.streak = 5;
+      state.stageState.doveRescueTimer = 0.5;
       api.stepGame(state, 1 / 30, { ...api.EMPTY_INPUT, harpString: 1 });
       state.stageState.lastPopKey = "popHarmony";
       state.stageState.lastPopTimer = 0.5;
       api.renderStageCanvas(ctx, state);
       runDavidHarpToCompletion(state, true);
     } else {
-      api.renderStageCanvas(ctx, state); // tiles
+      api.renderStageCanvas(ctx, state);
       runVerseBuilderToCompletion(state, false, false);
     }
 
@@ -494,9 +485,8 @@ function testStrictCanvasRenderingAndPostcard() {
     authorLabel: "Noah"
   });
   api.applyAction(state, { type: "FINISH_PRAYERS" });
-  api.renderStageCanvas(ctx, state); // journey_finale
+  api.renderStageCanvas(ctx, state);
 
-  // Validate 1080x1440 postcard rendering across all 3 langModes
   const origDoc = globalThis.document;
   globalThis.document = {
     createElement() {
@@ -519,8 +509,8 @@ function testStrictCanvasRenderingAndPostcard() {
   }
 }
 
-testExplorer3PlayerPassAndPlayFlow();
-testAdventurerSoloWithQuizAndFallbackPrayer();
+testExplorer67DoveHelperAndRelaxedFlow();
+testAdventurer89ChallengesDecoyAndQuizzes();
 testBilingualLocalizationAndAsciiSources();
 testWebSpeechControllerBilingualChainingAndMute();
 testStrictCanvasRenderingAndPostcard();

@@ -53,23 +53,23 @@ export const STAGE_SPECS: Record<StageId, StageSpec> = {
   loaves_and_fish: {
     id: "loaves_and_fish",
     verseId: "john_6_11",
-    explorerTarget: 10,
-    adventurerTarget: 16,
-    adventurerTimeSec: 36
+    explorerTarget: 8,
+    adventurerTarget: 18,
+    adventurerTimeSec: 28
   },
   run_back_to_jesus: {
     id: "run_back_to_jesus",
     verseId: "luke_17_15_16",
-    explorerTarget: 8,
-    adventurerTarget: 12,
-    adventurerTimeSec: 34
+    explorerTarget: 6,
+    adventurerTarget: 14,
+    adventurerTimeSec: 26
   },
   david_harp: {
     id: "david_harp",
     verseId: "psalm_100_4",
-    explorerTarget: 10,
-    adventurerTarget: 16,
-    adventurerTimeSec: 34
+    explorerTarget: 8,
+    adventurerTarget: 18,
+    adventurerTimeSec: 28
   },
   verse_builder: {
     id: "verse_builder",

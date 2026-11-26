@@ -103,7 +103,12 @@ export const VERSES: Record<VerseId, VerseDef> = {
       { id: "pa4", icon: "heart", text: { en: "his love", zh: "\u4ed6\u7684\u6148\u7231" } },
       { id: "pa5", icon: "scroll", text: { en: "endures", zh: "\u6c38\u8fdc" } },
       { id: "pa6", icon: "star", text: { en: "forever.", zh: "\u957f\u5b58\uff01" } }
-    ]
+    ],
+    adventurerDecoy: {
+      id: "pa_decoy",
+      icon: "sun",
+      text: { en: "tall mountains", zh: "\u9ad8\u9ad8\u5c71\u4e18" }
+    }
   },
   thess_5_18: {
     id: "thess_5_18",
@@ -128,7 +133,12 @@ export const VERSES: Record<VerseId, VerseDef> = {
       { id: "ta4", icon: "cross", text: { en: "in Christ Jesus", zh: "\u5728\u57fa\u7763\u8036\u7a23\u91cc" } },
       { id: "ta5", icon: "heart", text: { en: "will for you", zh: "\u5411\u4f60\u4eec\u6240\u5b9a\u7684" } },
       { id: "ta6", icon: "star", text: { en: "always.", zh: "\u65e8\u610f\u3002" } }
-    ]
+    ],
+    adventurerDecoy: {
+      id: "ta_decoy",
+      icon: "scroll",
+      text: { en: "maybe tomorrow", zh: "\u660e\u5929\u518d\u8bf4" }
+    }
   }
 };
 
@@ -227,4 +237,11 @@ export function getVerseById(id: VerseId): VerseDef {
 export function getVerseTiles(verseId: VerseId, ageMode: AgeMode): VerseTileDef[] {
   const verse = VERSES[verseId];
   return ageMode === "adventurer" ? verse.adventurerTiles : verse.explorerTiles;
+}
+
+export function getVerseDecoyTile(verseId: VerseId, ageMode: AgeMode): VerseTileDef | null {
+  if (ageMode !== "adventurer") {
+    return null;
+  }
+  return VERSES[verseId].adventurerDecoy || null;
 }
