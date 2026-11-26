@@ -1,4 +1,4 @@
-import { W,H,GOAL,ACTION_TIMING } from "./engine.js";
+import { W,H,GOAL,ACTION_TIMING,actionDuration } from "./engine.js";
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
 const CW=44, CH=68, FOOT=44, FRAMES=9, COLS=4*FRAMES, ROWS=20;
@@ -127,8 +127,7 @@ function ballArt(){
 }
 export function spriteIndex(p,tick){
   const moving=Math.hypot(p.vx,p.vy)>3,a=p.action;
-  const dx=a?a.dx:p.vx,dy=a?a.dy:p.vy;
-  const d=(a&&Math.hypot(dx,dy)>.1)||moving?(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8:p.face<0?4:0;
+  const d=((Math.round(p.heading/(Math.PI/4))%8)+8)%8;
   const f=a?(a.kind==="receive"?8:a.elapsed<ACTION_TIMING[a.kind][0]?7:a.kind==="tackle"?6:5):moving?1+Math.floor(tick/(Math.hypot(p.vx,p.vy)>95?3:5))%4:0;
   return {x:((d%4)*FRAMES+f)*CW,y:(p.id*2+Math.floor(d/4))*CH,w:CW,h:CH};
 }
@@ -143,7 +142,7 @@ export function marks(s,tip,paused){
   }
   add("ring",OX+u.x,OY+u.y+2,16,0,u.action?0xffad69:0xffe078,1,3);
   if(u.action){
-    const left=1-u.action.elapsed/ACTION_TIMING[u.action.kind][1];
+    const left=1-u.action.elapsed/actionDuration(u.action);
     add("line",OX+u.x-12,OY+u.y+12,OX+u.x+12,OY+u.y+12,0x263747,1,4);
     add("line",OX+u.x-12,OY+u.y+12,OX+u.x-12+24*left,OY+u.y+12,0xffce75,1,3);
   }
