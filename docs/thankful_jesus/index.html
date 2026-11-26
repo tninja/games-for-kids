@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Thankful Journey with Jesus - Church Thanksgiving Kids Game</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg-top: #E3F2F8;
+      --bg-bot: #F7E1BE;
+      --card: #FFF9EE;
+      --panel: #F9EBD3;
+      --ink: #2E241E;
+      --muted: #665042;
+      --terracotta: #D46A43;
+      --terracotta-dark: #A94A27;
+      --gold: #F6C453;
+      --olive: #6F9463;
+      --border: #3B2D26;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100dvh;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bot) 100%);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overscroll-behavior: none;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+    .shell {
+      width: 100%;
+      max-width: 460px;
+      min-height: calc(100dvh - max(18px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .topbar a {
+      color: var(--terracotta-dark);
+      text-decoration: none;
+      padding: 6px 10px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .lang-group {
+      display: inline-flex;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .lang-btn.active {
+      background: var(--gold);
+    }
+    .mute-btn {
+      background: var(--card);
+      color: var(--ink);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .stage-card {
+      background: var(--card);
+      border: 2.5px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(60, 35, 18, 0.14);
+      display: flex;
+      flex-direction: column;
+    }
+    canvas#stage-canvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 420 / 440;
+      max-height: 46dvh;
+      object-fit: contain;
+      display: block;
+      background: #FFF8EB;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      cursor: pointer;
+    }
+    .hud-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--panel);
+      border-top: 2px solid var(--border);
+      font-weight: 800;
+      font-size: 0.86rem;
+    }
+    .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-meter {
+      color: var(--terracotta-dark);
+      white-space: nowrap;
+    }
+    .listen-chip {
+      align-items: center;
+      justify-content: center;
+      background: var(--olive);
+      color: #FFFDF8;
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .control-deck {
+      flex: 1;
+      background: var(--card);
+      border: 2.5px solid var(--border);
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(60, 35, 18, 0.10);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .deck-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 100%;
+    }
+    .center-stack {
+      align-items: center;
+      text-align: center;
+    }
+    button {
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .btn-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.22;
+      gap: 2px;
+    }
+    .btn-main {
+      font-weight: 800;
+    }
+    .btn-sub {
+      font-size: 0.78em;
+      opacity: 0.92;
+      font-weight: 700;
+    }
+    .bi-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .bi-primary {
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.38;
+      color: var(--ink);
+    }
+    .bi-secondary {
+      font-size: 0.88rem;
+      font-weight: 600;
+      line-height: 1.38;
+      color: var(--muted);
+    }
+    .story-card, .verse-card, .prompt-card {
+      background: #FFF2DC;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .verse-ref, .prompt-kicker {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: var(--terracotta-dark);
+      margin-bottom: 5px;
+    }
+    .verse-main, .prompt-text {
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1.36;
+      color: var(--ink);
+    }
+    .verse-sub, .prompt-sub {
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.36;
+      color: var(--muted);
+    }
+    .deck-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 700;
+    }
+    .retry-note {
+      color: var(--terracotta-dark);
+    }
+    .seg-row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 7px;
+      width: 100%;
+    }
+    .seg-btn {
+      min-height: 46px;
+      padding: 6px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--gold);
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.14);
+    }
+    .primary-btn {
+      width: 100%;
+      min-height: 56px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 2.5px solid var(--border);
+      background: var(--terracotta);
+      color: #FFFDF9;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--border);
+    }
+    .primary-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--border);
+    }
+    .giant-btn {
+      min-height: 74px;
+      font-size: 1.12rem;
+    }
+    .big-btn {
+      min-height: 60px;
+    }
+    .lane-btn {
+      min-height: 76px;
+      font-size: 0.95rem;
+    }
+    .pulse-btn {
+      background: #E28629;
+    }
+    .secondary-btn {
+      width: 100%;
+      min-height: 54px;
+      padding: 9px 12px;
+      border-radius: 14px;
+      border: 2.5px solid var(--border);
+      background: var(--olive);
+      color: #FFFDF9;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--border);
+    }
+    .secondary-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .secondary-btn:disabled {
+      opacity: 0.5;
+    }
+    .ghost-btn, .choice-btn {
+      width: 100%;
+      min-height: 48px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .choice-btn {
+      background: #FFFDF8;
+      box-shadow: 0 2px 0 var(--border);
+    }
+    .pass-badge {
+      background: var(--gold);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+    .slide-track {
+      width: 100%;
+      min-height: 72px;
+      border-radius: 16px;
+      border: 2.5px dashed var(--terracotta);
+      background: #FFF2DC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: ew-resize;
+    }
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .tile-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 68px;
+      padding: 7px 6px;
+      border-radius: 14px;
+      border: 2.5px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-size: 0.82rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--border);
+    }
+    .tile-btn.hint-glow {
+      background: #FFF0BE;
+      border-color: var(--terracotta);
+      box-shadow: 0 0 0 3px rgba(212, 106, 67, 0.28), 0 3px 0 var(--border);
+    }
+    .tile-btn.placed {
+      opacity: 0.36;
+      background: #EAE0CF;
+      box-shadow: none;
+    }
+    .tile-btn.shake {
+      background: #FFDCD2;
+    }
+    .gratitude-head {
+      text-align: center;
+    }
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .sticker-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 5px 2px;
+      min-height: 60px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .sticker-btn.active {
+      background: #FFE5B4;
+      border-color: var(--terracotta);
+      box-shadow: 0 0 0 2px rgba(212, 106, 67, 0.25);
+    }
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-dot {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      border-radius: 999px;
+      border: 2.5px solid var(--border);
+      cursor: pointer;
+    }
+    .color-dot.active {
+      transform: scale(1.14);
+      box-shadow: 0 0 0 3px #FFFDF8, 0 0 0 5px var(--border);
+    }
+    .note-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFFFF;
+      color: var(--ink);
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .name-input {
+      flex: 1;
+      min-height: 38px;
+      font-size: 16px;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(34, 24, 18, 0.74);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .modal-card img {
+      width: 100%;
+      max-height: 58dvh;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFF9EE;
+    }
+    .modal-status {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+    @media (min-width: 820px) {
+      .shell {
+        max-width: 900px;
+        min-height: auto;
+        padding-top: 12px;
+      }
+      .main-grid {
+        display: grid;
+        grid-template-columns: 440px 1fr;
+        gap: 16px;
+        align-items: stretch;
+      }
+      canvas#stage-canvas {
+        max-height: 460px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a id="back-link" href="../index.html">&lt;- Games</a>
+      <div class="lang-group" role="group" aria-label="Language">
+        <button id="lang-en-btn" class="lang-btn" type="button">EN</button>
+        <button id="lang-zh-btn" class="lang-btn" type="button">ZH</button>
+        <button id="lang-dual-btn" class="lang-btn active" type="button">Dual</button>
+      </div>
+      <button id="mute-btn" class="mute-btn" type="button">Sound: On</button>
+    </header>
+
+    <main class="main-grid">
+      <section class="stage-card">
+        <canvas id="stage-canvas" width="420" height="440" aria-label="Thankful Journey with Jesus stage"></canvas>
+        <div class="hud-strip">
+          <span id="hud-title">Thankful Journey with Jesus</span>
+          <div class="hud-right">
+            <span id="hud-meter" class="hud-meter">Explorer (6-7)</span>
+            <button id="hud-listen-btn" class="listen-chip" type="button">Listen</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="control-deck" class="control-deck" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="postcard-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Thankful Journey with Jesus Card">
+    <div class="modal-card">
+      <img id="postcard-img" alt="Thankful Journey with Jesus Keepsake Card">
+      <p id="postcard-status" class="modal-status"></p>
+      <div class="seg-row">
+        <button id="postcard-share-btn" class="primary-btn" type="button">Share / Save PNG</button>
+        <button id="postcard-close-btn" class="ghost-btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+#+TITLE: Thankful Journey with Jesus - Technical and Level Design
+#+DATE: 2026-11-25
+#+AUTHOR: games-for-kids
+#+OPTIONS: toc:2 num:nil
+
+* Overview and Product Goals
+
+*Thankful Journey with Jesus* (working title) is a standalone, pure client-side 2D warm-storybook Thanksgiving web game created for Christian church children ages 6-9, hosted on GitHub Pages under =docs/thankful_jesus/=.
+
+- *Core Ministry and Game Pillars*:
+  1. *Christ-Centered Thanksgiving*: Centers directly on Jesus through two beloved Gospel moments -- Jesus giving thanks and multiplying the boy's loaves and fish (John 6:1-14) and the healed traveler running back to Jesus' feet to say thank you (Luke 17:11-19).
+  2. *Playful Bible Verse Memory*: Turns short Thanksgiving memory verses (John 6:11, Luke 17:15-16, 1 Thessalonians 5:18, Psalm 107:1) into collectible illustrated phrase tiles that kids assemble as a game reward rather than a classroom worksheet.
+  3. *Live Bilingual Support and Web Speech Read-Aloud*: Supports instant =EN / ZH / Bilingual= switching (NIV/NIrV English + CUV Chinese) with browser Web Speech API read-aloud so 6-year-old early readers, bilingual church families, and Sunday school teachers can play and read Scripture together.
+  4. *iPhone-First Tactile Fun*: Portrait-first single-hand touch ergonomics (=56px+= hit targets, safe-area aware, iOS Share Sheet PNG keepsake export), plus 2-4 player Pass-and-Play on one phone and clean projection support for church classrooms and laptops.
+- *Visual Direction*: Warm, gentle, respectful 2D hand-drawn storybook illustration of Jesus and Gospel landscapes rendered via HTML5 Canvas, completely separate in codebase and art style from the secular family game in =thanksgiving/=.
+- *Target Session Length*: 4 to 6 minutes per complete journey.
+- *Constraints*: Zero backend, zero external image/audio fetches, strict TypeScript compiled via esbuild into an ASCII-clean UMD bundle matching =battleship=, =flappybird=, =foosball=, and =thanksgiving=.
+
+* Repository and Module Structure
+
+Follow the existing TypeScript-to-=docs/= web game pattern in this repository without modifying =thanksgiving/=:
+
+#+begin_example
+thankful_jesus/
+  design.org                    # This design document
+  build_web.sh                  # Runs tsc --noEmit and node thankful_jesus/ts/build.mjs
+  test_thankful_jesus.mjs       # Headless Node unit tests (state, i18n, speech, canvas)
+  ts/
+    types.ts                    # Pure data types, state enums, input & config interfaces
+    constants.ts                # Palette, stage specs, timings, sticker specs, prompts
+    i18n.ts                     # ASCII-safe EN/ZH/Bilingual string catalog (\uXXXX for ZH)
+    verses.ts                   # Bible verse definitions, phrase tiles, & reflection quizzes
+    game.ts                     # Pure deterministic state machine & journey progression
+    minigames.ts                # Pure simulation for Stage 1, Stage 2, and Verse Builder
+    gratitude.ts                # Prayer card stickers, note sanitization, church prompts
+    artwork.ts                  # Hand-drawn 2D storybook Canvas primitives (Jesus, scenes)
+    renderer.ts                 # Stage Canvas renderer with strict finite-radius guards
+    postcard.ts                 # 1080x1440 bilingual Thank-You Card to Jesus PNG exporter
+    audio.ts                    # Web Audio API gentle chime/SFX synthesizer (iOS unlock)
+    speech.ts                   # Web Speech API EN/ZH/Bilingual read-aloud controller
+    app.ts                      # DOM shell, touch/pointer/keyboard input, animation loop
+    build.mjs                   # esbuild IIFE->UMD bundler (ASCII check + --check flag)
+
+docs/
+  index.html                    # Add standalone launch card for Thankful Journey with Jesus
+  thankful_jesus/
+    index.html                  # iPhone-first responsive shell + safe-area CSS
+    app.js                      # Built UMD output (window.ThankfulJesusWeb / module.exports)
+#+end_example
+
+** Build and Typecheck Integration
+
+- Add ="thankful_jesus/ts/**/*.ts"= to =tsconfig.json= =include=.
+- Add scripts to =package.json=:
+  - ="typecheck:thankful_jesus": "tsc --noEmit"=
+  - ="build:thankful_jesus": "node thankful_jesus/ts/build.mjs"=
+- Keep =build.mjs= aligned with =thanksgiving/ts/build.mjs=: =target: "es2020"=, =charset: "ascii"=, strict =charCodeAt(i) > 127= ASCII validation loop, and =--check= sync verification.
+
+* Bilingual Localization and ASCII-Safe Encoding Strategy
+
+** Code-File Compliance and Runtime Rendering (=i18n.ts=)
+
+To satisfy both the repository rule ("only use English in code files" / strictly ASCII bundled JS) and full English + Chinese runtime support:
+
+- All TypeScript source files (=thankful_jesus/ts/*.ts=), identifiers, and comments remain strictly English and pure 7-bit ASCII.
+- Chinese UI strings and CUV Bible verses live exclusively in =thankful_jesus/ts/i18n.ts= and =verses.ts= as standard JavaScript Unicode escape sequences (=\uXXXX=), accompanied by clear English comments stating the verse reference or UI meaning.
+- Because =esbuild= runs with =charset: "ascii"=, both source files and the emitted =docs/thankful_jesus/app.js= pass the strict ASCII byte check while decoding natively into UTF-16 Chinese characters at runtime across DOM text, Canvas 2D typography, PNG keepsake cards, and =window.speechSynthesis=.
+- Runtime custom prayer notes entered by kids naturally accept any Unicode input (English, Simplified/Traditional Chinese, punctuation).
+
+** Language Modes and iPhone Narrow-Screen Rules
+
+- =LangMode = "en" | "zh" | "dual"=, switchable live from the compact top bar (=EN | ZH | Dual=) at any screen without losing game progress.
+- *Compact Action Buttons* (375px iPhone width): Primary action buttons keep concise 1-3 word labels in =en= or =zh=; in =dual= mode, buttons render crisp stacked 2-line labels (English primary + compact Chinese secondary) while staying within a comfortable =56-68px= thumb button height.
+- *Scripture and Story Surfaces*: Stage story intros, Bible verse cards, Verse Builder tiles, church sharing prompts, and the exported PNG keepsake card render full English + Chinese side-by-side/stacked in =dual= mode so bilingual church teachers and parents can read Scripture together with kids.
+
+** Core Bible Verse Catalog (=verses.ts=)
+
+Each verse stores its reference, NIV/NIrV English text, CUV Chinese text (=\uXXXX= encoded), phrase tile splits for both age tiers, and an icon tag for visual cues:
+
+1. *John 6:11* (Stage 1 -- Feeding of the 5,000, John 6:1-14):
+   - EN (NIV): "Jesus then took the loaves, gave thanks, and distributed to those who were seated as much as they wanted."
+   - ZH: CUV John 6:11.
+2. *Luke 17:15-16* (Stage 2 -- The One Thankful Leper, Luke 17:11-19):
+   - EN (NIV): "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him."
+   - ZH: CUV Luke 17:15-16.
+3. *1 Thessalonians 5:18* (Stage 3 -- Core Thanksgiving Memory Verse):
+   - EN (NIV): "Give thanks in all circumstances; for this is God's will for you in Christ Jesus."
+   - ZH: CUV 1 Thessalonians 5:18.
+4. *Psalm 107:1* (Stage 3 -- Joyful Praise Memory Verse):
+   - EN (NIV): "Give thanks to the LORD, for he is good; his love endures forever."
+   - ZH: CUV Psalm 107:1.
+
+* Top-Level State Machine and Data Model
+
+** State Flow
+
+#+begin_example
+  +-----------+
+  |   TITLE   |  (Pick Age Tier: Little Explorer 6-7 / Bible Adventurer 8-9;
+  +-----+-----+   Players: 1P Solo or 2-4P Pass-and-Play; Lang: EN / ZH / Dual)
+        | START_JOURNEY
+        v
+  +-------------+   (Shown in 2-4P Pass-and-Play so handoff never drains timer)
+  | PASS_BANNER |<----------------------------------------------------+
+  +------+------+                                                     |
+         | CONFIRM_PASS                                               |
+         v                                                            |
+  +-------------+   (Brief illustrated story card + "Listen" speech   |
+  | STAGE_INTRO |    button introducing Jesus & the stage goal)       |
+  +------+------+                                                     |
+         | BEGIN_STAGE                                                |
+         v                                                            |
+  +-------------+   (Stage 1: Loaves & Fish -> Stage 2: Run Back      |
+  | STAGE_PLAY  |    to Thank Jesus -> Stage 3: Verse Builder)        |
+  +------+------+                                                     |
+         | stageCompleted()                                           |
+         v                                                            |
+  +----------------+   more stages remaining?                         |
+  | STAGE_COMPLETE |--------------------------------------------------+
+  +-------+--------+   (Shows unlocked Gospel verse + Listen button)
+          | all 3 stages completed
+          v
+  +-------------+   (Pick gratitude sticker / optional prayer note ->
+  | PRAYER_CARD |    hang on Jesus' Gratitude Tree / Prayer Scroll)
+  +------+------+
+         | FINISH_PRAYERS
+         v
+  +----------------+  (Celebration scene + bilingual verse & prayer
+  | JOURNEY_FINALE |   read-aloud + Save/Share PNG Card + Table Prompt)
+  +----------------+
+#+end_example
+
+** Core TypeScript Interfaces (Pure State)
+
+#+begin_src typescript
+export type AgeMode = "explorer" | "adventurer"; // 6-7 guided vs 8-9 challenge
+export type LangMode = "en" | "zh" | "dual";
+export type PlayMode = "solo" | "pass_and_play";
+
+export type GamePhase =
+  | "title"
+  | "pass_banner"
+  | "stage_intro"
+  | "stage_play"
+  | "stage_complete"
+  | "prayer_card"
+  | "journey_finale";
+
+export type StageId =
+  | "loaves_and_fish"
+  | "run_back_to_jesus"
+  | "verse_builder";
+
+export type VerseId =
+  | "john_6_11"
+  | "luke_17_15_16"
+  | "thess_5_18"
+  | "psalm_107_1";
+
+export interface StageResult {
+  stageId: StageId;
+  playerIndex: number;
+  stars: 1 | 2 | 3;         // Always >= 1; warm encouragement, never punitive
+  score: number;
+  tokensCollected: number;
+  verseUnlocked: VerseId;
+}
+
+export interface PrayerLeaf {
+  id: string;
+  authorLabel: string;      // e.g., "Friend 1" or custom short name
+  stickerId: string;        // Vector icon ID (jesus_love, family, church, food, etc.)
+  message: string;          // Preset caption or custom Unicode prayer (<= 56 chars)
+  leafColor: "gold" | "olive" | "crimson" | "sky";
+  treeSlot: number;
+}
+
+export interface GameState {
+  phase: GamePhase;
+  ageMode: AgeMode;
+  langMode: LangMode;
+  playMode: PlayMode;
+  playerCount: number;      // 1..4
+  activePlayerIndex: number;
+  stageIndex: number;       // 0..2 into STAGE_SEQUENCE
+  stageState: ActiveStageState | null;
+  results: StageResult[];
+  unlockedVerses: VerseId[];
+  prayers: PrayerLeaf[];
+  promptIndex: number;
+  totalStars: number;
+  muted: boolean;           // Silences both Web Audio SFX and Web Speech
+  autoRead: boolean;        // Optional auto-read on story/verse cards after unlock
+  elapsedSec: number;
+}
+#+end_src
+
+** Deterministic Headless Step Contract
+
+All gameplay logic lives in =game.ts= and =minigames.ts= with zero DOM or Web Speech dependencies:
+
+- =createInitialState(config): GameState=
+- =stepGame(state, dtSec, input, rng): GameState=
+- =applyAction(state, action): GameState= (=START_JOURNEY=, =SET_LANG=, =CONFIRM_PASS=, =BEGIN_STAGE=, =TAP_VERSE_TILE=, =ANSWER_QUIZ=, =ADD_PRAYER=, =FINISH_PRAYERS=, =TOGGLE_MUTE=, =TOGGLE_AUTO_READ=, =PLAY_AGAIN=)
+
+* Level and Mini-Game Design (Ages 6-9 Scaling)
+
+Every stage teaches itself visually in under 2 seconds, lasts 25-45 seconds, centers on Jesus, and rewards kids with Bible verse tokens.
+
+** Stage 1 - Loaves & Fish Feast (=loaves_and_fish=, John 6:1-14)
+
+- *Story Beat*: A young boy offers his five barley loaves and two fish to Jesus on a sunny hillside by the Sea of Galilee.
+- *Step A (2-3s Prayer Ritual)*: Before gameplay begins, a glowing ="Give Thanks with Jesus!"= button invites the child to tap once; Jesus lifts the bread in prayer as warm golden rays shimmer over the basket.
+- *Step B (25-35s Tactile Gameplay)*: Slide a thumb along the wide bottom track (or tap/hold =LEFT= / =RIGHT=; =A/D= or arrows on desktop) to guide the woven sharing basket across the hillside, catching multiplying loaves and fish to share with joyful seated families and collecting glowing *12-Basket Blessing Tokens* (carrying verse tiles).
+- *Gentle Feedback*: Missed loaves land harmlessly on grass with a soft bounce; in *Little Explorer* mode, a friendly hillside breeze nudges golden blessing tokens toward the basket.
+- *Goal*: Share 10 meals (Explorer) or 16 meals with streak bonuses (Adventurer, 35s timer). Unlocks *John 6:11*.
+
+** Stage 2 - Run Back to Thank Jesus (=run_back_to_jesus=, Luke 17:11-19)
+
+- *Story Beat*: Ten travelers are healed by Jesus on the road; nine rush straight on to busy village errands, while one pauses, turns around, and runs back to thank Jesus.
+- *Phase A (20-25s Village Path)*: Tap Left/Center/Right lane buttons (or swipe left/right on the stage) to guide the healed traveler down a sunlit road, collecting glowing *Gratitude Sparkles* while sidestepping playful distractions (busy market carts, shiny toys, hurrying travelers that cause a gentle brief wobble, never instant fail).
+- *Phase B (8-12s Turning Point Climax)*: At the village crossroads sign, the screen highlights a warm radiant button ="Turn Back to Jesus!"=. Rapidly tap the button (with animated footprints turning homeward) as the traveler runs joyfully back to Jesus' feet and praises God.
+- *Goal*: Collect 8 sparkles + reach Jesus (Explorer) or 12 sparkles + rapid turn-back bonus (Adventurer, 32s timer). Unlocks *Luke 17:15-16*.
+
+** Stage 3 - Thankful Verse Builder (=verse_builder=, 1 Thess 5:18 & Psalm 107:1)
+
+- *Story Beat*: Open the golden treasure scroll filled with the Bible verse phrase tiles collected in Stages 1 and 2.
+- *Gameplay*:
+  - Kids assemble 2 short Thanksgiving memory verses (*Psalm 107:1* and *1 Thessalonians 5:18*; in Explorer mode, 1 primary verse + optional bonus verse).
+  - Tapping any phrase tile plays a gentle chime AND optionally speaks that phrase aloud via Web Speech (huge support for 6-year-old early readers!).
+  - Placing a tile in the right slot lights up the scroll with warm sparkles; tapping a wrong slot gently jiggles the tile and offers a friendly hint without losing progress.
+  - *Bible Adventurer (Ages 8-9) Extra*: After each assembled verse, presents 1 warm, 3-choice story reflection question (e.g., "In Luke 17, what did the one thankful traveler do after Jesus healed him?"), reinforcing comprehension without grading anxiety.
+
+** Finale - Thank-You Card to Jesus & Bilingual Keepsake PNG (=prayer_card= -> =journey_finale=)
+
+- *Prayer Tree / Scroll*: Depicts warm storybook Jesus beside an olive/autumn Gratitude Tree overlooking Galilee.
+- Each child (1-4 in Pass-and-Play, or "Add Another Prayer") chooses:
+  1. *Ribbon / Leaf Color*: Sunlit Gold, Olive Green, Autumn Crimson, or Galilee Sky.
+  2. *Illustrated Gratitude Sticker* (8 vector icons drawn on Canvas):
+     - =jesus_love=: "Thank You Jesus for Your love!"
+     - =bible=: "Thank You for the Bible!"
+     - =family=: "Thank You for my family!"
+     - =church=: "Thank You for my church friends!"
+     - =food=: "Thank You for our daily food!"
+     - =healing=: "Thank You for helping and healing us!"
+     - =creation=: "Thank You for Your wonderful world!"
+     - =joy=: "Thank You for joyful hearts!"
+  3. *Optional Custom Prayer Note*: Single-line input (=maxlength="56"=) supporting English or Chinese.
+- *Celebration & Offline Church Bridge*:
+  - Displays the completed scene with a prominent ="Listen to Our Verse & Prayer"= Web Speech button.
+  - Shows a shuffleable *Church & Table Sharing Prompt* (EN/ZH/Dual), e.g., "Turn to a friend or parent and share one way Jesus helped or blessed you this week!"
+- *Client-Side 1080x1440 Bilingual PNG Keepsake Card (=postcard.ts=)*:
+  - Offscreen 3:4 portrait Canvas card featuring the title banner, warm storybook Jesus & Gratitude Tree illustration, featured bilingual Bible verse (*1 Thessalonians 5:18* in selected language mode), and every child's prayer note cleanly word-wrapped.
+  - Export path: =canvas.toBlob("image/png")= -> iOS 15+ =navigator.share({ files: [file] })= native Share Sheet -> fallback blob download + long-press =<img>= preview modal.
+
+** Cross-Age Difficulty Matrix (Ages 6-9)
+
+| Dimension | Little Explorer (Ages 6-7) | Bible Adventurer (Ages 8-9) |
+| --- | --- | --- |
+| Fail State | None (no countdown pressure; always >= 1 star) | Gentle timer + streak multipliers; completion always >= 1 star |
+| Stage 1 & 2 Pacing | Wider catch/lane margins, slower speed, gentle token nudge | Crisp movement, bonus golden tokens, livelier distractions |
+| Verse Builder Tiles | 4-5 chunky phrase tiles, color-matched icons, next-slot glow | 6-7 phrase tiles, no next-slot highlight, subtle decoy shuffle |
+| Reflection Quiz | Optional encouraging "Read Together" prompt (no quiz barrier) | 2 friendly 3-choice Gospel reflection questions |
+| Read-Aloud Support | Tap any tile or card to hear Web Speech EN/ZH/Bilingual | Same on-demand Listen buttons + optional auto-read toggle |
+
+* Web Speech API Bilingual Read-Aloud and Synthesized Audio
+
+** Web Speech Controller (=speech.ts=)
+
+- *Zero External Assets*: Uses browser-native =window.speechSynthesis= and =SpeechSynthesisUtterance= so bundle size remains tiny and offline-friendly once loaded.
+- *iOS Safari Reliability Engineering*:
+  1. *Gesture Unlock*: Trigger speech directly inside =pointerdown=/=click= handlers on ="Listen"= buttons, verse tiles, or stage-start taps so iOS Safari never silently blocks audio.
+  2. *Anti-Queue Cancellation*: Always call =speechSynthesis.cancel()= and increment a monotonic =speechGeneration= counter before speaking a new item, preventing runaway queues when kids tap rapidly.
+  3. *Bilingual Chaining (=dual= mode)*: Speak the English utterance first (=en-US=, =rate: 0.92=, =pitch: 1.04=); inside =onend=, check that =speechGeneration= is still current and =!muted=, then speak the Chinese utterance (=zh-CN=, =rate: 0.90=, =pitch: 1.03=).
+  4. *Voice Selection*: Cache voices via =getVoices()= and =voiceschanged=; prefer local non-robotic =en-US= and =zh-CN= (fallback =zh-TW= / =zh-HK= / any =zh*=) voices; fall back gracefully to default browser voice if specific locale voice is unavailable.
+  5. *Graceful Degradation*: Feature-detect ="speechSynthesis" in window=; if unavailable (older WebViews or headless Node tests), hide or disable read-aloud indicators cleanly with zero console errors.
+- *Classroom Etiquette*:
+  - Default =autoRead: false= (explicit tap on large ="Listen"= speaker buttons) or opt-in toggle in the top bar, preventing unexpected sound bursts in a quiet church sanctuary.
+  - Top-bar =Mute= button immediately cancels active speech (=speechSynthesis.cancel()=) and silences both Web Audio SFX and Web Speech.
+
+** Synthesized Web Audio SFX (=audio.ts=)
+
+- Lightweight procedural Web Audio chimes (matching =thanksgiving/ts/audio.ts=):
+  - Soft warm harp arpeggio on "Give Thanks with Jesus" prayer tap
+  - Gentle marimba pop when sharing loaves/fish or catching sparkles
+  - Joyful ascending bell chime on turning back to Jesus and completing a Bible verse
+  - Cheerful 5-note celebration chord on Journey Finale
+- Lazily unlock =AudioContext= on first =pointerdown=; respect the same top-bar =muted= flag.
+
+* iPhone-First UX and Classroom/Laptop Compatibility
+
+** Viewport and Touch Engineering (=docs/thankful_jesus/index.html=)
+
+- =<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">=
+- Locked viewport during play (=height: 100dvh; overflow: hidden;=) with =env(safe-area-inset-*)= padding so iPhone notch and home bar never clip buttons.
+- =touch-action: none; user-select: none; -webkit-touch-callout: none;= on active Canvas and thumb slide track; =min-height: 56px= on all tap buttons; unified =PointerEvent= handling with =setPointerCapture=.
+
+** Portrait iPhone Layout (375x667 SE to 430x932 Pro Max)
+
+#+begin_example
++-----------------------------------------+
+| <- Games  [EN|ZH|Dual]  [6-7]  [SFX]    |  <- Compact top bar (44px)
++-----------------------------------------+
+|                                         |
+|       2D Storybook Gospel Canvas        |  <- ~52-55% height
+|   (Jesus, Galilee Hills, Village Path,  |     DPR-scaled crisp ink,
+|    Animated Reactions & Golden Rays)    |     warm sunlight palette
+|                                         |
++-----------------------------------------+
+| [ Progress / Verse Badge ]  [ Listen ]  |  <- Slim HUD + Speech bar (40px)
++-----------------------------------------+
+|                                         |
+|        Thumb-Zone Control Deck          |  <- ~35-38% height
+|  (Slide Track / 3-Lane Pads / Verse     |     >= 56px hit targets,
+|   Tiles / Giant "Turn Back!" Button)    |     safe-area bottom pad
+|                                         |
++-----------------------------------------+
+#+end_example
+
+** Church Screen Projection and Laptop Browser Adaptation (=min-width: 760px=)
+
+- Centered warm-parchment container (=max-width: 920px=) with a crisp framed stage and clean side scripture/progress card, making text easily legible when projected for a Sunday school class.
+- Full mouse/trackpad parity plus subtle desktop keyboard hints (=Left/Right= or =A/D= for basket/lanes, =Space/Enter= for primary action, =1-6= for verse tiles, =L= for Listen read-aloud).
+
+* 2D Warm Storybook Art Direction (=artwork.ts= and =renderer.ts=)
+
+- *Color Palette*:
+  - Parchment Cream: =#FFF8EB=
+  - Galilee Sky Blue: =#AED9E8=
+  - Warm Sunbeam Gold: =#F6C453=
+  - Olive Grove Green: =#6F9463=
+  - Harvest Terracotta: =#D46A43=
+  - Sandalwood Ochre: =#B87A4B=
+  - Storybook Charcoal Ink: =#2E241E=
+- *Reverent Hand-Drawn Feel*:
+  - Rounded warm outlines (=lineWidth: 2.5=, =lineCap: "round"=, =lineJoin: "round"=), gentle smiling expression and soft halo-glow sunbeams around Jesus, expressive children and villagers, animated swaying olive trees and floating golden gratitude leaves.
+- *Canvas Safety Contract*:
+  - All =ctx.arc= and =ctx.ellipse= calls route through safe clamping helpers guaranteeing finite, strictly non-negative radii (=Math.max(0.5, r)=) so animation loops can never throw =RangeError= on any viewport size or animation frame.
+  - Cap DPR scaling at =Math.min(window.devicePixelRatio || 1, 2)= for sharp lines and cool battery usage on iPhone.
+
+* Testing and Verification Plan
+
+1. *Typecheck and ASCII Bundle Sync*:
+   - =./thankful_jesus/build_web.sh= (=tsc --noEmit= + =node thankful_jesus/ts/build.mjs=)
+   - =node thankful_jesus/ts/build.mjs --check= confirms =docs/thankful_jesus/app.js= matches TS sources and contains zero non-ASCII bytes.
+2. *Headless Logic, Localization, Speech, and Canvas Unit Tests* (=thankful_jesus/test_thankful_jesus.mjs=):
+   - Loads UMD =docs/thankful_jesus/app.js= directly in Node.
+   - Verifies full state-machine transitions across both =explorer= (ages 6-7) and =adventurer= (ages 8-9) modes and 1P / 2-4P Pass-and-Play handoffs.
+   - Verifies Stage 1 (pray-first + loaves/fish sharing + 12 blessing tokens), Stage 2 (village lanes + Turn Back climax), Stage 3 (verse tile assembly + adventurer quiz), and Prayer Card capping/Unicode sanitization.
+   - Verifies =i18n.ts= and =verses.ts=: every key has non-empty decoded =en= and =zh= strings, all source files under =thankful_jesus/ts/= are strictly 7-bit ASCII, and all 4 Bible verses reconstruct cleanly from their tile arrays.
+   - Verifies =speech.ts= with a lightweight mock =speechSynthesis=: tests =en=, =zh=, and =dual= chaining, cancellation on rapid re-tap, mute suppression, and safe no-op when =speechSynthesis= is absent.
+   - Verifies strict Canvas rendering with a validating mock =CanvasRenderingContext2D= asserting finite non-negative radii across all 7 game phases, 8 gratitude stickers, and the 1080x1440 PNG keepsake layout.
+
+* Phased Implementation Roadmap
+
+** Phase 1 - Playable Bilingual MVP
+
+- Build integration (=tsconfig.json=, =package.json=, =thankful_jesus/ts/build.mjs=, =build_web.sh=).
+- Pure state machine, ASCII-safe =i18n.ts= (EN/ZH/Dual), =verses.ts= (John 6:11, Luke 17:15-16, 1 Thess 5:18, Psalm 107:1), and =speech.ts= (Web Speech EN/ZH/Dual read-aloud).
+- Playable iPhone-first Stages 1-3 (=loaves_and_fish=, =run_back_to_jesus=, =verse_builder=) with Little Explorer (6-7) and Bible Adventurer (8-9) scaling.
+- Prayer Card + 1080x1440 bilingual PNG keepsake exporter (=postcard.ts=) with iOS Share Sheet / preview fallback.
+- Full headless unit test suite (=test_thankful_jesus.mjs=) passing cleanly.
+
+** Phase 2 - Storybook Art Polish, Pass-and-Play, and Catalog Launch
+
+- Richer Galilee hillside, village crossroads, animated Jesus & children expressions, floating blessing particles, and gentle Web Audio harp/chime SFX (=audio.ts=).
+- Polished 2-4 player Pass-and-Play handoff cards and Adventurer reflection mini-quizzes.
+- Launch card added to =docs/index.html= and mobile/desktop viewport verification.

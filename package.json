@@ -12,7 +12,9 @@
     "typecheck:foosball": "tsc --noEmit",
     "build:foosball": "node foosball/ts/build.mjs",
     "typecheck:thanksgiving": "tsc --noEmit",
-    "build:thanksgiving": "node thanksgiving/ts/build.mjs"
+    "build:thanksgiving": "node thanksgiving/ts/build.mjs",
+    "typecheck:thankful_jesus": "tsc --noEmit",
+    "build:thankful_jesus": "node thankful_jesus/ts/build.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.187.0",
