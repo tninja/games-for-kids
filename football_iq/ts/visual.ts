@@ -1,4 +1,4 @@
-import { W,H,GOAL } from "./engine.js";
+import { W,H,GOAL,ACTION_TIMING } from "./engine.js";
 import type { State, Player, Tip } from "./engine.js";
 type Surface = { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D };
 type Visual = { draw(s: State, tip: Tip | null, paused: boolean): void; name: string };
@@ -10,7 +10,7 @@ type PhaserAPI = { AUTO: number; Game: new(config:Record<string,unknown>)=>{dest
 type Mark = { kind:"ellipse"|"ring"|"line"|"dot"; x:number;y:number;a:number;b:number;color:number;alpha:number;width:number };
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
-const CW=44, CH=68, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
+const CW=44, CH=68, FOOT=44, FRAMES=9, COLS=4*FRAMES, ROWS=20;
 const color=(n:number)=>"#"+n.toString(16).padStart(6,"0");
 function surface(w:number,h:number):Surface {
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
@@ -86,20 +86,20 @@ const skins=[["#6a4032","#bd8059","#e7a873"],["#996449","#e3a57b","#ffd5a6"],["#
 function spriteFrame(c:CanvasRenderingContext2D,id:number,direction:number,frame:number){
   const kit=kits[id%5===0?2:id<5?0:1],skin=skins[id%4],hair=["#352b29","#201d25","#7d4a2d","#d6a45b"][id%4];
   const [dx,dy]=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]][direction];
-  const kicking=frame===5, tackling=frame===6;
-  const phase=frame===0?0:[0,-3,3,-2,4,0,0][frame],bob=frame===2||frame===4?-1:0;
-  c.save();c.translate(CW/2,FOOT+bob+(tackling?6:0));
+  const kicking=frame===5, tackling=frame===6, winding=frame===7, trapping=frame===8;
+  const phase=frame===0?0:[0,-3,3,-2,4,0,0,0,0][frame],bob=frame===2||frame===4?-1:0;
+  c.save();c.translate(CW/2,FOOT+bob+(tackling?6:trapping?3:0));
   // Dark outline, staggered cleats, shorts and two-shade socks.
   for(const side of [-1,1]){
-    const reach=side===1&&(kicking||tackling)?(tackling?12:10):0;
-    const lx=side*4+Math.round(dx*(phase*side*.5+reach)),ly=2+Math.round(dy*(phase*side*.5+reach*.55))+phase*side-(kicking&&side===1?5:0);
+    const reach=side===1?(kicking?10:tackling?12:winding?-8:trapping?5:0):0;
+    const lx=side*4+Math.round(dx*(phase*side*.5+reach)),ly=2+Math.round(dy*(phase*side*.5+reach*.55))+phase*side-((kicking||trapping)&&side===1?5:0);
     box(c,lx-2,-7,5,12+ly,"#172737");
     box(c,lx-1,-4,3,7+ly,kit[3]);box(c,lx-1,-4,3,3,kit[0]);
     box(c,lx-3,3+ly,7,4,"#172737");box(c,lx-2,3+ly,5,2,"#ecf1d9");
   }
   box(c,-8,-12,16,7,"#152b43");box(c,-6,-11,12,4,kit[0]);box(c,-6,-10,3,4,kit[2]);
   for(const side of [-1,1]){
-    const ax=side*(kicking||tackling?12:9)+Math.round(dx*2),ay=-19+side*phase+(tackling?2:0);
+    const ax=side*(kicking||tackling||winding||trapping?12:9)+Math.round(dx*2),ay=-19+side*phase+(tackling?2:0);
     box(c,ax-2,ay,5,12,"#172737");box(c,ax-1,ay+1,3,6,kit[1]);box(c,ax-1,ay+7,3,4,skin[1]);
   }
   path(c,[[-9,-24],[-5,-27],[5,-27],[9,-24],[8,-12],[-8,-12]],"#142a3e");
@@ -134,13 +134,11 @@ function ballArt(){
   path(c,[[6,5],[10,5],[12,8],[9,11],[5,9]],"#3e5057");box(c,3,4,2,2,"#ffffff");box(c,11,11,2,2,"#9baaad");
   return canvas;
 }
-export function spriteIndex(p:Player,tick:number,s?:State):Frame{
-  const moving=Math.hypot(p.vx,p.vy)>3;
-  const kicking=!!s&&s.ball.owner===null&&s.ball.last===p.id&&p.cooldown>.16&&Math.hypot(s.ball.vx,s.ball.vy)>60;
-  const tackling=!!s&&p.id===s.user&&s.event==="Great tackle!"&&tick-s.eventTick<12;
-  const dx=kicking&&s?s.ball.vx:p.vx,dy=kicking&&s?s.ball.vy:p.vy;
-  const d=moving||kicking?(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8:p.face<0?4:0;
-  const f=kicking?5:tackling?6:moving?1+Math.floor(tick/(Math.hypot(p.vx,p.vy)>95?3:5))%4:0;
+export function spriteIndex(p:Player,tick:number):Frame{
+  const moving=Math.hypot(p.vx,p.vy)>3,a=p.action;
+  const dx=a?a.dx:p.vx,dy=a?a.dy:p.vy;
+  const d=(a&&Math.hypot(dx,dy)>.1)||moving?(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8:p.face<0?4:0;
+  const f=a?(a.kind==="receive"?8:a.elapsed<ACTION_TIMING[a.kind][0]?7:a.kind==="tackle"?6:5):moving?1+Math.floor(tick/(Math.hypot(p.vx,p.vy)>95?3:5))%4:0;
   return {x:((d%4)*FRAMES+f)*CW,y:(p.id*2+Math.floor(d/4))*CH,w:CW,h:CH};
 }
 const frameName=(f:Frame)=>f.x/CW+":"+f.y/CH;
@@ -152,7 +150,12 @@ export function marks(s:State,tip:Tip|null,paused:boolean):Mark[]{
     add("ellipse",OX+p.x+3,OY+p.y+6,24,10,0x12332a,.48);
     if(Math.hypot(p.vx,p.vy)>95)for(let j=0;j<3;j++)add("dot",OX+p.x-p.vx*.11*(j+1),OY+p.y-p.vy*.11*(j+1)+6,1.5,0,0xe6ce9d,.55-j*.12);
   }
-  add("ring",OX+u.x,OY+u.y+2,16,0,0xffe078,1,3);
+  add("ring",OX+u.x,OY+u.y+2,16,0,u.action?0xffad69:0xffe078,1,3);
+  if(u.action){
+    const left=1-u.action.elapsed/ACTION_TIMING[u.action.kind][1];
+    add("line",OX+u.x-12,OY+u.y+12,OX+u.x+12,OY+u.y+12,0x263747,1,4);
+    add("line",OX+u.x-12,OY+u.y+12,OX+u.x-12+24*left,OY+u.y+12,0xffce75,1,3);
+  }
   const b=s.ball, speed=Math.hypot(b.vx,b.vy);
   if(b.owner!==null){
     const owner=s.players[b.owner];
@@ -201,7 +204,7 @@ function canvasVisual(canvas:HTMLCanvasElement,field:HTMLCanvasElement,players:H
     all.filter(m=>!foreground(m)).forEach(drawMark);
     c.globalAlpha=1;
     for(const p of [...s.players].sort((a,b)=>a.y-b.y)){
-      const f=spriteIndex(p,s.tick,s);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-FOOT),CW,CH);
+      const f=spriteIndex(p,s.tick);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-FOOT),CW,CH);
     }
     c.drawImage(ball,Math.round(OX+s.ball.x-6),Math.round(OY+s.ball.y-6),12,12);
     all.filter(foreground).forEach(drawMark);c.globalAlpha=1;
@@ -256,7 +259,7 @@ export async function createVisual(canvas:HTMLCanvasElement):Promise<Visual>{
                 else if(m.kind==="ring")layer.lineStyle(m.width,m.color,m.alpha).strokeCircle(m.x,m.y,m.a);
                 else layer.lineStyle(m.width,m.color,m.alpha).lineBetween(m.x,m.y,m.a,m.b);
               }
-              for(const p of s.players)sprites[p.id].setFrame(frameName(spriteIndex(p,s.tick,s))).setPosition(Math.round(OX+p.x),Math.round(OY+p.y)).setDepth(10+p.y);
+              for(const p of s.players)sprites[p.id].setFrame(frameName(spriteIndex(p,s.tick))).setPosition(Math.round(OX+p.x),Math.round(OY+p.y)).setDepth(10+p.y);
               football.setPosition(OX+s.ball.x,OY+s.ball.y);
               const u=s.players[s.user];label.setPosition(OX+u.x,OY+u.y-44);
               const text=caption(s,tip,paused);banner.setText(text).setVisible(Boolean(text));
