@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 // The repository is CommonJS by default; browser modules are loaded via a data URL.
 const source = await readFile(new URL("../docs/football_iq/engine.js", import.meta.url), "utf8");
-const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING, MOVEMENT, actionDuration, firstTouchTicks, turnToward } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 for (const role of ["defender", "midfielder", "forward"]) {
   const a = createMatch(role, 180), b = copyState(a);
   assert.equal(a.players.length, 10);
@@ -73,12 +73,12 @@ for(const kind of ["pass","shoot"]){
   const {s,u}=isolated();Object.assign(s.ball,{owner:null,x:u.x-3,y:u.y,vx:120,vy:0,lock:0,last:2,receiver:u.id});
   step(s,blank());assert.equal(s.ball.owner,u.id);assert.equal(u.action.kind,"receive");
   assert.equal(s.ball.lock,0); // first-touch recovery must not make a player invulnerable
-  const x=u.x;
-  for(let i=1;i<ACTION_TIMING.receive[1];i++){
+  const x=u.x,total=actionDuration(u.action);
+  for(let i=1;i<total;i++){
     step(s,{...blank(),pass:true,x:1,sprint:true});
     assert.equal(u.action.kind,"receive");assert.equal(s.ball.owner,u.id);
   }
-  assert.ok(u.x-x<=113*.30*ACTION_TIMING.receive[1]*DT+1);
+  assert.ok(u.x-x<=113*.30*total*DT+1);
   step(s,{...blank(),pass:true});assert.equal(u.action.kind,"pass");assert.equal(s.ball.owner,u.id);
 }
 {
@@ -106,6 +106,60 @@ for(const kind of ["pass","shoot"]){
   Object.assign(opponent,{x:150,y:85});Object.assign(s.ball,{owner:opponent.id,x:150,y:85});
   assert.equal(coachingTip(s)?.id,"cover");
   assert.equal(coachingTip(s)?.freeze,true);
+}
+// Acceleration and braking are bounded; reversing requires turning first.
+{
+  const {s,u}=isolated();
+  Object.assign(s.ball,{owner:2,x:50,y:78,lock:10});
+  const start=u.x;
+  step(s,{...blank(),x:1,sprint:true});
+  assert.ok(u.vx>0&&u.vx<=MOVEMENT.acceleration*DT+1e-8);
+  assert.ok(u.x-start<113*DT);
+  for(let i=0;i<25;i++)step(s,{...blank(),x:1,sprint:true});
+  assert.ok(Math.abs(u.vx-113)<1e-8);
+  const before=u.heading,v=u.vx;
+  step(s,{...blank(),x:-1,sprint:true});
+  assert.ok(u.vx>0&&u.vx<v);
+  assert.ok(Math.abs(u.heading-before)<=MOVEMENT.turn*DT+1e-8);
+  for(let i=0;i<35;i++)step(s,{...blank(),x:-1,sprint:true});
+  assert.ok(u.vx<0);
+  step(s,blank());assert.ok(u.vx<0);
+  for(let i=0;i<25;i++)step(s,blank());assert.ok(Math.hypot(u.vx,u.vy)<1e-8);
+}
+{
+  const {s,u}=isolated();
+  Object.assign(s.ball,{owner:u.id,lock:10,x:u.x,y:u.y});
+  for(let i=0;i<25;i++)step(s,{...blank(),x:1,sprint:true});
+  assert.ok(Math.abs(u.vx-113*MOVEMENT.dribble)<1e-8);
+  assert.ok(Math.abs(s.ball.x-u.x-9)<1e-8);
+  assert.ok(Math.abs(s.ball.y-u.y)<1e-8);
+}
+{
+  assert.ok(firstTouchTicks(100,1)<firstTouchTicks(300,1));
+  assert.ok(firstTouchTicks(200,1)<firstTouchTicks(200,-1));
+  assert.ok(firstTouchTicks(350,-1)<=25);
+  const receiveFrom=(heading,speed)=>{
+    const {s,u}=isolated();u.heading=heading;
+    Object.assign(s.ball,{owner:null,x:u.x-3,y:u.y,vx:speed,vy:0,lock:0,last:2,receiver:u.id});
+    step(s,blank());assert.equal(u.action.kind,"receive");
+    return actionDuration(u.action);
+  };
+  assert.ok(receiveFrom(Math.PI,100)<receiveFrom(0,300));
+}
+{
+  // A pass against the player's initial body direction loses power.
+  const releaseSpeed=heading=>{
+    const {s,u}=isolated(),mate=s.players[2];
+    Object.assign(mate,{x:270,y:180});
+    u.heading=heading;
+    Object.assign(s.ball,{owner:u.id,lock:0,x:u.x,y:u.y});
+    step(s,{...blank(),x:1,pass:true});
+    for(let i=0;i<ACTION_TIMING.pass[0];i++)step(s,blank());
+    assert.equal(s.ball.owner,null);
+    return Math.hypot(s.ball.vx,s.ball.vy);
+  };
+  assert.ok(releaseSpeed(0)>releaseSpeed(Math.PI));
+  assert.ok(Math.abs(turnToward(Math.PI-.01,-Math.PI+.01,.1)-(Math.PI+.01))<1e-8);
 }
 assert.equal(DT,1/60);
 console.log("Football IQ: deterministic matches, snapshots, goals, action timing, first touch, interrupted passes and coaching tests passed.");
