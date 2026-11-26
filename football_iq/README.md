@@ -9,8 +9,8 @@ match, without changing the simulation rules.
 - Choose defender, midfielder or forward and a 1-, 3- or 5-minute match.
 - Phone/tablet: move with the left joystick; use Pass/Call, Shoot/Tackle and
   Sprint with the other hand. Portrait and landscape are supported by layout.
-- Keyboard: arrows or WASD, Z to pass/request, X to shoot/tackle, C or Shift to
-  sprint, Space to pause. Action buttons display Z, X and C keycaps.
+- Keyboard: arrows or WASD, J to pass/request, K to shoot/tackle, L or Shift to
+  sprint, Space to pause. Action buttons display J, K and L keycaps.
 - Coach Off: uninterrupted football. Light: short text feedback. Balanced:
   text, target arrows, up to three automatic teaching pauses, and one optional
   retry per match after an intercepted user pass or conceded goal.
