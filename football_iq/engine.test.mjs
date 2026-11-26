@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 // The repository is CommonJS by default; browser modules are loaded via a data URL.
 const source = await readFile(new URL("../docs/football_iq/engine.js", import.meta.url), "utf8");
-const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING, MOVEMENT, actionDuration, firstTouchTicks, turnToward, DUEL, distance } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING, MOVEMENT, actionDuration, firstTouchTicks, turnToward, DUEL, distance, defensiveAssignments } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 for (const role of ["defender", "midfielder", "forward"]) {
   const a = createMatch(role, 180), b = copyState(a);
   assert.equal(a.players.length, 10);
@@ -205,6 +205,40 @@ for(const user of [1,4]){
   assert.equal(saved.players[opponent.id].blockedOpponent,u.id);
   Object.assign(opponent,{x:u.x+15,y:u.y,action:{kind:"tackle",elapsed:ACTION_TIMING.tackle[0]-1,receiver:null,dx:-1,dy:0}});
   step(s,blank());assert.equal(s.ball.owner,opponent.id);
+}
+// A stationary human must not monopolize the team's pressing assignment.
+{
+  const {s,u}=isolated(), carrier=s.players[6], presser=s.players[3], cover=s.players[2];
+  Object.assign(u,{x:220,y:170,heading:0});
+  Object.assign(carrier,{x:245,y:170,heading:Math.PI,cooldown:10});
+  Object.assign(presser,{x:205,y:190,heading:0});
+  Object.assign(cover,{x:130,y:210,heading:0});
+  Object.assign(s.ball,{owner:carrier.id,x:236,y:170,lock:0,last:carrier.id});
+  const plan=defensiveAssignments(s,0);
+  assert.equal(plan.press,presser.id);assert.equal(plan.cover,cover.id);
+  assert.ok(plan.target.x<carrier.x);
+  const initial=distance(presser,s.ball), coverInitial=distance(cover,plan.target);
+  let challenged=false;
+  for(let i=0;i<60;i++){
+    step(s,blank());
+    if(presser.action?.kind==="tackle"||s.ball.owner===presser.id)challenged=true;
+    if(challenged)break;
+  }
+  assert.ok(challenged||distance(presser,s.ball)<initial);
+  assert.ok(distance(cover,plan.target)<coverInitial);
+}
+{
+  const {s,u}=isolated(),carrier=s.players[6],mate=s.players[3];
+  Object.assign(u,{x:220,y:180,vx:88,vy:0,heading:0});
+  Object.assign(carrier,{x:245,y:180,heading:Math.PI});
+  Object.assign(mate,{x:180,y:220,heading:0});
+  Object.assign(s.ball,{owner:carrier.id,x:236,y:180,lock:0});
+  const plan=defensiveAssignments(s,0);
+  assert.equal(plan.press,u.id);assert.ok(plan.cover!==u.id&&plan.cover!==-1);
+  u.vx=0;assert.notEqual(defensiveAssignments(s,0).press,u.id);
+  // Our own pass should go to the intended receiver instead of creating a pile-up.
+  Object.assign(s.ball,{owner:null,receiver:mate.id,x:240,y:180,vx:-100,vy:0});
+  assert.equal(defensiveAssignments(s,0).press,mate.id);
 }
 assert.equal(DT,1/60);
 console.log("Football IQ: deterministic matches, snapshots, goals, action timing, first touch, interrupted passes and coaching tests passed.");
