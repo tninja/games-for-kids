@@ -9,20 +9,20 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 body{margin:0;background:radial-gradient(ellipse at top,#284d51,#10272f 65%);color:var(--ink);font-family:system-ui,sans-serif;min-height:100dvh;padding:max(8px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
-main{max-width:780px;margin:auto;display:grid;gap:7px}
+main{max-width:880px;margin:auto;display:grid;gap:8px}
 header,.toolbar,.controls,.scoreboard{display:flex;align-items:center;justify-content:space-between;gap:8px}
 header a{color:#bde7aa;text-decoration:none;font-size:13px}
-header strong{font-size:14px;letter-spacing:.12em;color:var(--gold)}
-.scoreboard{background:#162e38;border:1px solid #52717a;border-radius:10px;padding:6px 12px;font-weight:900;font-variant-numeric:tabular-nums}
+header strong{font-size:15px;font-weight:950;letter-spacing:.14em;color:var(--gold);text-shadow:0 2px #674b30}
+.scoreboard{background:linear-gradient(180deg,#293e56,#152b3a);border:1px solid #658397;border-radius:12px;padding:7px 14px;font-weight:900;font-variant-numeric:tabular-nums;box-shadow:inset 0 2px #ffffff17,0 3px #091d2b}.scoreboard .blue,.scoreboard .red{padding:4px 12px;border-radius:5px;background:#18334b}.scoreboard .red{background:#4c2b37}
 .blue{color:var(--blue)}.red{color:var(--red)}
 #score{font-size:1.4rem;letter-spacing:.12em}#clock{color:var(--gold)}
-.stage{position:relative;display:flex;justify-content:center;background:#122b30;border-radius:12px;overflow:hidden;border:1px solid #617b74}
-canvas{display:block;width:100%;height:auto;max-height:60dvh;object-fit:contain;image-rendering:pixelated}
+.stage{position:relative;display:flex;justify-content:center;align-items:center;background:#122b30;border-radius:12px;overflow:hidden;border:2px solid #668780;box-shadow:0 6px 16px #081b28b0;min-width:0}
+canvas{display:block;width:100%!important;height:auto!important;max-height:60dvh;object-fit:contain;image-rendering:pixelated;touch-action:none}
 #status{font-size:13px;text-align:center;color:#c9e0d9;min-height:19px}
 button,select{font:inherit;font-weight:750;background:#294b54;border:1px solid #66868b;border-radius:10px;color:var(--ink);min-height:44px;padding:7px 12px;cursor:pointer}
 button:active,.pressed{background:#47796f;transform:scale(.97)}
 button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.primary{background:#f4d16b;color:#192f35;border-color:#ffea9d}
+.primary{background:linear-gradient(#ffeaa1,#e7b853);color:#192f35;border-color:#ffea9d;box-shadow:0 3px #9d7938;font-weight:900;letter-spacing:.04em}.primary:disabled{opacity:.5;cursor:wait;box-shadow:none}
 .toolbar{flex-wrap:wrap;justify-content:center}
 .toolbar select{min-width:100px}
 .controls{padding:5px 10px;justify-content:space-between;user-select:none;-webkit-user-select:none;touch-action:none}
@@ -31,41 +31,46 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 #pad:before{width:2px;height:90%;left:50%;top:5%}#pad:after{height:2px;width:90%;left:5%;top:50%}
 #knob{position:absolute;left:50%;top:50%;width:42%;height:42%;transform:translate(-50%,-50%);background:linear-gradient(#c4d8d2,#6d9997);border:2px solid #e4f0df;border-radius:50%;box-shadow:0 4px 5px #132e32;pointer-events:none;z-index:1}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.actions button{touch-action:none;min-width:72px;min-height:56px;font-size:13px}
+.actions button{touch-action:none;min-width:72px;min-height:56px;font-size:13px;box-shadow:0 3px #0b232d;border-width:2px;font-weight:900;letter-spacing:.02em}
 .actions button[data-action=sprint]{grid-column:1/3;min-height:42px}
-.actions button[data-action=shoot]{background:#75493e;border-color:#d98973}
-.actions button[data-action=pass]{background:#285e69;border-color:#77bcca}
+.actions button[data-action=shoot]{background:linear-gradient(#a85b48,#733f37);border-color:#e6a18a}
+.actions button[data-action=pass]{background:linear-gradient(#3e8196,#285e69);border-color:#87c9e0}
 #hint{background:#263f34;border:1px solid #a4c57c;border-radius:10px;padding:8px 10px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px}
 #hint strong{color:var(--gold);display:block;font-size:11px;letter-spacing:.1em}
 #hint button{flex:none}
-.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#112932e8;padding:8px;overflow:auto}
-.modal{width:min(100%,420px);max-height:100%;overflow:auto;padding:12px 16px;background:#203f46;border:1px solid #6a8d85;border-radius:13px;display:grid;gap:8px;text-align:center}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0f2736b8;padding:8px;overflow:auto;z-index:5}
+.modal{width:min(100%,420px);max-height:100%;overflow:auto;padding:12px 16px;background:linear-gradient(160deg,#304c62,#18323e);border:2px solid #86aa9c;border-radius:13px;display:grid;gap:8px;text-align:center;box-shadow:0 8px 28px #081d2bba}
 .modal h1,.modal h2,.modal p{margin:0}.modal h1{color:var(--gold);font-size:clamp(20px,5vw,32px);letter-spacing:.06em}.modal p{font-size:13px;color:#c2d8d4}
 .choices{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 .choices label{display:grid;gap:4px;text-align:left;font-size:12px;color:var(--muted)}
 small{color:var(--muted);text-align:center;font-size:12px}
+#renderer{font-size:10px;color:var(--muted);font-weight:600}
+.tagline{font-size:11px!important;letter-spacing:.18em;text-transform:uppercase;color:#f0cb76!important}
+#hint{box-shadow:0 3px 12px #081b28a0}
+@media(max-width:400px){.modal{gap:5px;padding:8px}.modal h1{font-size:22px}.modal p{font-size:11px}.modal select{min-height:35px;padding:3px 6px}.modal .primary{min-height:38px}}
+
 @media (orientation:landscape) and (max-height:550px) and (pointer:coarse){
-main{max-width:100%;grid-template-columns:112px minmax(0,1fr) 170px;gap:4px}
+main{max-width:100%;grid-template-columns:110px minmax(0,1fr) 160px;gap:4px}
 header,.scoreboard,#status,#hint,.toolbar,small{grid-column:1/-1}
-.stage{grid-column:2;grid-row:3/5}
-.controls{display:contents}.controls #pad{grid-column:1;grid-row:3/5;align-self:center;width:106px}
-.actions{grid-column:3;grid-row:3/5;align-self:center}
-canvas{max-height:58dvh}.scoreboard{padding:2px 10px}#score{font-size:1.1rem}
-#status{font-size:11px;min-height:14px}.toolbar button,.toolbar select{min-height:34px;padding:4px 8px;font-size:12px}
+.stage{grid-column:2;grid-row:3}
+.controls{display:contents}.controls #pad{grid-column:1;grid-row:3;align-self:center;width:106px}
+.actions{grid-column:3;grid-row:3;align-self:center}
+canvas{max-height:54dvh}.scoreboard{padding:2px 10px}#score{font-size:1.1rem}
+#status{font-size:11px;min-height:14px}.toolbar button,.toolbar select{min-height:38px;padding:4px 8px;font-size:12px}.actions button{min-width:70px}.modal{gap:5px;padding:8px}.modal h1{font-size:24px}.modal p{font-size:11px}.modal select{min-height:32px;padding:3px 8px}.modal .primary{min-height:34px}.modal .tagline{display:none}small{display:none}
 }
 </style>
 </head>
 <body>
 <main>
-<header><a href="../index.html">&larr; Games Hub</a><strong>FOOTBALL IQ</strong><span style="font-size:12px;color:#a7c3c4">5v5</span></header>
+<header><a href="../index.html">&larr; Games Hub</a><strong>FOOTBALL IQ</strong><span id="renderer">Loading stadium...</span></header>
 <div class="scoreboard"><span class="blue">BLUE</span><span id="score">0 : 0</span><span class="red">RED</span><span id="clock">3:00</span></div>
 <div class="stage">
 <canvas id="pitch" width="672" height="440" aria-label="Football match: blue team attacks right"></canvas>
 <div class="overlay" id="menu">
-<div class="modal"><h1>FOOTBALL IQ</h1><p>Play. Think. Improve. Control one blue player and learn to read the game.</p>
+<div class="modal"><h1>FOOTBALL IQ</h1><p class="tagline">Play &middot; Think &middot; Improve</p><p>Control one blue player and learn to read the game.</p>
 <div class="choices"><label>Position<select id="role"><option value="defender">Defender</option><option value="midfielder">Midfielder</option><option value="forward">Forward</option></select></label>
 <label>Match length<select id="length"><option value="180">3 minutes</option><option value="300">5 minutes</option><option value="60">1 minute</option></select></label></div>
-<button id="start" class="primary">KICK OFF</button><p>Choose coach help below. Pass also asks your teammate for the ball.</p></div>
+<button id="start" class="primary" disabled>KICK OFF</button><p>Choose coach help below. Pass also asks your teammate for the ball.</p></div>
 </div>
 <div class="overlay" id="result" hidden><div class="modal"><h2 id="resultTitle">Full time</h2><p id="resultText"></p><button id="again" class="primary">PLAY AGAIN</button></div></div>
 </div>
@@ -75,7 +80,7 @@ canvas{max-height:58dvh}.scoreboard{padding:2px 10px}#score{font-size:1.1rem}
 </div>
 <div id="status" aria-live="off">Choose a position and kick off!</div>
 <div id="hint" hidden><div><strong>COACH</strong><span id="hintText" aria-live="polite"></span></div><button id="continue" class="primary" hidden>Continue</button></div>
-<div class="toolbar"><label>Coach <select id="coach"><option value="balanced">Balanced</option><option value="light">Light</option><option value="off">Off</option></select></label><button id="pause">Pause</button><button id="retry" hidden>Retry moment</button><button id="settings">New match</button></div>
+<div class="toolbar"><label>Coach <select id="coach"><option value="balanced">Balanced</option><option value="light">Light</option><option value="off">Off</option></select></label><button id="pause">Pause</button><button id="retry" hidden>Retry moment</button><button id="sound" aria-pressed="true">Sound on</button><button id="settings">New match</button></div>
 <small>Keyboard: arrows / WASD to move, Z pass/call, X shoot/tackle, Shift sprint, Space pause. On a phone, use the joystick and action buttons.</small>
 </main>
 <script type="module" src="./app.js"></script>
