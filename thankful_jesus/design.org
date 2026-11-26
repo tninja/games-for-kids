@@ -78,10 +78,10 @@ To satisfy both the repository rule ("only use English in code files" / strictly
 Each verse stores its reference, NIV/NIrV English text, CUV Chinese text (=\uXXXX= encoded), phrase tile splits for both age tiers, and an icon tag for visual cues:
 
 1. *John 6:11* (Stage 1 -- Feeding of the 5,000, John 6:1-14):
-   - EN (NIV): "Jesus then took the loaves, gave thanks, and distributed to those who were seated as much as they wanted."
+   - EN (NIV): "Jesus then took the loaves, gave thanks, and distributed to those who were seated as much as they wanted. He did the same with the fish."
    - ZH: CUV John 6:11.
 2. *Luke 17:15-16* (Stage 2 -- The One Thankful Leper, Luke 17:11-19):
-   - EN (NIV): "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him."
+   - EN (NIV): "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him--and he was a Samaritan."
    - ZH: CUV Luke 17:15-16.
 3. *Psalm 100:4* (Stage 3 -- David's Thankful Harp):
    - EN (NIV): "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name."

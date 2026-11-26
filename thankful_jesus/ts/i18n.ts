@@ -528,7 +528,7 @@ export const CHURCH_PROMPTS: LocalizedText[] = [
   },
   {
     en: "Say 1 Thessalonians 5:18 together out loud: Give thanks in all circumstances!",
-    zh: "\u5927\u58f0\u4e00\u8d77\u80cc\u4e00\u904d\uff1a\u51e1\u4e8b\u8c22\u6069\uff0c\u56e0\u4e3a\u8fd9\u662f\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\uff01"
+    zh: "\u5927\u58f0\u4e00\u8d77\u80cc\u4e00\u904d\uff1a\u51e1\u4e8b\u8c22\u6069\uff1b\u56e0\u4e3a\u8fd9\u662f\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\uff01"
   },
   {
     en: "Just like the thankful man in Luke 17, who is one person you can run over and thank today?",
@@ -539,8 +539,8 @@ export const CHURCH_PROMPTS: LocalizedText[] = [
     zh: "\u7528\u4e00\u53e5\u7b80\u77ed\u7684\u7977\u544a\uff0c\u8c22\u8c22\u8036\u7a23\u4eca\u5929\u8d50\u7ed9\u6211\u4eec\u7f8e\u98df\u3001\u6559\u4f1a\u548c\u597d\u670b\u53cb\uff01"
   },
   {
-    en: "Which story about Jesus was your favorite today, and why?",
-    zh: "\u4eca\u5929\u4e09\u5173\u91cc\uff0c\u4f60\u6700\u559c\u6b22\u54ea\u4e00\u4e2a\u5173\u4e8e\u8036\u7a23\u7684\u6545\u4e8b\uff1f\u4e3a\u4ec0\u4e48\uff1f"
+    en: "Which of today's four Bible stories about Jesus and thanksgiving was your favorite, and why?",
+    zh: "\u4eca\u5929\u56db\u5173\u91cc\uff0c\u4f60\u6700\u559c\u6b22\u54ea\u4e00\u4e2a\u5173\u4e8e\u8036\u7a23\u548c\u611f\u6069\u7684\u5723\u7ecf\u6545\u4e8b\uff1f\u4e3a\u4ec0\u4e48\uff1f"
   }
 ];
 

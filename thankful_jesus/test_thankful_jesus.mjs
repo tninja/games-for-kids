@@ -301,6 +301,26 @@ function testBilingualLocalizationAndAsciiSources() {
     const v = api.getVerseById(vId);
     assert.ok(v.text.en.length > 10 && cjkRe.test(v.text.zh), "Verse " + vId + " has both EN & ZH");
     assert.ok(v.explorerTiles.length >= 4 && v.adventurerTiles.length >= 4);
+    assert.equal(
+      v.explorerTiles.map((t) => t.text.en).join(" "),
+      v.text.en,
+      "Explorer EN tiles must reconstruct verbatim NIV for " + vId
+    );
+    assert.equal(
+      v.adventurerTiles.map((t) => t.text.en).join(" "),
+      v.text.en,
+      "Adventurer EN tiles must reconstruct verbatim NIV for " + vId
+    );
+    assert.equal(
+      v.explorerTiles.map((t) => t.text.zh).join(""),
+      v.text.zh,
+      "Explorer ZH tiles must reconstruct verbatim CUV for " + vId
+    );
+    assert.equal(
+      v.adventurerTiles.map((t) => t.text.zh).join(""),
+      v.text.zh,
+      "Adventurer ZH tiles must reconstruct verbatim CUV for " + vId
+    );
   }
   for (const st of api.STICKER_PRESETS) {
     assert.ok(st.caption.en.length > 0 && cjkRe.test(st.caption.zh));

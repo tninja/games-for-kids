@@ -1,6 +1,6 @@
 import { AgeMode, QuizQuestionDef, VerseDef, VerseId, VerseTileDef } from "./types";
 
-// NIV English + CUV Chinese (ASCII-safe \uXXXX escapes) Bible verses and reflection quizzes.
+// Verbatim NIV English + CUV Chinese (ASCII-safe \uXXXX escapes) Bible verses and reflection quizzes.
 
 export const VERSE_ORDER: VerseId[] = [
   "john_6_11",
@@ -18,20 +18,48 @@ export const VERSES: Record<VerseId, VerseDef> = {
       zh: "\u7ea6\u7ff0\u798f\u97f3 6:11"
     },
     text: {
-      en: "Jesus then took the loaves, gave thanks, and distributed to those who were seated as much as they wanted.",
+      en: "Jesus then took the loaves, gave thanks, and distributed to those who were seated as much as they wanted. He did the same with the fish.",
       zh: "\u8036\u7a23\u62ff\u8d77\u997c\u6765\uff0c\u795d\u8c22\u4e86\uff0c\u5c31\u5206\u7ed9\u90a3\u5750\u7740\u7684\u4eba\uff1b\u5206\u9c7c\u4e5f\u662f\u8fd9\u6837\uff0c\u90fd\u968f\u7740\u4ed6\u4eec\u6240\u8981\u7684\u3002"
     },
     explorerTiles: [
-      { id: "j1", icon: "bread", text: { en: "Jesus took the loaves,", zh: "\u8036\u7a23\u62ff\u8d77\u997c\u6765\uff0c" } },
+      { id: "j1", icon: "bread", text: { en: "Jesus then took the loaves,", zh: "\u8036\u7a23\u62ff\u8d77\u997c\u6765\uff0c" } },
       { id: "j2", icon: "hands", text: { en: "gave thanks,", zh: "\u795d\u8c22\u4e86\uff0c" } },
-      { id: "j3", icon: "fish", text: { en: "and shared with everyone", zh: "\u5c31\u5206\u7ed9\u90a3\u5750\u7740\u7684\u4eba" } },
-      { id: "j4", icon: "heart", text: { en: "as much as they wanted.", zh: "\u90fd\u968f\u7740\u4ed6\u4eec\u6240\u8981\u7684\u3002" } }
+      {
+        id: "j3",
+        icon: "heart",
+        text: {
+          en: "and distributed to those who were seated as much as they wanted.",
+          zh: "\u5c31\u5206\u7ed9\u90a3\u5750\u7740\u7684\u4eba\uff1b"
+        }
+      },
+      {
+        id: "j4",
+        icon: "fish",
+        text: {
+          en: "He did the same with the fish.",
+          zh: "\u5206\u9c7c\u4e5f\u662f\u8fd9\u6837\uff0c\u90fd\u968f\u7740\u4ed6\u4eec\u6240\u8981\u7684\u3002"
+        }
+      }
     ],
     adventurerTiles: [
-      { id: "j1", icon: "bread", text: { en: "Jesus took the loaves,", zh: "\u8036\u7a23\u62ff\u8d77\u997c\u6765\uff0c" } },
+      { id: "j1", icon: "bread", text: { en: "Jesus then took the loaves,", zh: "\u8036\u7a23\u62ff\u8d77\u997c\u6765\uff0c" } },
       { id: "j2", icon: "hands", text: { en: "gave thanks,", zh: "\u795d\u8c22\u4e86\uff0c" } },
-      { id: "j3", icon: "fish", text: { en: "and shared with everyone", zh: "\u5c31\u5206\u7ed9\u90a3\u5750\u7740\u7684\u4eba" } },
-      { id: "j4", icon: "heart", text: { en: "as much as they wanted.", zh: "\u90fd\u968f\u7740\u4ed6\u4eec\u6240\u8981\u7684\u3002" } }
+      {
+        id: "j3",
+        icon: "heart",
+        text: {
+          en: "and distributed to those who were seated as much as they wanted.",
+          zh: "\u5c31\u5206\u7ed9\u90a3\u5750\u7740\u7684\u4eba\uff1b"
+        }
+      },
+      {
+        id: "j4",
+        icon: "fish",
+        text: {
+          en: "He did the same with the fish.",
+          zh: "\u5206\u9c7c\u4e5f\u662f\u8fd9\u6837\uff0c\u90fd\u968f\u7740\u4ed6\u4eec\u6240\u8981\u7684\u3002"
+        }
+      }
     ]
   },
   luke_17_15_16: {
@@ -41,20 +69,76 @@ export const VERSES: Record<VerseId, VerseDef> = {
       zh: "\u8def\u52a0\u798f\u97f3 17:15-16"
     },
     text: {
-      en: "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him.",
-      zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u5df2\u7ecf\u597d\u4e86\uff0c\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6\u3002"
+      en: "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him\u2014and he was a Samaritan.",
+      zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u5df2\u7ecf\u597d\u4e86\uff0c\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6\uff1b\u8fd9\u4eba\u662f\u6492\u739b\u5229\u4e9a\u4eba\u3002"
     },
     explorerTiles: [
-      { id: "l1", icon: "star", text: { en: "One saw he was healed,", zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u597d\u4e86\uff0c" } },
-      { id: "l2", icon: "sun", text: { en: "came back praising God,", zh: "\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c" } },
-      { id: "l3", icon: "cross", text: { en: "fell at Jesus' feet", zh: "\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d" } },
-      { id: "l4", icon: "hands", text: { en: "and thanked him.", zh: "\u611f\u8c22\u4ed6\u3002" } }
+      {
+        id: "l1",
+        icon: "star",
+        text: {
+          en: "One of them, when he saw he was healed,",
+          zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u5df2\u7ecf\u597d\u4e86\uff0c"
+        }
+      },
+      {
+        id: "l2",
+        icon: "sun",
+        text: {
+          en: "came back, praising God in a loud voice.",
+          zh: "\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c"
+        }
+      },
+      {
+        id: "l3",
+        icon: "cross",
+        text: {
+          en: "He threw himself at Jesus' feet",
+          zh: "\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6\uff1b"
+        }
+      },
+      {
+        id: "l4",
+        icon: "hands",
+        text: {
+          en: "and thanked him\u2014and he was a Samaritan.",
+          zh: "\u8fd9\u4eba\u662f\u6492\u739b\u5229\u4e9a\u4eba\u3002"
+        }
+      }
     ],
     adventurerTiles: [
-      { id: "l1", icon: "star", text: { en: "One saw he was healed,", zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u597d\u4e86\uff0c" } },
-      { id: "l2", icon: "sun", text: { en: "came back praising God,", zh: "\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c" } },
-      { id: "l3", icon: "cross", text: { en: "fell at Jesus' feet", zh: "\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d" } },
-      { id: "l4", icon: "hands", text: { en: "and thanked him.", zh: "\u611f\u8c22\u4ed6\u3002" } }
+      {
+        id: "l1",
+        icon: "star",
+        text: {
+          en: "One of them, when he saw he was healed,",
+          zh: "\u5185\u4e2d\u6709\u4e00\u4e2a\u89c1\u81ea\u5df1\u5df2\u7ecf\u597d\u4e86\uff0c"
+        }
+      },
+      {
+        id: "l2",
+        icon: "sun",
+        text: {
+          en: "came back, praising God in a loud voice.",
+          zh: "\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c"
+        }
+      },
+      {
+        id: "l3",
+        icon: "cross",
+        text: {
+          en: "He threw himself at Jesus' feet",
+          zh: "\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6\uff1b"
+        }
+      },
+      {
+        id: "l4",
+        icon: "hands",
+        text: {
+          en: "and thanked him\u2014and he was a Samaritan.",
+          zh: "\u8fd9\u4eba\u662f\u6492\u739b\u5229\u4e9a\u4eba\u3002"
+        }
+      }
     ]
   },
   psalm_100_4: {
@@ -65,17 +149,17 @@ export const VERSES: Record<VerseId, VerseDef> = {
     },
     text: {
       en: "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name.",
-      zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b\u5f53\u611f\u8c22\u4ed6\uff0c\u79f0\u9882\u4ed6\u7684\u540d\uff01"
+      zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff1b\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\u3002\u5f53\u611f\u8c22\u4ed6\uff0c\u79f0\u9882\u4ed6\u7684\u540d\uff01"
     },
     explorerTiles: [
-      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c" } },
-      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b" } },
+      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff1b" } },
+      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\u3002" } },
       { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
       { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
     ],
     adventurerTiles: [
-      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c" } },
-      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b" } },
+      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff1b" } },
+      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\u3002" } },
       { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
       { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
     ]
@@ -88,18 +172,18 @@ export const VERSES: Record<VerseId, VerseDef> = {
     },
     text: {
       en: "Give thanks to the LORD, for he is good; his love endures forever.",
-      zh: "\u4f60\u4eec\u8981\u79f0\u8c22\u8036\u548c\u534e\uff0c\u56e0\u4ed6\u672c\u4e3a\u5584\uff0c\u4ed6\u7684\u6148\u7231\u6c38\u8fdc\u957f\u5b58\uff01"
+      zh: "\u4f60\u4eec\u8981\u79f0\u8c22\u8036\u548c\u534e\uff0c\u56e0\u4ed6\u672c\u4e3a\u5584\uff1b\u4ed6\u7684\u6148\u7231\u6c38\u8fdc\u957f\u5b58\uff01"
     },
     explorerTiles: [
       { id: "p1", icon: "hands", text: { en: "Give thanks to the LORD,", zh: "\u4f60\u4eec\u8981\u79f0\u8c22\u8036\u548c\u534e\uff0c" } },
-      { id: "p2", icon: "sun", text: { en: "for he is good;", zh: "\u56e0\u4ed6\u672c\u4e3a\u5584\uff0c" } },
+      { id: "p2", icon: "sun", text: { en: "for he is good;", zh: "\u56e0\u4ed6\u672c\u4e3a\u5584\uff1b" } },
       { id: "p3", icon: "heart", text: { en: "his love", zh: "\u4ed6\u7684\u6148\u7231" } },
       { id: "p4", icon: "star", text: { en: "endures forever.", zh: "\u6c38\u8fdc\u957f\u5b58\uff01" } }
     ],
     adventurerTiles: [
       { id: "pa1", icon: "hands", text: { en: "Give thanks", zh: "\u4f60\u4eec\u8981" } },
       { id: "pa2", icon: "cross", text: { en: "to the LORD,", zh: "\u79f0\u8c22\u8036\u548c\u534e\uff0c" } },
-      { id: "pa3", icon: "sun", text: { en: "for he is good;", zh: "\u56e0\u4ed6\u672c\u4e3a\u5584\uff0c" } },
+      { id: "pa3", icon: "sun", text: { en: "for he is good;", zh: "\u56e0\u4ed6\u672c\u4e3a\u5584\uff1b" } },
       { id: "pa4", icon: "heart", text: { en: "his love", zh: "\u4ed6\u7684\u6148\u7231" } },
       { id: "pa5", icon: "scroll", text: { en: "endures", zh: "\u6c38\u8fdc" } },
       { id: "pa6", icon: "star", text: { en: "forever.", zh: "\u957f\u5b58\uff01" } }
@@ -118,21 +202,21 @@ export const VERSES: Record<VerseId, VerseDef> = {
     },
     text: {
       en: "Give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
-      zh: "\u51e1\u4e8b\u8c22\u6069\uff0c\u56e0\u4e3a\u8fd9\u662f\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\u3002"
+      zh: "\u51e1\u4e8b\u8c22\u6069\uff1b\u56e0\u4e3a\u8fd9\u662f\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\u3002"
     },
     explorerTiles: [
-      { id: "t1", icon: "hands", text: { en: "Give thanks in all circumstances;", zh: "\u51e1\u4e8b\u8c22\u6069\uff0c" } },
-      { id: "t2", icon: "scroll", text: { en: "for this is God's will", zh: "\u56e0\u4e3a\u8fd9\u662f\u795e" } },
-      { id: "t3", icon: "cross", text: { en: "in Christ Jesus", zh: "\u5728\u57fa\u7763\u8036\u7a23\u91cc" } },
-      { id: "t4", icon: "heart", text: { en: "for you.", zh: "\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\u3002" } }
+      { id: "t1", icon: "hands", text: { en: "Give thanks in all circumstances;", zh: "\u51e1\u4e8b\u8c22\u6069\uff1b" } },
+      { id: "t2", icon: "scroll", text: { en: "for this is", zh: "\u56e0\u4e3a\u8fd9\u662f" } },
+      { id: "t3", icon: "heart", text: { en: "God's will for you", zh: "\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc" } },
+      { id: "t4", icon: "cross", text: { en: "in Christ Jesus.", zh: "\u5411\u4f60\u4eec\u6240\u5b9a\u7684\u65e8\u610f\u3002" } }
     ],
     adventurerTiles: [
       { id: "ta1", icon: "hands", text: { en: "Give thanks", zh: "\u51e1\u4e8b" } },
-      { id: "ta2", icon: "sun", text: { en: "in all circumstances;", zh: "\u8c22\u6069\uff0c" } },
-      { id: "ta3", icon: "scroll", text: { en: "for this is God's", zh: "\u56e0\u4e3a\u8fd9\u662f\u795e" } },
-      { id: "ta4", icon: "cross", text: { en: "in Christ Jesus", zh: "\u5728\u57fa\u7763\u8036\u7a23\u91cc" } },
-      { id: "ta5", icon: "heart", text: { en: "will for you", zh: "\u5411\u4f60\u4eec\u6240\u5b9a\u7684" } },
-      { id: "ta6", icon: "star", text: { en: "always.", zh: "\u65e8\u610f\u3002" } }
+      { id: "ta2", icon: "sun", text: { en: "in all circumstances;", zh: "\u8c22\u6069\uff1b" } },
+      { id: "ta3", icon: "scroll", text: { en: "for this is", zh: "\u56e0\u4e3a\u8fd9\u662f" } },
+      { id: "ta4", icon: "heart", text: { en: "God's will", zh: "\u795e\u5728\u57fa\u7763\u8036\u7a23\u91cc" } },
+      { id: "ta5", icon: "star", text: { en: "for you", zh: "\u5411\u4f60\u4eec\u6240\u5b9a\u7684" } },
+      { id: "ta6", icon: "cross", text: { en: "in Christ Jesus.", zh: "\u65e8\u610f\u3002" } }
     ],
     adventurerDecoy: {
       id: "ta_decoy",
