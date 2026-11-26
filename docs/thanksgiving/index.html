@@ -260,6 +260,44 @@
     .pie-pad {
       cursor: grab;
     }
+    .snack-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      width: 100%;
+    }
+    .snack-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-height: 78px;
+      padding: 6px;
+      border-radius: 16px;
+      border: 2.5px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--border);
+    }
+    .snack-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--border);
+      background: #FFE5B4;
+    }
+    .key-hint {
+      display: none;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .key-hint {
+        display: inline;
+      }
+    }
     .gratitude-head {
       font-size: 0.88rem;
       font-weight: 800;

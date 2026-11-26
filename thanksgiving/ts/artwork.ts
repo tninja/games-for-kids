@@ -1,5 +1,5 @@
 import { LEAF_COLORS, PALETTE, TREE_LEAF_SLOTS } from "./constants";
-import { GratitudeLeaf, LeafColor, StickerId } from "./types";
+import { GratitudeLeaf, LeafColor, SnackId, StickerId } from "./types";
 
 export function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
@@ -121,106 +121,189 @@ export function drawBeagleChef(
   ctx.scale(scale, scale);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
+  const ink = "#1A1614";
 
-  // Body & white apron
-  ctx.fillStyle = PALETTE.cream;
-  ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 2.6;
-  ctx.beginPath();
-  ctx.ellipse(0, 28, 22, 26, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Red bowtie collar
-  ctx.fillStyle = PALETTE.mapleCrimson;
-  ctx.beginPath();
-  ctx.moveTo(0, 8);
-  ctx.lineTo(-11, 2);
-  ctx.lineTo(-11, 14);
-  ctx.closePath();
-  ctx.moveTo(0, 8);
-  ctx.lineTo(11, 2);
-  ctx.lineTo(11, 14);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Head & snout (original cute white pup with warm brown patch)
-  ctx.fillStyle = PALETTE.cream;
-  ctx.beginPath();
-  ctx.ellipse(3, -12, 26, 20, -0.06, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Warm brown floppy ear
-  ctx.fillStyle = PALETTE.toastedSienna;
-  ctx.beginPath();
-  ctx.ellipse(-18, -6, 10, 17, 0.25, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Round nose
-  ctx.fillStyle = PALETTE.ink;
-  ctx.beginPath();
-  ctx.ellipse(27, -14, 5.5, 4.5, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Eye
-  if (mood === "excited") {
-    ctx.beginPath();
-    ctx.arc(8, -17, 4, Math.PI, 0);
-    ctx.lineWidth = 2.4;
-    ctx.stroke();
-  } else if (mood === "oops") {
-    ctx.beginPath();
-    ctx.moveTo(5, -20);
-    ctx.lineTo(11, -14);
-    ctx.moveTo(11, -20);
-    ctx.lineTo(5, -14);
-    ctx.lineWidth = 2.4;
-    ctx.stroke();
-  } else {
-    ctx.fillStyle = PALETTE.ink;
-    ctx.beginPath();
-    ctx.arc(8, -17, 3.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Smile
-  ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  if (mood === "oops") {
-    ctx.arc(13, -5, 4, 0, Math.PI * 2);
-  } else {
-    ctx.arc(12, -9, 7, 0.15, Math.PI * 0.85);
-  }
-  ctx.stroke();
-
-  // Tall puffy chef hat
+  // Cute little wagging white tail behind back
   ctx.fillStyle = "#FFFFFF";
-  ctx.strokeStyle = PALETTE.ink;
+  ctx.strokeStyle = ink;
   ctx.lineWidth = 2.4;
   ctx.beginPath();
-  ctx.arc(-11, -41, 11, 0, Math.PI * 2);
-  ctx.arc(2, -45, 13, 0, Math.PI * 2);
-  ctx.arc(14, -40, 10, 0, Math.PI * 2);
+  ctx.moveTo(-13, 30);
+  ctx.quadraticCurveTo(-24, 24, -22, 16);
+  ctx.quadraticCurveTo(-18, 22, -11, 24);
+  ctx.closePath();
   ctx.fill();
+  ctx.stroke();
+
+  // Iconic pear-shaped white comic-strip body
+  ctx.fillStyle = "#FFFFFF";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.6;
   ctx.beginPath();
-  ctx.moveTo(-16, -34);
-  ctx.quadraticCurveTo(-24, -48, -9, -49);
-  ctx.quadraticCurveTo(2, -62, 14, -48);
-  ctx.quadraticCurveTo(26, -44, 18, -32);
-  ctx.lineTo(-15, -29);
+  ctx.moveTo(-10, 8);
+  ctx.bezierCurveTo(-19, 16, -20, 38, -11, 44);
+  ctx.lineTo(12, 44);
+  ctx.bezierCurveTo(20, 38, 18, 16, 8, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Classic black spot on back
+  ctx.fillStyle = ink;
+  ctx.beginPath();
+  ctx.ellipse(-11, 24, 5.5, 8.5, 0.15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Two cute rounded white comic feet with little toe marks
+  ctx.fillStyle = "#FFFFFF";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.ellipse(-6, 46, 9.5, 5.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(9, 46, 10.5, 5.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(15, 44);
+  ctx.lineTo(18, 46);
+  ctx.moveTo(13, 47);
+  ctx.lineTo(17, 48);
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  // Little front paw reaching cheerfully
+  ctx.fillStyle = "#FFFFFF";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.3;
+  ctx.beginPath();
+  ctx.ellipse(14, 24, 8, 5, -0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Classic simple red collar around neck
+  ctx.fillStyle = "#D94130";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.2;
+  drawRoundedRect(ctx, -11, 5, 22, 6.5, 3);
+  ctx.fill();
+  ctx.stroke();
+
+  // Iconic continuous white beagle head + long plump rounded snout
+  ctx.fillStyle = "#FFFFFF";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(7, 6);
+  ctx.bezierCurveTo(18, 5, 27, 4, 32, -2);
+  ctx.bezierCurveTo(37, -8, 34, -17, 24, -17);
+  ctx.bezierCurveTo(16, -17, 13, -16, 10, -20);
+  ctx.bezierCurveTo(7, -29, -4, -32, -13, -27);
+  ctx.bezierCurveTo(-22, -22, -23, -8, -16, 2);
+  ctx.bezierCurveTo(-13, 6, -4, 7, 7, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Iconic solid-black teardrop floppy ear
+  ctx.fillStyle = ink;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(-12, -15);
+  ctx.bezierCurveTo(-22, -13, -24, 5, -14, 11);
+  ctx.bezierCurveTo(-6, 14, -4, 2, -6, -9);
+  ctx.bezierCurveTo(-7, -14, -9, -15, -12, -15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Glossy round black button nose at tip of long snout
+  ctx.fillStyle = ink;
+  ctx.beginPath();
+  ctx.ellipse(32, -13, 6.2, 5.0, -0.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath();
+  ctx.ellipse(30.5, -15, 2.0, 1.2, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Classic comic-strip eye & floating eyebrow
+  ctx.strokeStyle = ink;
+  ctx.fillStyle = ink;
+  if (mood === "excited") {
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(5, -16, 3.6, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(4, -22, 4.5, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.stroke();
+  } else if (mood === "oops") {
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(5, -17, 3.6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(5, -17, 1.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1, -24);
+    ctx.lineTo(8, -26);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(5.5, -16.5, 2.2, 3.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(2, -23);
+    ctx.quadraticCurveTo(5.5, -25, 9, -23);
+    ctx.stroke();
+  }
+
+  // Warm comic-strip smile tucked along snout underside
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.1;
+  ctx.beginPath();
+  if (mood === "oops") {
+    ctx.arc(17, -4, 3.8, 0, Math.PI * 2);
+  } else if (mood === "excited") {
+    ctx.moveTo(8, -5);
+    ctx.quadraticCurveTo(17, 2, 26, -5);
+    ctx.moveTo(8, -6);
+    ctx.lineTo(6, -3);
+  } else {
+    ctx.moveTo(9, -5);
+    ctx.quadraticCurveTo(17, 0, 25, -5);
+  }
+  ctx.stroke();
+
+  // Tall puffy white chef toque hat sitting jauntily on crown
+  ctx.save();
+  ctx.translate(-5, -28);
+  ctx.rotate(-0.14);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.3;
+  ctx.beginPath();
+  ctx.moveTo(-13, 0);
+  ctx.quadraticCurveTo(-21, -13, -9, -17);
+  ctx.quadraticCurveTo(-2, -29, 9, -18);
+  ctx.quadraticCurveTo(21, -14, 13, 0);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
   // Hat band
-  drawRoundedRect(ctx, -16, -34, 34, 8, 3);
+  drawRoundedRect(ctx, -13, -3, 26, 6.5, 2.5);
   ctx.fillStyle = PALETTE.cream;
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
 
   ctx.restore();
 }
@@ -237,46 +320,95 @@ export function drawLittleBird(
   ctx.scale(scale, scale);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
+  const ink = "#1A1614";
+  const yellow = "#FFE135";
 
-  // Body
-  ctx.fillStyle = PALETTE.birdYellow;
-  ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 2.2;
+  // Tiny delicate black stick legs & 3-toed bird feet
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 1.9;
   ctx.beginPath();
-  ctx.ellipse(0, 2, 11, 9, -0.1, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(-3, 13);
+  ctx.lineTo(-4, 21);
+  ctx.moveTo(-7, 22);
+  ctx.lineTo(-4, 21);
+  ctx.lineTo(-1, 22);
+  ctx.moveTo(2, 13);
+  ctx.lineTo(3, 21);
+  ctx.moveTo(0, 22);
+  ctx.lineTo(3, 21);
+  ctx.lineTo(6, 22);
   ctx.stroke();
 
-  // Head tuft
+  // Little yellow tail feather
+  ctx.fillStyle = yellow;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-2, -6);
-  ctx.lineTo(-5, -13);
-  ctx.moveTo(1, -6);
-  ctx.lineTo(2, -13);
-  ctx.stroke();
-
-  // Flapping wing
-  ctx.fillStyle = "#F4BE2A";
-  ctx.beginPath();
-  ctx.ellipse(-3, 2 - flap * 4, 7, 4, -0.5 - flap * 0.6, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  // Beak
-  ctx.fillStyle = PALETTE.mapleCrimson;
-  ctx.beginPath();
-  ctx.moveTo(10, -1);
-  ctx.lineTo(18, 1);
-  ctx.lineTo(10, 4);
+  ctx.moveTo(-7, 7);
+  ctx.lineTo(-15, 5);
+  ctx.lineTo(-12, 11);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // Tiny eye
-  ctx.fillStyle = PALETTE.ink;
+  // Petite upright yellow body
+  ctx.fillStyle = yellow;
   ctx.beginPath();
-  ctx.arc(5, -2, 1.8, 0, Math.PI * 2);
+  ctx.ellipse(-1, 6, 6.5, 8.2, -0.1, 0, Math.PI * 2);
   ctx.fill();
+  ctx.stroke();
+
+  // Expressive oversized round yellow head + long smiling yellow beak
+  ctx.fillStyle = yellow;
+  ctx.beginPath();
+  ctx.moveTo(-8, -6);
+  ctx.bezierCurveTo(-10, -14, 2, -17, 7, -10);
+  ctx.bezierCurveTo(13, -10, 20, -8, 22, -5);
+  ctx.bezierCurveTo(20, -1, 13, 0, 7, -1);
+  ctx.bezierCurveTo(3, 3, -7, 2, -8, -6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Signature messy spiky feather tuft sticking straight up on head!
+  ctx.fillStyle = yellow;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(-6, -13);
+  ctx.lineTo(-11, -21);
+  ctx.lineTo(-4, -16);
+  ctx.lineTo(-4, -25);
+  ctx.lineTo(0, -16);
+  ctx.lineTo(4, -24);
+  ctx.lineTo(4, -15);
+  ctx.lineTo(10, -19);
+  ctx.lineTo(6, -12);
+  ctx.stroke();
+  ctx.fill();
+  ctx.stroke();
+
+  // Subtle smile line along the long yellow beak
+  ctx.beginPath();
+  ctx.moveTo(9, -4);
+  ctx.quadraticCurveTo(15, -3, 21, -5);
+  ctx.lineWidth = 1.6;
+  ctx.stroke();
+
+  // Tiny black comic dot eye
+  ctx.fillStyle = ink;
+  ctx.beginPath();
+  ctx.arc(4.5, -8.5, 1.7, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cute fluttering little wing on body
+  ctx.fillStyle = "#FFD12A";
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 1.9;
+  ctx.beginPath();
+  ctx.ellipse(-3, 5 - flap * 3.5, 5.5, 3.2, -0.45 - flap * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
 
   ctx.restore();
 }
@@ -412,15 +544,17 @@ export function drawPumpkinPie(
   creamCount: number,
   hasCookie: boolean
 ): void {
+  const safeR = Math.max(6, radius);
+  const bumpR = Math.max(2, safeR * 0.12);
   ctx.save();
   ctx.translate(cx, cy);
 
   // Tin rim shadow
   ctx.fillStyle = "#D4C6B4";
   ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = Math.max(1.5, Math.min(3, safeR * 0.05));
   ctx.beginPath();
-  ctx.arc(0, 4, radius + 12, 0, Math.PI * 2);
+  ctx.arc(0, safeR * 0.04, safeR * 1.12, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
@@ -430,51 +564,51 @@ export function drawPumpkinPie(
   ctx.beginPath();
   for (let i = 0; i < bumps; i++) {
     const a = (Math.PI * 2 * i) / bumps;
-    const bx = Math.cos(a) * (radius + 2);
-    const by = Math.sin(a) * (radius + 2);
-    ctx.moveTo(bx + 12, by);
-    ctx.arc(bx, by, 12, 0, Math.PI * 2);
+    const bx = Math.cos(a) * (safeR * 1.02);
+    const by = Math.sin(a) * (safeR * 1.02);
+    ctx.moveTo(bx + bumpR, by);
+    ctx.arc(bx, by, bumpR, 0, Math.PI * 2);
   }
   ctx.fill();
 
   ctx.beginPath();
-  ctx.arc(0, 0, radius + 7, 0, Math.PI * 2);
+  ctx.arc(0, 0, safeR * 1.07, 0, Math.PI * 2);
   ctx.strokeStyle = PALETTE.ink;
-  ctx.lineWidth = 2.6;
+  ctx.lineWidth = Math.max(1.4, Math.min(2.6, safeR * 0.045));
   ctx.stroke();
 
   // Spiced pumpkin filling
   ctx.fillStyle = "#D96F2B";
   ctx.beginPath();
-  ctx.arc(0, 0, radius - 5, 0, Math.PI * 2);
+  ctx.arc(0, 0, Math.max(2, safeR * 0.93), 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
-  // Inner shine arc
+  // Inner shine arc (proportional radius, always positive!)
   ctx.strokeStyle = "#ED954B";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = Math.max(1.2, Math.min(4, safeR * 0.05));
   ctx.beginPath();
-  ctx.arc(0, 0, radius - 18, -2.4, -1.2);
+  ctx.arc(0, 0, Math.max(1, safeR * 0.78), -2.4, -1.2);
   ctx.stroke();
 
   // Whipped cream swirl puffs
   const totalPuffs = Math.min(16, creamCount);
   for (let i = 0; i < totalPuffs; i++) {
     const a = (Math.PI * 2 * i) / 16 - Math.PI / 2;
-    const r = radius * 0.66;
+    const r = safeR * 0.66;
     const px = Math.cos(a) * r;
     const py = Math.sin(a) * r;
     ctx.fillStyle = PALETTE.cream;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(1, Math.min(2, safeR * 0.03));
     ctx.beginPath();
-    ctx.arc(px, py, radius * 0.145, 0, Math.PI * 2);
+    ctx.arc(px, py, Math.max(1.5, safeR * 0.145), 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
   }
 
   if (hasCookie) {
-    drawMapleLeaf(ctx, 0, 0, radius * 0.42, "gold", -0.1);
+    drawMapleLeaf(ctx, 0, 0, safeR * 0.42, "gold", -0.1);
   }
 
   ctx.restore();
@@ -610,6 +744,153 @@ export function drawGuestCharacter(
   ctx.restore();
 }
 
+export function drawSnackIcon(
+  ctx: CanvasRenderingContext2D,
+  id: SnackId,
+  cx: number,
+  cy: number,
+  size: number
+): void {
+  ctx.save();
+  ctx.translate(cx, cy);
+  const s = size / 28;
+  ctx.scale(s, s);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  if (id === "pretzel") {
+    // Golden twisted pretzel loop with salt specks
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 9.5;
+    ctx.beginPath();
+    ctx.moveTo(-12, 11);
+    ctx.bezierCurveTo(-22, -4, -14, -18, 0, -10);
+    ctx.bezierCurveTo(14, -18, 22, -4, 12, 11);
+    ctx.bezierCurveTo(4, 2, -4, 2, -12, 11);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#C77D3A";
+    ctx.lineWidth = 5.6;
+    ctx.stroke();
+
+    ctx.fillStyle = PALETTE.cream;
+    ctx.beginPath();
+    ctx.arc(-9, -6, 1.5, 0, Math.PI * 2);
+    ctx.arc(8, -7, 1.5, 0, Math.PI * 2);
+    ctx.arc(0, 4, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (id === "orange_bean" || id === "berry_bean") {
+    const fill = id === "orange_bean" ? "#F29132" : PALETTE.berryPurple;
+    const shine = id === "orange_bean" ? "#FFD08A" : "#E598B8";
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(-14, 4);
+    ctx.bezierCurveTo(-18, -11, -3, -16, 4, -8);
+    ctx.bezierCurveTo(14, -12, 20, 4, 10, 12);
+    ctx.bezierCurveTo(0, 17, -11, 14, -14, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = shine;
+    ctx.beginPath();
+    ctx.ellipse(-5, -4, 4.5, 2.2, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Warm apple cider mug with cinnamon stick
+    ctx.fillStyle = "#B8472F";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2.4;
+    drawRoundedRect(ctx, -12, -6, 20, 20, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Handle
+    ctx.beginPath();
+    ctx.arc(9, 4, 6, -Math.PI * 0.45, Math.PI * 0.45);
+    ctx.stroke();
+
+    // Steaming cider surface & cinnamon stick
+    ctx.fillStyle = "#E59A3E";
+    ctx.beginPath();
+    ctx.ellipse(-2, -6, 9, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = PALETTE.toastedSienna;
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(1, -6);
+    ctx.lineTo(8, -16);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+export function drawFoldingChair(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale = 1,
+  tilt = 0,
+  openAmount = 1
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(tilt);
+  ctx.scale(scale, scale);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  const spread = 16 + openAmount * 22;
+
+  // Aluminum crossed folding legs
+  ctx.strokeStyle = "#8C98A0";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(-spread, 34);
+  ctx.lineTo(spread * 0.7, -8);
+  ctx.moveTo(spread, 34);
+  ctx.lineTo(-spread * 0.7, -8);
+  ctx.stroke();
+
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Striped webbing backrest
+  const backTilt = -0.35 + (1 - openAmount) * 0.3;
+  ctx.save();
+  ctx.translate(-spread * 0.45, -4);
+  ctx.rotate(backTilt);
+  drawRoundedRect(ctx, -10, -48, 22, 52, 6);
+  ctx.fillStyle = PALETTE.cream;
+  ctx.fill();
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Red picnic stripes
+  ctx.fillStyle = PALETTE.mapleCrimson;
+  ctx.fillRect(-8, -42, 18, 9);
+  ctx.fillRect(-8, -24, 18, 9);
+  ctx.fillRect(-8, -8, 18, 8);
+  ctx.restore();
+
+  // Striped seat pad
+  drawRoundedRect(ctx, -spread * 0.75, -8, spread * 1.55, 16, 6);
+  ctx.fillStyle = PALETTE.sageLeaf;
+  ctx.fill();
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
 export function drawBackyardTable(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -619,23 +900,31 @@ export function drawBackyardTable(
   hasToast: boolean,
   hasPopcorn: boolean,
   hasPie: boolean,
-  bob = 0
+  bob = 0,
+  hasPlatter = false,
+  hasChair = false
 ): void {
   ctx.save();
+
+  // Neatly tamed folding lawn chair parked beside table
+  if (hasChair) {
+    drawFoldingChair(ctx, cx + width * 0.52, y + 26, 0.56, 0.04, 0.45);
+  }
 
   // Seated guests behind the backyard ping-pong table
   const guestPalette = [
     { shirt: "#6B8F71", hair: "#4B3222" },
     { shirt: "#D95D39", hair: "#C9C0B5" },
     { shirt: "#5B85AA", hair: "#6B4423" },
-    { shirt: "#E58A32", hair: "#3B281E" }
+    { shirt: "#E58A32", hair: "#3B281E" },
+    { shirt: "#A5406B", hair: "#2D2420" }
   ];
-  const visibleGuests = Math.min(4, Math.max(0, guestCount - 2));
+  const visibleGuests = Math.min(5, Math.max(0, guestCount - 2));
   for (let i = 0; i < visibleGuests; i++) {
     const frac = (i + 1) / (visibleGuests + 1);
     const gx = cx - width * 0.44 + frac * width * 0.88;
     const gp = guestPalette[i % guestPalette.length];
-    drawGuestCharacter(ctx, gx, y - 24 + (i % 2 === 0 ? bob : -bob), gp.shirt, gp.hair, 0.95);
+    drawGuestCharacter(ctx, gx, y - 24 + (i % 2 === 0 ? bob : -bob), gp.shirt, gp.hair, 0.92);
   }
 
   // Ping-pong table wooden legs
@@ -664,24 +953,27 @@ export function drawBackyardTable(
 
   // Cooked dishes on table
   if (hasToast) {
-    drawToast(ctx, cx - width * 0.28, y - 10, 0.55, -0.1, true);
+    drawToast(ctx, cx - width * 0.33, y - 10, 0.52, -0.1, true);
   }
   if (hasPopcorn) {
-    // Mini popcorn bowl
     ctx.fillStyle = "#B86E39";
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(cx, y - 6, 16, 0, Math.PI);
+    ctx.arc(cx - width * 0.11, y - 6, 15, 0, Math.PI);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    drawPopcornKernel(ctx, cx - 7, y - 12, 0.65, false);
-    drawPopcornKernel(ctx, cx + 6, y - 13, 0.65, true);
-    drawPopcornKernel(ctx, cx, y - 17, 0.65, false);
+    drawPopcornKernel(ctx, cx - width * 0.11 - 6, y - 12, 0.62, false);
+    drawPopcornKernel(ctx, cx - width * 0.11 + 6, y - 13, 0.62, true);
+    drawPopcornKernel(ctx, cx - width * 0.11, y - 17, 0.62, false);
+  }
+  if (hasPlatter) {
+    drawSnackIcon(ctx, "pretzel", cx + width * 0.11, y - 11, 18);
+    drawSnackIcon(ctx, "berry_bean", cx + width * 0.17, y - 8, 11);
   }
   if (hasPie) {
-    drawPumpkinPie(ctx, cx + width * 0.28, y - 10, 18, 12, true);
+    drawPumpkinPie(ctx, cx + width * 0.34, y - 10, 17, 12, true);
   }
 
   ctx.restore();

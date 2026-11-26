@@ -5,13 +5,15 @@ import { GameAction, GameConfig, GameState, StepInput } from "./types";
 
 export const EMPTY_INPUT: StepInput = {
   primaryTap: false,
+  secondaryTap: false,
   moveDir: 0,
+  moveDirP2: 0,
   pointerXNorm: null,
-  swipeDelta: 0
+  swipeDelta: 0,
+  snackPick: null
 };
 
 export function nextRandom(state: GameState): number {
-  // Deterministic Mulberry32 step stored in state.rngState
   state.rngState = (state.rngState + 0x6d2b79f5) | 0;
   let t = Math.imul(state.rngState ^ (state.rngState >>> 15), 1 | state.rngState);
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
@@ -20,8 +22,14 @@ export function nextRandom(state: GameState): number {
 
 export function createInitialState(config: GameConfig = {}): GameState {
   const playMode = config.playMode ?? "pass_and_play";
-  const rawCount = config.chefCount ?? (playMode === "solo" ? 1 : 2);
-  const chefCount = playMode === "solo" ? 1 : Math.max(2, Math.min(4, rawCount));
+  const rawCount =
+    config.chefCount ?? (playMode === "solo" ? 1 : playMode === "laptop_coop" ? 2 : 2);
+  const chefCount =
+    playMode === "solo"
+      ? 1
+      : playMode === "laptop_coop"
+        ? 2
+        : Math.max(2, Math.min(4, rawCount));
   return {
     phase: "title",
     difficulty: config.difficulty ?? "cozy",
@@ -54,7 +62,7 @@ export function getChefLabel(chefIndex: number): string {
 
 function beginCurrentDish(state: GameState): void {
   const dishId = getCurrentDishId(state);
-  state.dishState = createDishState(dishId, state.difficulty);
+  state.dishState = createDishState(dishId, state.difficulty, () => nextRandom(state));
   state.phase = "dish_play";
 }
 
@@ -68,6 +76,8 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       state.playMode = action.playMode;
       if (action.playMode === "solo") {
         state.chefCount = 1;
+      } else if (action.playMode === "laptop_coop") {
+        state.chefCount = 2;
       } else {
         const count = action.chefCount ?? Math.max(2, state.chefCount);
         state.chefCount = Math.max(2, Math.min(4, count));
@@ -144,7 +154,6 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       if (state.phase !== "gratitude_tree") {
         return state;
       }
-      // Guarantee at least one leaf on the family tree for the postcard
       if (state.leaves.length === 0) {
         const fallback = createGratitudeLeaf(
           0,
@@ -192,7 +201,6 @@ export function stepGame(state: GameState, dtSec: number, input: StepInput = EMP
   const dt = Math.max(0, Math.min(0.05, dtSec));
   state.elapsedSec += dt;
 
-  // Update visual particles
   const nextParticles = [];
   for (let i = 0; i < state.particles.length; i++) {
     const p = state.particles[i];
@@ -207,7 +215,14 @@ export function stepGame(state: GameState, dtSec: number, input: StepInput = EMP
   state.particles = nextParticles;
 
   if (state.phase === "dish_play" && state.dishState) {
-    const res = stepActiveDish(state.dishState, state.difficulty, dt, input, () => nextRandom(state));
+    const res = stepActiveDish(
+      state.dishState,
+      state.difficulty,
+      state.playMode,
+      dt,
+      input,
+      () => nextRandom(state)
+    );
     if (res.particles.length > 0) {
       state.particles.push(...res.particles);
     }

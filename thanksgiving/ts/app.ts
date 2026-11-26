@@ -1,4 +1,4 @@
-import { drawStickerIcon } from "./artwork";
+import { drawSnackIcon, drawStickerIcon } from "./artwork";
 import { FeastAudio } from "./audio";
 import {
   DISH_SEQUENCE,
@@ -6,6 +6,8 @@ import {
   LEAF_COLORS,
   MAX_CUSTOM_NOTE_LEN,
   MAX_LEAVES,
+  SNACK_IDS,
+  SNACK_SPECS,
   STAGE_LOGICAL_H,
   STAGE_LOGICAL_W,
   STICKER_PRESETS
@@ -22,7 +24,7 @@ import {
 import { getTablePrompt } from "./gratitude";
 import { exportPostcard, renderPostcardCanvas } from "./postcard";
 import { renderStageCanvas } from "./renderer";
-import { DifficultyMode, GameState, LeafColor, PlayMode, StickerId } from "./types";
+import { DifficultyMode, GameState, LeafColor, PlayMode, SnackId, StickerId } from "./types";
 
 export {
   applyAction,
@@ -30,6 +32,8 @@ export {
   DISH_SEQUENCE,
   DISH_SPECS,
   drainPendingSounds,
+  drawSnackIcon,
+  drawStickerIcon,
   EMPTY_INPUT,
   getChefLabel,
   getCurrentDishId,
@@ -37,6 +41,10 @@ export {
   LEAF_COLORS,
   MAX_CUSTOM_NOTE_LEN,
   MAX_LEAVES,
+  renderPostcardCanvas,
+  renderStageCanvas,
+  SNACK_IDS,
+  SNACK_SPECS,
   STICKER_PRESETS,
   stepGame
 };
@@ -92,8 +100,12 @@ export function mountApp(): void {
 
   // Live input accumulators
   let pendingPrimaryTap = false;
-  let heldLeft = false;
-  let heldRight = false;
+  let pendingSecondaryTap = false;
+  let pendingSnackPick: SnackId | null = null;
+  let heldLeftP1 = false;
+  let heldRightP1 = false;
+  let heldLeftP2 = false;
+  let heldRightP2 = false;
   let activePointerXNorm: number | null = null;
   let pendingSwipeDelta = 0;
   let lastSwipeX: number | null = null;
@@ -115,8 +127,12 @@ export function mountApp(): void {
 
   function clearInputs(): void {
     pendingPrimaryTap = false;
-    heldLeft = false;
-    heldRight = false;
+    pendingSecondaryTap = false;
+    pendingSnackPick = null;
+    heldLeftP1 = false;
+    heldRightP1 = false;
+    heldLeftP2 = false;
+    heldRightP2 = false;
     activePointerXNorm = null;
     pendingSwipeDelta = 0;
     lastSwipeX = null;
@@ -148,12 +164,13 @@ export function mountApp(): void {
       if (res.method === "share") {
         modalStatus.textContent = "Shared! You can save it right to Photos.";
       } else {
-        modalStatus.textContent = "Downloaded PNG! On iPhone, press & hold the image to Save to Photos.";
+        modalStatus.textContent =
+          "Downloaded PNG! On iPhone, press & hold the image to Save to Photos.";
       }
     });
   }
 
-  // Stage canvas direct pointer interactions (tap toast, drag popcorn, swipe pie)
+  // Stage canvas direct pointer interactions
   canvas.addEventListener("pointerdown", (e) => {
     unlockAudio();
     if (state.phase !== "dish_play" || !state.dishState) {
@@ -164,7 +181,7 @@ export function mountApp(): void {
     const rect = canvas.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / Math.max(1, rect.width);
     const ny = (e.clientY - rect.top) / Math.max(1, rect.height);
-    if (state.dishState.kind === "golden_toast") {
+    if (state.dishState.kind === "golden_toast" || state.dishState.kind === "folding_chair") {
       pendingPrimaryTap = true;
     } else if (state.dishState.kind === "flying_popcorn") {
       activePointerXNorm = nx;
@@ -193,8 +210,7 @@ export function mountApp(): void {
       activePointerXNorm = nx;
     } else if (state.dishState.kind === "pumpkin_pie" && state.dishState.stage === "whipping") {
       if (lastSwipeX !== null && lastSwipeY !== null) {
-        const dist = Math.hypot(nx - lastSwipeX, ny - lastSwipeY);
-        pendingSwipeDelta += dist;
+        pendingSwipeDelta += Math.hypot(nx - lastSwipeX, ny - lastSwipeY);
       }
       lastSwipeX = nx;
       lastSwipeY = ny;
@@ -209,22 +225,64 @@ export function mountApp(): void {
   canvas.addEventListener("pointerup", endCanvasPointer);
   canvas.addEventListener("pointercancel", endCanvasPointer);
 
-  // Laptop keyboard support
+  // Laptop 1P + 2P Co-op keyboard support
   window.addEventListener("keydown", (e) => {
     const target = e.target as HTMLElement | null;
     if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
       return;
     }
     unlockAudio();
-    if (e.code === "ArrowLeft" || e.code === "KeyA") {
-      heldLeft = true;
-    } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-      heldRight = true;
-    } else if (e.code === "Space" || e.code === "Enter") {
-      if (state.phase === "dish_play") {
+    const isCoop = state.playMode === "laptop_coop";
+
+    if (e.code === "KeyA") {
+      heldLeftP1 = true;
+    } else if (e.code === "KeyD") {
+      heldRightP1 = true;
+    } else if (e.code === "ArrowLeft") {
+      if (isCoop) {
+        heldLeftP2 = true;
+      } else {
+        heldLeftP1 = true;
+      }
+    } else if (e.code === "ArrowRight") {
+      if (isCoop) {
+        heldRightP2 = true;
+      } else {
+        heldRightP1 = true;
+      }
+    }
+
+    if (state.phase === "dish_play" && state.dishState) {
+      if (state.dishState.kind === "pretzel_platter") {
+        if (e.code === "Digit1" || (isCoop && e.code === "KeyA")) {
+          e.preventDefault();
+          pendingSnackPick = "pretzel";
+        } else if (e.code === "Digit2" || (isCoop && e.code === "KeyS")) {
+          e.preventDefault();
+          pendingSnackPick = "orange_bean";
+        } else if (e.code === "Digit3" || (isCoop && e.code === "ArrowLeft")) {
+          e.preventDefault();
+          pendingSnackPick = "berry_bean";
+        } else if (e.code === "Digit4" || (isCoop && e.code === "ArrowRight")) {
+          e.preventDefault();
+          pendingSnackPick = "cider";
+        }
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "KeyW") {
         e.preventDefault();
         pendingPrimaryTap = true;
-      } else if (state.phase === "pass_banner") {
+      } else if (e.code === "Enter" || e.code === "ArrowUp") {
+        e.preventDefault();
+        if (isCoop) {
+          pendingSecondaryTap = true;
+        } else {
+          pendingPrimaryTap = true;
+        }
+      }
+    } else if (e.code === "Space" || e.code === "Enter") {
+      if (state.phase === "pass_banner") {
         e.preventDefault();
         applyAction(state, { type: "CONFIRM_PASS" });
       } else if (state.phase === "dish_complete") {
@@ -235,10 +293,23 @@ export function mountApp(): void {
   });
 
   window.addEventListener("keyup", (e) => {
-    if (e.code === "ArrowLeft" || e.code === "KeyA") {
-      heldLeft = false;
-    } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-      heldRight = false;
+    const isCoop = state.playMode === "laptop_coop";
+    if (e.code === "KeyA") {
+      heldLeftP1 = false;
+    } else if (e.code === "KeyD") {
+      heldRightP1 = false;
+    } else if (e.code === "ArrowLeft") {
+      if (isCoop) {
+        heldLeftP2 = false;
+      } else {
+        heldLeftP1 = false;
+      }
+    } else if (e.code === "ArrowRight") {
+      if (isCoop) {
+        heldRightP2 = false;
+      } else {
+        heldRightP1 = false;
+      }
     }
   });
 
@@ -254,6 +325,29 @@ export function mountApp(): void {
     return btn;
   }
 
+  function makeInstantActionBtn(
+    label: string,
+    className: string,
+    onTrigger: () => void
+  ): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = className;
+    btn.textContent = label;
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      unlockAudio();
+      onTrigger();
+    });
+    btn.addEventListener("click", (e) => {
+      if (e.detail === 0) {
+        unlockAudio();
+        onTrigger();
+      }
+    });
+    return btn;
+  }
+
   function renderDeck(): void {
     deckEl!.innerHTML = "";
 
@@ -264,10 +358,9 @@ export function mountApp(): void {
       const intro = document.createElement("p");
       intro.className = "deck-note";
       intro.textContent =
-        "Cook 3 goofy Thanksgiving dishes, gather everyone at the backyard table, and hang leaves on the Gratitude Maple Tree!";
+        "Cook 4 Thanksgiving treats, tame the runaway lawn chair, hang leaves on the Gratitude Maple Tree, and save your Family Postcard!";
       wrap.appendChild(intro);
 
-      // Difficulty row
       const diffRow = document.createElement("div");
       diffRow.className = "seg-row";
       const modes: { id: DifficultyMode; label: string }[] = [
@@ -276,43 +369,55 @@ export function mountApp(): void {
       ];
       for (let i = 0; i < modes.length; i++) {
         const m = modes[i];
-        const b = makeBtn(
-          m.label,
-          "seg-btn" + (state.difficulty === m.id ? " active" : ""),
-          () => {
+        diffRow.appendChild(
+          makeBtn(m.label, "seg-btn" + (state.difficulty === m.id ? " active" : ""), () => {
             applyAction(state, { type: "SET_DIFFICULTY", difficulty: m.id });
             lastRenderedPhaseKey = "";
-          }
+          })
         );
-        diffRow.appendChild(b);
       }
       wrap.appendChild(diffRow);
 
-      // Play mode / Chef count row
       const playRow = document.createElement("div");
       playRow.className = "seg-row";
       const setups: { mode: PlayMode; chefs: number; label: string }[] = [
         { mode: "solo", chefs: 1, label: "1 Chef" },
-        { mode: "pass_and_play", chefs: 2, label: "2 Chefs" },
-        { mode: "pass_and_play", chefs: 3, label: "3 Chefs" },
-        { mode: "pass_and_play", chefs: 4, label: "4 Chefs" }
+        { mode: "pass_and_play", chefs: 2, label: "2 Pass" },
+        { mode: "pass_and_play", chefs: 3, label: "3 Pass" },
+        { mode: "pass_and_play", chefs: 4, label: "4 Pass" }
       ];
       for (let i = 0; i < setups.length; i++) {
         const s = setups[i];
         const active = state.playMode === s.mode && state.chefCount === s.chefs;
-        const b = makeBtn(s.label, "seg-btn" + (active ? " active" : ""), () => {
-          applyAction(state, { type: "SET_PLAY_MODE", playMode: s.mode, chefCount: s.chefs });
-          lastRenderedPhaseKey = "";
-        });
-        playRow.appendChild(b);
+        playRow.appendChild(
+          makeBtn(s.label, "seg-btn" + (active ? " active" : ""), () => {
+            applyAction(state, { type: "SET_PLAY_MODE", playMode: s.mode, chefCount: s.chefs });
+            lastRenderedPhaseKey = "";
+          })
+        );
       }
       wrap.appendChild(playRow);
 
-      const startBtn = makeBtn("Start the Backyard Feast!", "primary-btn big-btn", () => {
-        clearInputs();
-        applyAction(state, { type: "START_FEAST" });
-      });
-      wrap.appendChild(startBtn);
+      const coopRow = document.createElement("div");
+      coopRow.className = "seg-row";
+      coopRow.appendChild(
+        makeBtn(
+          "Laptop 2P Co-op (P1: WASD/Space + P2: Arrows/Enter)",
+          "seg-btn" + (state.playMode === "laptop_coop" ? " active" : ""),
+          () => {
+            applyAction(state, { type: "SET_PLAY_MODE", playMode: "laptop_coop", chefCount: 2 });
+            lastRenderedPhaseKey = "";
+          }
+        )
+      );
+      wrap.appendChild(coopRow);
+
+      wrap.appendChild(
+        makeBtn("Start the Backyard Feast!", "primary-btn big-btn", () => {
+          clearInputs();
+          applyAction(state, { type: "START_FEAST" });
+        })
+      );
       deckEl!.appendChild(wrap);
       return;
     }
@@ -333,11 +438,12 @@ export function mountApp(): void {
       sub.textContent = "Up next: " + spec.title + " - " + spec.instruction;
       wrap.appendChild(sub);
 
-      const readyBtn = makeBtn("I'm Ready to Cook!", "primary-btn big-btn", () => {
-        clearInputs();
-        applyAction(state, { type: "CONFIRM_PASS" });
-      });
-      wrap.appendChild(readyBtn);
+      wrap.appendChild(
+        makeBtn("I'm Ready!", "primary-btn big-btn", () => {
+          clearInputs();
+          applyAction(state, { type: "CONFIRM_PASS" });
+        })
+      );
       deckEl!.appendChild(wrap);
       return;
     }
@@ -345,32 +451,29 @@ export function mountApp(): void {
     if (state.phase === "dish_play" && state.dishState) {
       const wrap = document.createElement("div");
       wrap.className = "deck-stack";
+      const isCoop = state.playMode === "laptop_coop";
 
       if (state.dishState.kind === "golden_toast") {
         const tip = document.createElement("p");
         tip.className = "deck-note";
-        tip.textContent = "Tap when toast pops into the dashed Golden Zone!";
+        tip.textContent = isCoop
+          ? "P1 (Space) & P2 Bird (Enter): catch toast in the Golden Zone!"
+          : "Tap when toast pops into the dashed Golden Zone!";
         wrap.appendChild(tip);
 
-        const catchBtn = document.createElement("button");
-        catchBtn.type = "button";
-        catchBtn.className = "primary-btn giant-btn";
-        catchBtn.textContent = "CATCH & BUTTER!";
-        catchBtn.addEventListener("pointerdown", (e) => {
-          e.preventDefault();
-          unlockAudio();
-          pendingPrimaryTap = true;
-        });
-        catchBtn.addEventListener("click", (e) => {
-          // Keyboard Enter/Space activation has detail === 0; pointer taps are handled in pointerdown
-          if (e.detail === 0) {
-            unlockAudio();
+        wrap.appendChild(
+          makeInstantActionBtn("CATCH & BUTTER!", "primary-btn giant-btn", () => {
             pendingPrimaryTap = true;
-          }
-        });
-        wrap.appendChild(catchBtn);
+          })
+        );
       } else if (state.dishState.kind === "flying_popcorn") {
-        // Wide thumb slide track
+        if (isCoop) {
+          const coopTip = document.createElement("p");
+          coopTip.className = "deck-note";
+          coopTip.textContent = "P1: A / D moves Beagle Bowl | P2: Left / Right flies Bird Cup!";
+          wrap.appendChild(coopTip);
+        }
+
         const track = document.createElement("div");
         track.className = "slide-track";
         track.textContent = "<--  Slide thumb here to move the bowl  -->";
@@ -395,7 +498,6 @@ export function mountApp(): void {
         track.addEventListener("pointercancel", stopSlide);
         wrap.appendChild(track);
 
-        // Big Left / Right tap buttons for younger kids & laptop clicks
         const lrRow = document.createElement("div");
         lrRow.className = "seg-row";
         const leftBtn = document.createElement("button");
@@ -405,10 +507,10 @@ export function mountApp(): void {
         leftBtn.addEventListener("pointerdown", (e) => {
           e.preventDefault();
           unlockAudio();
-          heldLeft = true;
+          heldLeftP1 = true;
         });
         const stopL = () => {
-          heldLeft = false;
+          heldLeftP1 = false;
         };
         leftBtn.addEventListener("pointerup", stopL);
         leftBtn.addEventListener("pointerleave", stopL);
@@ -421,10 +523,10 @@ export function mountApp(): void {
         rightBtn.addEventListener("pointerdown", (e) => {
           e.preventDefault();
           unlockAudio();
-          heldRight = true;
+          heldRightP1 = true;
         });
         const stopR = () => {
-          heldRight = false;
+          heldRightP1 = false;
         };
         rightBtn.addEventListener("pointerup", stopR);
         rightBtn.addEventListener("pointerleave", stopR);
@@ -433,17 +535,81 @@ export function mountApp(): void {
         lrRow.appendChild(leftBtn);
         lrRow.appendChild(rightBtn);
         wrap.appendChild(lrRow);
+      } else if (state.dishState.kind === "folding_chair") {
+        const tip = document.createElement("p");
+        tip.className = "deck-note";
+        tip.textContent = isCoop
+          ? "Team up! P1 (Space/W) + P2 (Enter/Up) tap fast to fold the lawn chair!"
+          : "Tap fast to fold and tame the runaway backyard lawn chair!";
+        wrap.appendChild(tip);
+
+        wrap.appendChild(
+          makeInstantActionBtn("TAME THE CHAIR!", "primary-btn giant-btn", () => {
+            pendingPrimaryTap = true;
+          })
+        );
+      } else if (state.dishState.kind === "pretzel_platter") {
+        const tip = document.createElement("p");
+        tip.className = "deck-note";
+        tip.textContent = isCoop
+          ? "Tap snacks in order! (P1: 1/2 or A/S | P2: 3/4 or Left/Right)"
+          : "Tap the highlighted snacks in order to fill the platter!";
+        wrap.appendChild(tip);
+
+        const grid = document.createElement("div");
+        grid.className = "snack-grid";
+        for (let i = 0; i < SNACK_SPECS.length; i++) {
+          const sp = SNACK_SPECS[i];
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "snack-btn";
+
+          const ic = document.createElement("canvas");
+          ic.width = 48;
+          ic.height = 48;
+          const ictx = ic.getContext("2d");
+          if (ictx) {
+            drawSnackIcon(ictx, sp.id, 24, 24, 34);
+          }
+          const lbl = document.createElement("span");
+          lbl.className = "snack-label";
+          lbl.textContent = sp.label;
+          const hint = document.createElement("span");
+          hint.className = "key-hint";
+          hint.textContent = "[" + sp.keyHint + "]";
+
+          btn.appendChild(ic);
+          btn.appendChild(lbl);
+          btn.appendChild(hint);
+
+          btn.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            unlockAudio();
+            pendingSnackPick = sp.id;
+          });
+          btn.addEventListener("click", (e) => {
+            if (e.detail === 0) {
+              unlockAudio();
+              pendingSnackPick = sp.id;
+            }
+          });
+          grid.appendChild(btn);
+        }
+        wrap.appendChild(grid);
       } else if (state.dishState.kind === "pumpkin_pie") {
         const isCookie = state.dishState.stage === "cookie_drop";
         if (isCookie) {
-          const dropBtn = makeBtn("DROP MAPLE COOKIE!", "primary-btn giant-btn", () => {
-            pendingPrimaryTap = true;
-          });
-          wrap.appendChild(dropBtn);
+          wrap.appendChild(
+            makeInstantActionBtn("DROP MAPLE COOKIE!", "primary-btn giant-btn", () => {
+              pendingPrimaryTap = true;
+            })
+          );
         } else {
           const pad = document.createElement("div");
           pad.className = "slide-track pie-pad";
-          pad.textContent = "Rub back & forth here (or tap below) to whip cream!";
+          pad.textContent = isCoop
+            ? "Swipe here, or P1 (Space) + P2 (Enter) tap together to whip cream!"
+            : "Rub back & forth here (or tap below) to whip cream!";
           pad.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             unlockAudio();
@@ -474,10 +640,11 @@ export function mountApp(): void {
           pad.addEventListener("pointercancel", endPad);
           wrap.appendChild(pad);
 
-          const whipBtn = makeBtn("WHIP CREAM SWIRL!", "primary-btn big-btn", () => {
-            pendingPrimaryTap = true;
-          });
-          wrap.appendChild(whipBtn);
+          wrap.appendChild(
+            makeInstantActionBtn("WHIP CREAM SWIRL!", "primary-btn big-btn", () => {
+              pendingPrimaryTap = true;
+            })
+          );
         }
       }
 
@@ -494,19 +661,20 @@ export function mountApp(): void {
       msg.className = "deck-note";
       msg.textContent = last
         ? last.guestUnlocked + " joined the backyard table! (" + String(last.stars) + " stars earned)"
-        : "Dish served!";
+        : "Stage complete!";
       wrap.appendChild(msg);
 
       const isFinalDish = state.stageIndex + 1 >= DISH_SEQUENCE.length;
-      const nextBtn = makeBtn(
-        isFinalDish ? "Visit the Gratitude Maple Tree!" : "Cook Next Dish!",
-        "primary-btn big-btn",
-        () => {
-          clearInputs();
-          applyAction(state, { type: "NEXT_STAGE" });
-        }
+      wrap.appendChild(
+        makeBtn(
+          isFinalDish ? "Visit the Gratitude Maple Tree!" : "Next Backyard Station!",
+          "primary-btn big-btn",
+          () => {
+            clearInputs();
+            applyAction(state, { type: "NEXT_STAGE" });
+          }
+        )
       );
-      wrap.appendChild(nextBtn);
       deckEl!.appendChild(wrap);
       return;
     }
@@ -523,7 +691,6 @@ export function mountApp(): void {
         ":";
       wrap.appendChild(who);
 
-      // 8 Sticker Icon Buttons (vector drawn mini-canvases, ASCII-clean)
       const grid = document.createElement("div");
       grid.className = "sticker-grid";
       for (let i = 0; i < STICKER_PRESETS.length; i++) {
@@ -551,7 +718,6 @@ export function mountApp(): void {
       }
       wrap.appendChild(grid);
 
-      // Leaf color picker + optional name & note
       const colorRow = document.createElement("div");
       colorRow.className = "color-row";
       const colors: LeafColor[] = ["crimson", "amber", "gold", "russet"];
@@ -650,28 +816,31 @@ export function mountApp(): void {
 
       const btnRow = document.createElement("div");
       btnRow.className = "seg-row";
-      const postcardBtn = makeBtn("Save Family Postcard", "primary-btn", () => {
-        lastPostcardCanvas = renderPostcardCanvas(state);
-        if (modalImg && modalEl && modalStatus) {
-          modalImg.src = lastPostcardCanvas.toDataURL("image/png");
-          modalStatus.textContent =
-            "Tap Share / Save below, or press & hold the postcard on iPhone to save to Photos.";
-          modalEl.classList.remove("hidden");
-        }
-      });
-      const shuffleBtn = makeBtn("New Table Prompt", "secondary-btn", () => {
-        applyAction(state, { type: "SHUFFLE_PROMPT" });
-        lastRenderedPhaseKey = "";
-      });
-      btnRow.appendChild(postcardBtn);
-      btnRow.appendChild(shuffleBtn);
+      btnRow.appendChild(
+        makeBtn("Save Family Postcard", "primary-btn", () => {
+          lastPostcardCanvas = renderPostcardCanvas(state);
+          if (modalImg && modalEl && modalStatus) {
+            modalImg.src = lastPostcardCanvas.toDataURL("image/png");
+            modalStatus.textContent =
+              "Tap Share / Save below, or press & hold the postcard on iPhone to save to Photos.";
+            modalEl.classList.remove("hidden");
+          }
+        })
+      );
+      btnRow.appendChild(
+        makeBtn("New Table Prompt", "secondary-btn", () => {
+          applyAction(state, { type: "SHUFFLE_PROMPT" });
+          lastRenderedPhaseKey = "";
+        })
+      );
       wrap.appendChild(btnRow);
 
-      const replayBtn = makeBtn("Cook Another Feast!", "ghost-btn", () => {
-        clearInputs();
-        applyAction(state, { type: "PLAY_AGAIN" });
-      });
-      wrap.appendChild(replayBtn);
+      wrap.appendChild(
+        makeBtn("Cook Another Feast!", "ghost-btn", () => {
+          clearInputs();
+          applyAction(state, { type: "PLAY_AGAIN" });
+        })
+      );
 
       deckEl!.appendChild(wrap);
     }
@@ -679,42 +848,49 @@ export function mountApp(): void {
 
   function updateHud(): void {
     if (modePillEl) {
-      modePillEl.textContent = state.difficulty === "cozy" ? "Cozy Mode" : "Bustling Chef";
+      const diffTxt = state.difficulty === "cozy" ? "Cozy" : "Bustling";
+      const playTxt = state.playMode === "laptop_coop" ? "2P Co-op" : diffTxt;
+      modePillEl.textContent = state.playMode === "laptop_coop" ? diffTxt + " | " + playTxt : diffTxt + " Mode";
     }
     if (!hudTitleEl || !hudMeterEl) {
       return;
     }
     if (state.phase === "title") {
       hudTitleEl.textContent = "Beagle Chef's Backyard Feast";
-      hudMeterEl.textContent = "3 Dishes + Gratitude Tree";
+      hudMeterEl.textContent = "5 Stages + Gratitude Tree";
     } else if (state.phase === "pass_banner") {
       hudTitleEl.textContent = getChefLabel(state.activeChefIndex) + "'s Turn";
       hudMeterEl.textContent =
-        "Dish " + String(state.stageIndex + 1) + "/" + String(DISH_SEQUENCE.length);
+        "Stage " + String(state.stageIndex + 1) + "/" + String(DISH_SEQUENCE.length);
     } else if (state.phase === "dish_play" && state.dishState) {
       const spec = DISH_SPECS[state.dishState.kind];
       hudTitleEl.textContent = spec.shortTitle;
-      const doneCount =
-        state.dishState.kind === "golden_toast"
-          ? state.dishState.plated
-          : state.dishState.kind === "flying_popcorn"
-            ? state.dishState.caught
-            : state.dishState.piesFinished;
+      let progressTxt = "";
+      if (state.dishState.kind === "golden_toast") {
+        progressTxt = String(state.dishState.plated) + "/" + String(state.dishState.target);
+      } else if (state.dishState.kind === "flying_popcorn") {
+        progressTxt = String(state.dishState.caught) + "/" + String(state.dishState.target);
+      } else if (state.dishState.kind === "folding_chair") {
+        progressTxt = String(Math.round(state.dishState.tamedProgress)) + "%";
+      } else if (state.dishState.kind === "pretzel_platter") {
+        progressTxt = String(state.dishState.plattersDone) + "/" + String(state.dishState.target);
+      } else {
+        progressTxt = String(state.dishState.piesFinished) + "/" + String(state.dishState.target);
+      }
       const timerTxt =
         state.dishState.timeLeftSec !== null
           ? " | " + String(Math.ceil(state.dishState.timeLeftSec)) + "s"
           : " | Cozy";
-      hudMeterEl.textContent =
-        String(doneCount) + "/" + String(state.dishState.target) + timerTxt;
+      hudMeterEl.textContent = progressTxt + timerTxt;
     } else if (state.phase === "dish_complete") {
-      hudTitleEl.textContent = "Dish Served!";
+      hudTitleEl.textContent = "Stage Complete!";
       hudMeterEl.textContent = "Stars: " + String(state.totalStars);
     } else if (state.phase === "gratitude_tree") {
       hudTitleEl.textContent = "Gratitude Maple Tree";
       hudMeterEl.textContent = "Leaves: " + String(state.leaves.length) + "/" + String(MAX_LEAVES);
     } else {
       hudTitleEl.textContent = "Happy Thanksgiving!";
-      hudMeterEl.textContent = "Total Stars: " + String(state.totalStars);
+      hudMeterEl.textContent = "Total Stars: " + String(state.totalStars) + "/15";
     }
   }
 
@@ -744,15 +920,24 @@ export function mountApp(): void {
     const dt = Math.min(0.05, Math.max(0.001, (now - lastTs) / 1000));
     lastTs = now;
 
-    const moveDir: -1 | 0 | 1 = heldLeft && !heldRight ? -1 : heldRight && !heldLeft ? 1 : 0;
+    const moveDir: -1 | 0 | 1 =
+      heldLeftP1 && !heldRightP1 ? -1 : heldRightP1 && !heldLeftP1 ? 1 : 0;
+    const moveDirP2: -1 | 0 | 1 =
+      heldLeftP2 && !heldRightP2 ? -1 : heldRightP2 && !heldLeftP2 ? 1 : 0;
+
     stepGame(state, dt, {
       primaryTap: pendingPrimaryTap,
+      secondaryTap: pendingSecondaryTap,
       moveDir,
+      moveDirP2,
       pointerXNorm: activePointerXNorm,
-      swipeDelta: pendingSwipeDelta
+      swipeDelta: pendingSwipeDelta,
+      snackPick: pendingSnackPick
     });
     pendingPrimaryTap = false;
+    pendingSecondaryTap = false;
     pendingSwipeDelta = 0;
+    pendingSnackPick = null;
 
     const sounds = drainPendingSounds(state);
     for (let i = 0; i < sounds.length; i++) {

@@ -1,4 +1,4 @@
-import { DishId, DishSpec, LeafColor, StickerPreset } from "./types";
+import { DishId, DishSpec, LeafColor, SnackId, SnackSpec, StickerPreset } from "./types";
 
 export const PALETTE = {
   parchment: "#FFF6E5",
@@ -13,7 +13,8 @@ export const PALETTE = {
   cream: "#FFFDF7",
   birdYellow: "#FFD447",
   tableclothRed: "#C94A38",
-  skyBlue: "#AED4E6"
+  skyBlue: "#AED4E6",
+  berryPurple: "#A5406B"
 } as const;
 
 export const LEAF_COLORS: Record<LeafColor, { fill: string; vein: string; label: string }> = {
@@ -26,6 +27,8 @@ export const LEAF_COLORS: Record<LeafColor, { fill: string; vein: string; label:
 export const DISH_SEQUENCE: DishId[] = [
   "golden_toast",
   "flying_popcorn",
+  "folding_chair",
+  "pretzel_platter",
   "pumpkin_pie"
 ];
 
@@ -50,17 +53,46 @@ export const DISH_SPECS: Record<DishId, DishSpec> = {
     bustlingTarget: 16,
     bustlingTimeSec: 34
   },
+  folding_chair: {
+    id: "folding_chair",
+    title: "Runaway Folding Chair!",
+    shortTitle: "Folding Chair",
+    instruction: "Tap fast to fold and tame the bouncy backyard lawn chair!",
+    guestUnlocked: "Neighborhood Friends",
+    cozyTarget: 100,
+    bustlingTarget: 100,
+    bustlingTimeSec: 18
+  },
+  pretzel_platter: {
+    id: "pretzel_platter",
+    title: "Pretzel & Jelly Bean Platter",
+    shortTitle: "Snack Platter",
+    instruction: "Tap the matching snacks in order to fill each party platter!",
+    guestUnlocked: "Cousins",
+    cozyTarget: 4,
+    bustlingTarget: 6,
+    bustlingTimeSec: 34
+  },
   pumpkin_pie: {
     id: "pumpkin_pie",
     title: "Swirl Pumpkin Pie",
     shortTitle: "Pumpkin Pie",
     instruction: "Swipe or tap to swirl whipped cream, then drop the maple cookie!",
-    guestUnlocked: "Mom, Dad & Neighbors",
+    guestUnlocked: "Mom & Dad",
     cozyTarget: 2,
     bustlingTarget: 3,
     bustlingTimeSec: 32
   }
 };
+
+export const SNACK_IDS: SnackId[] = ["pretzel", "orange_bean", "berry_bean", "cider"];
+
+export const SNACK_SPECS: SnackSpec[] = [
+  { id: "pretzel", label: "Pretzel", keyHint: "1", accent: "#C77D3A" },
+  { id: "orange_bean", label: "Orange Bean", keyHint: "2", accent: "#F29132" },
+  { id: "berry_bean", label: "Berry Bean", keyHint: "3", accent: "#A5406B" },
+  { id: "cider", label: "Apple Cider", keyHint: "4", accent: "#B8472F" }
+];
 
 export const STICKER_PRESETS: StickerPreset[] = [
   { id: "family", label: "Family", caption: "Thankful for my family!", accent: "#D95D39" },

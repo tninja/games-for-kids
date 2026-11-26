@@ -1,5 +1,5 @@
 export type DifficultyMode = "cozy" | "bustling";
-export type PlayMode = "solo" | "pass_and_play";
+export type PlayMode = "solo" | "pass_and_play" | "laptop_coop";
 
 export type GamePhase =
   | "title"
@@ -9,7 +9,14 @@ export type GamePhase =
   | "gratitude_tree"
   | "feast_finale";
 
-export type DishId = "golden_toast" | "flying_popcorn" | "pumpkin_pie";
+export type DishId =
+  | "golden_toast"
+  | "flying_popcorn"
+  | "folding_chair"
+  | "pretzel_platter"
+  | "pumpkin_pie";
+
+export type SnackId = "pretzel" | "orange_bean" | "berry_bean" | "cider";
 
 export type LeafColor = "crimson" | "amber" | "gold" | "russet";
 
@@ -38,6 +45,13 @@ export interface StickerPreset {
   id: StickerId;
   label: string;
   caption: string;
+  accent: string;
+}
+
+export interface SnackSpec {
+  id: SnackId;
+  label: string;
+  keyHint: string;
   accent: string;
 }
 
@@ -104,13 +118,44 @@ export interface PopcornDishState {
   score: number;
   streak: number;
   timeLeftSec: number | null;
-  bowlX: number; // 0..1 normalized horizontal position
+  bowlX: number; // 0..1 normalized horizontal position (P1 Beagle Chef)
   bowlWobble: number;
   spawnTimer: number;
   nextId: number;
   items: FallingSnack[];
-  birdX: number;
+  birdX: number; // 0..1 normalized horizontal position (AI helper or P2 Little Bird)
   birdAssistTimer: number;
+  feedbackText: string;
+  feedbackTimer: number;
+}
+
+export interface ChairDishState {
+  kind: "folding_chair";
+  tamedProgress: number; // 0..100
+  target: number; // 100
+  taps: number;
+  score: number;
+  timeLeftSec: number | null;
+  chairAngle: number; // wobble tilt radians
+  chairHopY: number;
+  springBackTimer: number;
+  tamedCelebrateTimer: number;
+  feedbackText: string;
+  feedbackTimer: number;
+}
+
+export interface PlatterDishState {
+  kind: "pretzel_platter";
+  plattersDone: number;
+  target: number;
+  score: number;
+  streak: number;
+  timeLeftSec: number | null;
+  order: SnackId[];
+  matchedCount: number;
+  wrongFlashTimer: number;
+  platterBounce: number;
+  birdHintTimer: number;
   feedbackText: string;
   feedbackTimer: number;
 }
@@ -138,7 +183,12 @@ export interface PieDishState {
   feedbackTimer: number;
 }
 
-export type ActiveDishState = ToastDishState | PopcornDishState | PieDishState;
+export type ActiveDishState =
+  | ToastDishState
+  | PopcornDishState
+  | ChairDishState
+  | PlatterDishState
+  | PieDishState;
 
 export interface Particle {
   x: number;
@@ -157,6 +207,7 @@ export type SoundEvent =
   | "good_catch"
   | "bird_rescue"
   | "silly_bonk"
+  | "chair_boing"
   | "cream_swirl"
   | "dish_win"
   | "leaf_hang"
@@ -164,9 +215,12 @@ export type SoundEvent =
 
 export interface StepInput {
   primaryTap: boolean;
-  moveDir: -1 | 0 | 1;
+  secondaryTap?: boolean; // Laptop 2P Co-op (Little Bird action)
+  moveDir: -1 | 0 | 1; // P1 horizontal move
+  moveDirP2?: -1 | 0 | 1; // Laptop 2P Co-op Little Bird horizontal move
   pointerXNorm: number | null; // 0..1 across stage width when dragging
-  swipeDelta: number; // normalized horizontal/motion delta for pie whipping
+  swipeDelta: number; // normalized motion delta for pie whipping
+  snackPick?: SnackId | null; // Pretzel & Jelly Bean Platter pick
 }
 
 export interface GameConfig {

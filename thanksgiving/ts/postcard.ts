@@ -88,14 +88,21 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
   ctx.fillText("Beagle Chef's Backyard Feast  -  " + String(year), W / 2, 188);
 
   // Earned star badge strip
-  const starCount = Math.max(3, Math.min(9, state.totalStars));
-  const starStartX = W / 2 - ((starCount - 1) * 44) / 2;
-  for (let i = 0; i < starCount; i++) {
-    drawStar(ctx, starStartX + i * 44, 238, 17, PALETTE.pumpkinGold);
+  const displayedStars = 5;
+  const starStartX = W / 2 - ((displayedStars - 1) * 46) / 2;
+  for (let i = 0; i < displayedStars; i++) {
+    drawStar(ctx, starStartX + i * 46, 236, 17, PALETTE.pumpkinGold);
   }
+  ctx.fillStyle = PALETTE.toastedSienna;
+  ctx.font = "700 22px system-ui, -apple-system, sans-serif";
+  ctx.fillText(
+    "Feast Stars Earned: " + String(state.totalStars) + " / 15",
+    W / 2,
+    272
+  );
 
   // Illustrated backyard scene (Tree + Ping-Pong Feast Table + Beagle Chef)
-  drawRoundedRect(ctx, 88, 282, W - 176, 510, 28);
+  drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
   ctx.fillStyle = "#FCE5C0";
   ctx.fill();
   ctx.lineWidth = 4;
@@ -105,16 +112,28 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
   // Soft backyard hill inside scene
   ctx.save();
   ctx.beginPath();
-  drawRoundedRect(ctx, 88, 282, W - 176, 510, 28);
+  drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
   ctx.clip();
   ctx.fillStyle = "#B6C285";
   ctx.beginPath();
   ctx.ellipse(W / 2, 830, 580, 160, 0, Math.PI, 0);
   ctx.fill();
-  drawMapleTree(ctx, W / 2, 705, 480, 410, state.leaves, false);
-  drawBackyardTable(ctx, W / 2, 718, 620, state.seatedGuests.length, true, true, true, 0);
-  drawBeagleChef(ctx, 210, 725, 1.55, "excited", 0);
-  drawLittleBird(ctx, 868, 632, 2.0, 0.3);
+  drawMapleTree(ctx, W / 2, 705, 480, 404, state.leaves, false);
+  drawBackyardTable(
+    ctx,
+    W / 2,
+    718,
+    580,
+    state.seatedGuests.length,
+    true,
+    true,
+    true,
+    0,
+    true,
+    true
+  );
+  drawBeagleChef(ctx, 195, 725, 1.5, "excited", 0);
+  drawLittleBird(ctx, 882, 626, 2.0, 0.3);
   ctx.restore();
 
   // Gratitude Notes Box

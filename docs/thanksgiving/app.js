@@ -35,14 +35,20 @@ var __ThanksgivingBundle = (() => {
     LEAF_COLORS: () => LEAF_COLORS,
     MAX_CUSTOM_NOTE_LEN: () => MAX_CUSTOM_NOTE_LEN,
     MAX_LEAVES: () => MAX_LEAVES,
+    SNACK_IDS: () => SNACK_IDS,
+    SNACK_SPECS: () => SNACK_SPECS,
     STICKER_PRESETS: () => STICKER_PRESETS,
     applyAction: () => applyAction,
     createInitialState: () => createInitialState,
     drainPendingSounds: () => drainPendingSounds,
+    drawSnackIcon: () => drawSnackIcon,
+    drawStickerIcon: () => drawStickerIcon,
     getChefLabel: () => getChefLabel,
     getCurrentDishId: () => getCurrentDishId,
     getTablePrompt: () => getTablePrompt,
     mountApp: () => mountApp,
+    renderPostcardCanvas: () => renderPostcardCanvas,
+    renderStageCanvas: () => renderStageCanvas,
     stepGame: () => stepGame
   });
 
@@ -60,7 +66,8 @@ var __ThanksgivingBundle = (() => {
     cream: "#FFFDF7",
     birdYellow: "#FFD447",
     tableclothRed: "#C94A38",
-    skyBlue: "#AED4E6"
+    skyBlue: "#AED4E6",
+    berryPurple: "#A5406B"
   };
   var LEAF_COLORS = {
     crimson: { fill: "#D95D39", vein: "#8E2D15", label: "Crimson" },
@@ -71,6 +78,8 @@ var __ThanksgivingBundle = (() => {
   var DISH_SEQUENCE = [
     "golden_toast",
     "flying_popcorn",
+    "folding_chair",
+    "pretzel_platter",
     "pumpkin_pie"
   ];
   var DISH_SPECS = {
@@ -94,17 +103,44 @@ var __ThanksgivingBundle = (() => {
       bustlingTarget: 16,
       bustlingTimeSec: 34
     },
+    folding_chair: {
+      id: "folding_chair",
+      title: "Runaway Folding Chair!",
+      shortTitle: "Folding Chair",
+      instruction: "Tap fast to fold and tame the bouncy backyard lawn chair!",
+      guestUnlocked: "Neighborhood Friends",
+      cozyTarget: 100,
+      bustlingTarget: 100,
+      bustlingTimeSec: 18
+    },
+    pretzel_platter: {
+      id: "pretzel_platter",
+      title: "Pretzel & Jelly Bean Platter",
+      shortTitle: "Snack Platter",
+      instruction: "Tap the matching snacks in order to fill each party platter!",
+      guestUnlocked: "Cousins",
+      cozyTarget: 4,
+      bustlingTarget: 6,
+      bustlingTimeSec: 34
+    },
     pumpkin_pie: {
       id: "pumpkin_pie",
       title: "Swirl Pumpkin Pie",
       shortTitle: "Pumpkin Pie",
       instruction: "Swipe or tap to swirl whipped cream, then drop the maple cookie!",
-      guestUnlocked: "Mom, Dad & Neighbors",
+      guestUnlocked: "Mom & Dad",
       cozyTarget: 2,
       bustlingTarget: 3,
       bustlingTimeSec: 32
     }
   };
+  var SNACK_IDS = ["pretzel", "orange_bean", "berry_bean", "cider"];
+  var SNACK_SPECS = [
+    { id: "pretzel", label: "Pretzel", keyHint: "1", accent: "#C77D3A" },
+    { id: "orange_bean", label: "Orange Bean", keyHint: "2", accent: "#F29132" },
+    { id: "berry_bean", label: "Berry Bean", keyHint: "3", accent: "#A5406B" },
+    { id: "cider", label: "Apple Cider", keyHint: "4", accent: "#B8472F" }
+  ];
   var STICKER_PRESETS = [
     { id: "family", label: "Family", caption: "Thankful for my family!", accent: "#D95D39" },
     { id: "food", label: "Feast", caption: "Thankful for yummy food!", accent: "#E58A32" },
@@ -227,88 +263,163 @@ var __ThanksgivingBundle = (() => {
     ctx.scale(scale, scale);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    ctx.fillStyle = PALETTE.cream;
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.6;
-    ctx.beginPath();
-    ctx.ellipse(0, 28, 22, 26, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = PALETTE.mapleCrimson;
-    ctx.beginPath();
-    ctx.moveTo(0, 8);
-    ctx.lineTo(-11, 2);
-    ctx.lineTo(-11, 14);
-    ctx.closePath();
-    ctx.moveTo(0, 8);
-    ctx.lineTo(11, 2);
-    ctx.lineTo(11, 14);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = PALETTE.cream;
-    ctx.beginPath();
-    ctx.ellipse(3, -12, 26, 20, -0.06, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = PALETTE.toastedSienna;
-    ctx.beginPath();
-    ctx.ellipse(-18, -6, 10, 17, 0.25, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = PALETTE.ink;
-    ctx.beginPath();
-    ctx.ellipse(27, -14, 5.5, 4.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    if (mood === "excited") {
-      ctx.beginPath();
-      ctx.arc(8, -17, 4, Math.PI, 0);
-      ctx.lineWidth = 2.4;
-      ctx.stroke();
-    } else if (mood === "oops") {
-      ctx.beginPath();
-      ctx.moveTo(5, -20);
-      ctx.lineTo(11, -14);
-      ctx.moveTo(11, -20);
-      ctx.lineTo(5, -14);
-      ctx.lineWidth = 2.4;
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = PALETTE.ink;
-      ctx.beginPath();
-      ctx.arc(8, -17, 3.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    if (mood === "oops") {
-      ctx.arc(13, -5, 4, 0, Math.PI * 2);
-    } else {
-      ctx.arc(12, -9, 7, 0.15, Math.PI * 0.85);
-    }
-    ctx.stroke();
+    const ink = "#1A1614";
     ctx.fillStyle = "#FFFFFF";
-    ctx.strokeStyle = PALETTE.ink;
+    ctx.strokeStyle = ink;
     ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.arc(-11, -41, 11, 0, Math.PI * 2);
-    ctx.arc(2, -45, 13, 0, Math.PI * 2);
-    ctx.arc(14, -40, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(-16, -34);
-    ctx.quadraticCurveTo(-24, -48, -9, -49);
-    ctx.quadraticCurveTo(2, -62, 14, -48);
-    ctx.quadraticCurveTo(26, -44, 18, -32);
-    ctx.lineTo(-15, -29);
+    ctx.moveTo(-13, 30);
+    ctx.quadraticCurveTo(-24, 24, -22, 16);
+    ctx.quadraticCurveTo(-18, 22, -11, 24);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    drawRoundedRect(ctx, -16, -34, 34, 8, 3);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(-10, 8);
+    ctx.bezierCurveTo(-19, 16, -20, 38, -11, 44);
+    ctx.lineTo(12, 44);
+    ctx.bezierCurveTo(20, 38, 18, 16, 8, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.ellipse(-11, 24, 5.5, 8.5, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.ellipse(-6, 46, 9.5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(9, 46, 10.5, 5.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(15, 44);
+    ctx.lineTo(18, 46);
+    ctx.moveTo(13, 47);
+    ctx.lineTo(17, 48);
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.3;
+    ctx.beginPath();
+    ctx.ellipse(14, 24, 8, 5, -0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#D94130";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.2;
+    drawRoundedRect(ctx, -11, 5, 22, 6.5, 3);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(7, 6);
+    ctx.bezierCurveTo(18, 5, 27, 4, 32, -2);
+    ctx.bezierCurveTo(37, -8, 34, -17, 24, -17);
+    ctx.bezierCurveTo(16, -17, 13, -16, 10, -20);
+    ctx.bezierCurveTo(7, -29, -4, -32, -13, -27);
+    ctx.bezierCurveTo(-22, -22, -23, -8, -16, 2);
+    ctx.bezierCurveTo(-13, 6, -4, 7, 7, 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(-12, -15);
+    ctx.bezierCurveTo(-22, -13, -24, 5, -14, 11);
+    ctx.bezierCurveTo(-6, 14, -4, 2, -6, -9);
+    ctx.bezierCurveTo(-7, -14, -9, -15, -12, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.ellipse(32, -13, 6.2, 5, -0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    ctx.ellipse(30.5, -15, 2, 1.2, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = ink;
+    ctx.fillStyle = ink;
+    if (mood === "excited") {
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(5, -16, 3.6, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(4, -22, 4.5, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+    } else if (mood === "oops") {
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(5, -17, 3.6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(5, -17, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(1, -24);
+      ctx.lineTo(8, -26);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(5.5, -16.5, 2.2, 3.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(2, -23);
+      ctx.quadraticCurveTo(5.5, -25, 9, -23);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.1;
+    ctx.beginPath();
+    if (mood === "oops") {
+      ctx.arc(17, -4, 3.8, 0, Math.PI * 2);
+    } else if (mood === "excited") {
+      ctx.moveTo(8, -5);
+      ctx.quadraticCurveTo(17, 2, 26, -5);
+      ctx.moveTo(8, -6);
+      ctx.lineTo(6, -3);
+    } else {
+      ctx.moveTo(9, -5);
+      ctx.quadraticCurveTo(17, 0, 25, -5);
+    }
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(-5, -28);
+    ctx.rotate(-0.14);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.3;
+    ctx.beginPath();
+    ctx.moveTo(-13, 0);
+    ctx.quadraticCurveTo(-21, -13, -9, -17);
+    ctx.quadraticCurveTo(-2, -29, 9, -18);
+    ctx.quadraticCurveTo(21, -14, 13, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    drawRoundedRect(ctx, -13, -3, 26, 6.5, 2.5);
     ctx.fillStyle = PALETTE.cream;
     ctx.fill();
     ctx.stroke();
+    ctx.restore();
     ctx.restore();
   }
   function drawLittleBird(ctx, x, y, scale = 1, flap = 0) {
@@ -317,36 +428,79 @@ var __ThanksgivingBundle = (() => {
     ctx.scale(scale, scale);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    ctx.fillStyle = PALETTE.birdYellow;
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.2;
+    const ink = "#1A1614";
+    const yellow = "#FFE135";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.9;
     ctx.beginPath();
-    ctx.ellipse(0, 2, 11, 9, -0.1, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(-3, 13);
+    ctx.lineTo(-4, 21);
+    ctx.moveTo(-7, 22);
+    ctx.lineTo(-4, 21);
+    ctx.lineTo(-1, 22);
+    ctx.moveTo(2, 13);
+    ctx.lineTo(3, 21);
+    ctx.moveTo(0, 22);
+    ctx.lineTo(3, 21);
+    ctx.lineTo(6, 22);
     ctx.stroke();
+    ctx.fillStyle = yellow;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-2, -6);
-    ctx.lineTo(-5, -13);
-    ctx.moveTo(1, -6);
-    ctx.lineTo(2, -13);
-    ctx.stroke();
-    ctx.fillStyle = "#F4BE2A";
-    ctx.beginPath();
-    ctx.ellipse(-3, 2 - flap * 4, 7, 4, -0.5 - flap * 0.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = PALETTE.mapleCrimson;
-    ctx.beginPath();
-    ctx.moveTo(10, -1);
-    ctx.lineTo(18, 1);
-    ctx.lineTo(10, 4);
+    ctx.moveTo(-7, 7);
+    ctx.lineTo(-15, 5);
+    ctx.lineTo(-12, 11);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = PALETTE.ink;
+    ctx.fillStyle = yellow;
     ctx.beginPath();
-    ctx.arc(5, -2, 1.8, 0, Math.PI * 2);
+    ctx.ellipse(-1, 6, 6.5, 8.2, -0.1, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = yellow;
+    ctx.beginPath();
+    ctx.moveTo(-8, -6);
+    ctx.bezierCurveTo(-10, -14, 2, -17, 7, -10);
+    ctx.bezierCurveTo(13, -10, 20, -8, 22, -5);
+    ctx.bezierCurveTo(20, -1, 13, 0, 7, -1);
+    ctx.bezierCurveTo(3, 3, -7, 2, -8, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = yellow;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-6, -13);
+    ctx.lineTo(-11, -21);
+    ctx.lineTo(-4, -16);
+    ctx.lineTo(-4, -25);
+    ctx.lineTo(0, -16);
+    ctx.lineTo(4, -24);
+    ctx.lineTo(4, -15);
+    ctx.lineTo(10, -19);
+    ctx.lineTo(6, -12);
+    ctx.stroke();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(9, -4);
+    ctx.quadraticCurveTo(15, -3, 21, -5);
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.arc(4.5, -8.5, 1.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFD12A";
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.9;
+    ctx.beginPath();
+    ctx.ellipse(-3, 5 - flap * 3.5, 5.5, 3.2, -0.45 - flap * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
   }
   function drawToast(ctx, x, y, scale = 1, rotation = 0, buttered = false) {
@@ -435,13 +589,15 @@ var __ThanksgivingBundle = (() => {
     ctx.restore();
   }
   function drawPumpkinPie(ctx, cx, cy, radius, creamCount, hasCookie) {
+    const safeR = Math.max(6, radius);
+    const bumpR = Math.max(2, safeR * 0.12);
     ctx.save();
     ctx.translate(cx, cy);
     ctx.fillStyle = "#D4C6B4";
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = Math.max(1.5, Math.min(3, safeR * 0.05));
     ctx.beginPath();
-    ctx.arc(0, 4, radius + 12, 0, Math.PI * 2);
+    ctx.arc(0, safeR * 0.04, safeR * 1.12, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#E0A458";
@@ -449,43 +605,43 @@ var __ThanksgivingBundle = (() => {
     ctx.beginPath();
     for (let i = 0; i < bumps; i++) {
       const a = Math.PI * 2 * i / bumps;
-      const bx = Math.cos(a) * (radius + 2);
-      const by = Math.sin(a) * (radius + 2);
-      ctx.moveTo(bx + 12, by);
-      ctx.arc(bx, by, 12, 0, Math.PI * 2);
+      const bx = Math.cos(a) * (safeR * 1.02);
+      const by = Math.sin(a) * (safeR * 1.02);
+      ctx.moveTo(bx + bumpR, by);
+      ctx.arc(bx, by, bumpR, 0, Math.PI * 2);
     }
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(0, 0, radius + 7, 0, Math.PI * 2);
+    ctx.arc(0, 0, safeR * 1.07, 0, Math.PI * 2);
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.6;
+    ctx.lineWidth = Math.max(1.4, Math.min(2.6, safeR * 0.045));
     ctx.stroke();
     ctx.fillStyle = "#D96F2B";
     ctx.beginPath();
-    ctx.arc(0, 0, radius - 5, 0, Math.PI * 2);
+    ctx.arc(0, 0, Math.max(2, safeR * 0.93), 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.strokeStyle = "#ED954B";
-    ctx.lineWidth = 4;
+    ctx.lineWidth = Math.max(1.2, Math.min(4, safeR * 0.05));
     ctx.beginPath();
-    ctx.arc(0, 0, radius - 18, -2.4, -1.2);
+    ctx.arc(0, 0, Math.max(1, safeR * 0.78), -2.4, -1.2);
     ctx.stroke();
     const totalPuffs = Math.min(16, creamCount);
     for (let i = 0; i < totalPuffs; i++) {
       const a = Math.PI * 2 * i / 16 - Math.PI / 2;
-      const r = radius * 0.66;
+      const r = safeR * 0.66;
       const px = Math.cos(a) * r;
       const py = Math.sin(a) * r;
       ctx.fillStyle = PALETTE.cream;
       ctx.strokeStyle = PALETTE.ink;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = Math.max(1, Math.min(2, safeR * 0.03));
       ctx.beginPath();
-      ctx.arc(px, py, radius * 0.145, 0, Math.PI * 2);
+      ctx.arc(px, py, Math.max(1.5, safeR * 0.145), 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     }
     if (hasCookie) {
-      drawMapleLeaf(ctx, 0, 0, radius * 0.42, "gold", -0.1);
+      drawMapleLeaf(ctx, 0, 0, safeR * 0.42, "gold", -0.1);
     }
     ctx.restore();
   }
@@ -582,20 +738,133 @@ var __ThanksgivingBundle = (() => {
     ctx.stroke();
     ctx.restore();
   }
-  function drawBackyardTable(ctx, cx, y, width, guestCount, hasToast, hasPopcorn, hasPie, bob = 0) {
+  function drawSnackIcon(ctx, id, cx, cy, size) {
     ctx.save();
+    ctx.translate(cx, cy);
+    const s = size / 28;
+    ctx.scale(s, s);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    if (id === "pretzel") {
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 9.5;
+      ctx.beginPath();
+      ctx.moveTo(-12, 11);
+      ctx.bezierCurveTo(-22, -4, -14, -18, 0, -10);
+      ctx.bezierCurveTo(14, -18, 22, -4, 12, 11);
+      ctx.bezierCurveTo(4, 2, -4, 2, -12, 11);
+      ctx.stroke();
+      ctx.strokeStyle = "#C77D3A";
+      ctx.lineWidth = 5.6;
+      ctx.stroke();
+      ctx.fillStyle = PALETTE.cream;
+      ctx.beginPath();
+      ctx.arc(-9, -6, 1.5, 0, Math.PI * 2);
+      ctx.arc(8, -7, 1.5, 0, Math.PI * 2);
+      ctx.arc(0, 4, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (id === "orange_bean" || id === "berry_bean") {
+      const fill = id === "orange_bean" ? "#F29132" : PALETTE.berryPurple;
+      const shine = id === "orange_bean" ? "#FFD08A" : "#E598B8";
+      ctx.fillStyle = fill;
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.moveTo(-14, 4);
+      ctx.bezierCurveTo(-18, -11, -3, -16, 4, -8);
+      ctx.bezierCurveTo(14, -12, 20, 4, 10, 12);
+      ctx.bezierCurveTo(0, 17, -11, 14, -14, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = shine;
+      ctx.beginPath();
+      ctx.ellipse(-5, -4, 4.5, 2.2, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "#B8472F";
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2.4;
+      drawRoundedRect(ctx, -12, -6, 20, 20, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(9, 4, 6, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.stroke();
+      ctx.fillStyle = "#E59A3E";
+      ctx.beginPath();
+      ctx.ellipse(-2, -6, 9, 3.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = PALETTE.toastedSienna;
+      ctx.lineWidth = 3.2;
+      ctx.beginPath();
+      ctx.moveTo(1, -6);
+      ctx.lineTo(8, -16);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawFoldingChair(ctx, x, y, scale = 1, tilt = 0, openAmount = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tilt);
+    ctx.scale(scale, scale);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    const spread = 16 + openAmount * 22;
+    ctx.strokeStyle = "#8C98A0";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-spread, 34);
+    ctx.lineTo(spread * 0.7, -8);
+    ctx.moveTo(spread, 34);
+    ctx.lineTo(-spread * 0.7, -8);
+    ctx.stroke();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const backTilt = -0.35 + (1 - openAmount) * 0.3;
+    ctx.save();
+    ctx.translate(-spread * 0.45, -4);
+    ctx.rotate(backTilt);
+    drawRoundedRect(ctx, -10, -48, 22, 52, 6);
+    ctx.fillStyle = PALETTE.cream;
+    ctx.fill();
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    ctx.fillStyle = PALETTE.mapleCrimson;
+    ctx.fillRect(-8, -42, 18, 9);
+    ctx.fillRect(-8, -24, 18, 9);
+    ctx.fillRect(-8, -8, 18, 8);
+    ctx.restore();
+    drawRoundedRect(ctx, -spread * 0.75, -8, spread * 1.55, 16, 6);
+    ctx.fillStyle = PALETTE.sageLeaf;
+    ctx.fill();
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawBackyardTable(ctx, cx, y, width, guestCount, hasToast, hasPopcorn, hasPie, bob = 0, hasPlatter = false, hasChair = false) {
+    ctx.save();
+    if (hasChair) {
+      drawFoldingChair(ctx, cx + width * 0.52, y + 26, 0.56, 0.04, 0.45);
+    }
     const guestPalette = [
       { shirt: "#6B8F71", hair: "#4B3222" },
       { shirt: "#D95D39", hair: "#C9C0B5" },
       { shirt: "#5B85AA", hair: "#6B4423" },
-      { shirt: "#E58A32", hair: "#3B281E" }
+      { shirt: "#E58A32", hair: "#3B281E" },
+      { shirt: "#A5406B", hair: "#2D2420" }
     ];
-    const visibleGuests = Math.min(4, Math.max(0, guestCount - 2));
+    const visibleGuests = Math.min(5, Math.max(0, guestCount - 2));
     for (let i = 0; i < visibleGuests; i++) {
       const frac = (i + 1) / (visibleGuests + 1);
       const gx = cx - width * 0.44 + frac * width * 0.88;
       const gp = guestPalette[i % guestPalette.length];
-      drawGuestCharacter(ctx, gx, y - 24 + (i % 2 === 0 ? bob : -bob), gp.shirt, gp.hair, 0.95);
+      drawGuestCharacter(ctx, gx, y - 24 + (i % 2 === 0 ? bob : -bob), gp.shirt, gp.hair, 0.92);
     }
     ctx.strokeStyle = PALETTE.toastedSienna;
     ctx.lineWidth = 6;
@@ -616,23 +885,27 @@ var __ThanksgivingBundle = (() => {
     ctx.fillStyle = PALETTE.tableclothRed;
     ctx.fill();
     if (hasToast) {
-      drawToast(ctx, cx - width * 0.28, y - 10, 0.55, -0.1, true);
+      drawToast(ctx, cx - width * 0.33, y - 10, 0.52, -0.1, true);
     }
     if (hasPopcorn) {
       ctx.fillStyle = "#B86E39";
       ctx.strokeStyle = PALETTE.ink;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(cx, y - 6, 16, 0, Math.PI);
+      ctx.arc(cx - width * 0.11, y - 6, 15, 0, Math.PI);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      drawPopcornKernel(ctx, cx - 7, y - 12, 0.65, false);
-      drawPopcornKernel(ctx, cx + 6, y - 13, 0.65, true);
-      drawPopcornKernel(ctx, cx, y - 17, 0.65, false);
+      drawPopcornKernel(ctx, cx - width * 0.11 - 6, y - 12, 0.62, false);
+      drawPopcornKernel(ctx, cx - width * 0.11 + 6, y - 13, 0.62, true);
+      drawPopcornKernel(ctx, cx - width * 0.11, y - 17, 0.62, false);
+    }
+    if (hasPlatter) {
+      drawSnackIcon(ctx, "pretzel", cx + width * 0.11, y - 11, 18);
+      drawSnackIcon(ctx, "berry_bean", cx + width * 0.17, y - 8, 11);
     }
     if (hasPie) {
-      drawPumpkinPie(ctx, cx + width * 0.28, y - 10, 18, 12, true);
+      drawPumpkinPie(ctx, cx + width * 0.34, y - 10, 17, 12, true);
     }
     ctx.restore();
   }
@@ -757,6 +1030,10 @@ var __ThanksgivingBundle = (() => {
         case "silly_bonk":
           this.tone(240, 140, 0.14, "sawtooth", 0.1, now);
           break;
+        case "chair_boing":
+          this.tone(175, 420, 0.12, "triangle", 0.16, now);
+          this.tone(420, 210, 0.14, "sine", 0.13, now + 0.09);
+          break;
         case "cream_swirl":
           this.tone(440, 580, 0.07, "sine", 0.1, now);
           break;
@@ -843,7 +1120,15 @@ var __ThanksgivingBundle = (() => {
   }
 
   // thanksgiving/ts/minigames.ts
-  function createDishState(dishId, difficulty) {
+  function makeOrder(length, rng) {
+    const out = [];
+    for (let i = 0; i < length; i++) {
+      const idx = Math.floor(rng() * SNACK_IDS.length) % SNACK_IDS.length;
+      out.push(SNACK_IDS[idx]);
+    }
+    return out;
+  }
+  function createDishState(dishId, difficulty, rng = () => 0.37) {
     const spec = DISH_SPECS[dishId];
     const isCozy = difficulty === "cozy";
     const target = isCozy ? spec.cozyTarget : spec.bustlingTarget;
@@ -878,9 +1163,43 @@ var __ThanksgivingBundle = (() => {
         spawnTimer: 0.35,
         nextId: 1,
         items: [],
-        birdX: 0.25,
+        birdX: 0.28,
         birdAssistTimer: 0,
         feedbackText: "Slide bowl to catch!",
+        feedbackTimer: 1.2
+      };
+    }
+    if (dishId === "folding_chair") {
+      return {
+        kind: "folding_chair",
+        tamedProgress: 0,
+        target: 100,
+        taps: 0,
+        score: 0,
+        timeLeftSec,
+        chairAngle: 0.25,
+        chairHopY: 0,
+        springBackTimer: isCozy ? 2.4 : 1.5,
+        tamedCelebrateTimer: 0,
+        feedbackText: "Whoa! The lawn chair is bouncing!",
+        feedbackTimer: 1.4
+      };
+    }
+    if (dishId === "pretzel_platter") {
+      const orderLen = isCozy ? 2 : 3;
+      return {
+        kind: "pretzel_platter",
+        plattersDone: 0,
+        target,
+        score: 0,
+        streak: 0,
+        timeLeftSec,
+        order: makeOrder(orderLen, rng),
+        matchedCount: 0,
+        wrongFlashTimer: 0,
+        platterBounce: 0,
+        birdHintTimer: 0,
+        feedbackText: "Match the snack order!",
         feedbackTimer: 1.2
       };
     }
@@ -970,7 +1289,8 @@ var __ThanksgivingBundle = (() => {
     }
     const goldenMinY = isCozy ? 0.14 : 0.2;
     const goldenMaxY = isCozy ? 0.56 : 0.48;
-    if (input.primaryTap) {
+    const anyTap = input.primaryTap || Boolean(input.secondaryTap);
+    if (anyTap) {
       let bestIndex = -1;
       let bestDist = 999;
       const idealY = (goldenMinY + goldenMaxY) * 0.5;
@@ -986,13 +1306,18 @@ var __ThanksgivingBundle = (() => {
       }
       if (bestIndex >= 0) {
         const caught = dish.slices[bestIndex];
-        caught.state = "caught";
+        caught.state = input.secondaryTap && !input.primaryTap ? "rescued" : "caught";
         caught.age = 0;
         dish.plated += 1;
         dish.streak += 1;
         const bonus = bestDist < 0.08 ? 40 : 15;
         dish.score += 100 + bonus + Math.min(dish.streak - 1, 4) * 20;
-        dish.feedbackText = bestDist < 0.08 ? "Golden Perfect!" : "Yummy Buttered!";
+        if (input.secondaryTap && !input.primaryTap) {
+          dish.birdAssistTimer = 0.7;
+          dish.feedbackText = "Little Bird Butter Catch!";
+        } else {
+          dish.feedbackText = bestDist < 0.08 ? "Golden Perfect!" : "Yummy Buttered!";
+        }
         dish.feedbackTimer = 0.85;
         sounds.push("good_catch");
         particles.push(...makeBurst(caught.x * 420, caught.y * 440, PALETTE.butter, 10, "star", rng));
@@ -1061,10 +1386,11 @@ var __ThanksgivingBundle = (() => {
       sounds
     };
   }
-  function stepPopcornDish(dish, difficulty, dt, input, rng) {
+  function stepPopcornDish(dish, difficulty, playMode, dt, input, rng) {
     const particles = [];
     const sounds = [];
     const isCozy = difficulty === "cozy";
+    const isCoop = playMode === "laptop_coop";
     dish.bowlWobble = Math.max(0, dish.bowlWobble - dt * 3.2);
     dish.birdAssistTimer = Math.max(0, dish.birdAssistTimer - dt);
     dish.feedbackTimer = Math.max(0, dish.feedbackTimer - dt);
@@ -1077,6 +1403,11 @@ var __ThanksgivingBundle = (() => {
     } else if (input.moveDir !== 0) {
       const speed = isCozy ? 0.72 : 0.88;
       dish.bowlX = Math.max(0.14, Math.min(0.86, dish.bowlX + input.moveDir * speed * dt));
+    }
+    const p2Dir = input.moveDirP2 ?? 0;
+    if (isCoop && p2Dir !== 0) {
+      const speedP2 = isCozy ? 0.78 : 0.94;
+      dish.birdX = Math.max(0.12, Math.min(0.88, dish.birdX + p2Dir * speedP2 * dt));
     }
     dish.spawnTimer -= dt;
     if (dish.spawnTimer <= 0 && dish.caught < dish.target) {
@@ -1107,6 +1438,17 @@ var __ThanksgivingBundle = (() => {
       it.y += it.vy * dt;
       it.vy += gravity * dt;
       it.rotation += 2.6 * dt;
+      if (isCoop && it.itemType !== "carrot" && it.y >= 0.5 && it.y <= 0.68 && it.vy > 0 && Math.abs(it.x - dish.birdX) <= 0.11) {
+        dish.caught += it.itemType === "golden_kernel" ? 2 : 1;
+        dish.streak += 1;
+        dish.score += (it.itemType === "golden_kernel" ? 180 : 120) + Math.min(dish.streak - 1, 5) * 15;
+        dish.birdAssistTimer = 0.5;
+        dish.feedbackText = "P2 Bird Air-Scoop!";
+        dish.feedbackTimer = 0.7;
+        sounds.push("bird_rescue");
+        particles.push(...makeBurst(it.x * 420, it.y * 440, PALETTE.birdYellow, 8, "star", rng));
+        continue;
+      }
       if (it.y >= 0.74 && it.y <= 0.84 && it.vy > 0 && Math.abs(it.x - dish.bowlX) <= catchHalfW) {
         if (it.itemType === "carrot") {
           dish.bowlWobble = 1;
@@ -1152,7 +1494,7 @@ var __ThanksgivingBundle = (() => {
       kept.push(it);
     }
     dish.items = kept;
-    if (dish.items.length > 0 && dish.birdAssistTimer <= 0) {
+    if (!isCoop && dish.items.length > 0 && dish.birdAssistTimer <= 0) {
       dish.birdX += (dish.items[0].x - dish.birdX) * Math.min(1, dt * 3);
     }
     const done = dish.caught >= dish.target || dish.timeLeftSec !== null && dish.timeLeftSec <= 0;
@@ -1168,6 +1510,134 @@ var __ThanksgivingBundle = (() => {
       sounds
     };
   }
+  function stepChairDish(dish, difficulty, dt, input, rng) {
+    const particles = [];
+    const sounds = [];
+    const isCozy = difficulty === "cozy";
+    dish.feedbackTimer = Math.max(0, dish.feedbackTimer - dt);
+    dish.chairHopY = Math.max(0, dish.chairHopY - dt * 120);
+    if (dish.timeLeftSec !== null && dish.tamedProgress < 100) {
+      dish.timeLeftSec = Math.max(0, dish.timeLeftSec - dt);
+    }
+    if (dish.tamedProgress < 100) {
+      const tapPower = (input.primaryTap ? 1 : 0) + (input.secondaryTap ? 1 : 0);
+      if (tapPower > 0) {
+        const gainPerTap = isCozy ? 14 : 11;
+        dish.taps += tapPower;
+        dish.tamedProgress = Math.min(100, dish.tamedProgress + gainPerTap * tapPower);
+        dish.score += 22 * tapPower;
+        dish.chairAngle = (dish.taps % 2 === 0 ? 1 : -1) * Math.max(0.05, 0.35 * (1 - dish.tamedProgress / 110));
+        dish.chairHopY = 14;
+        dish.feedbackText = dish.tamedProgress >= 75 ? "Almost folded! Keep tapping!" : dish.tamedProgress >= 40 ? "Haha! Hold it down!" : "Fold that bouncy chair!";
+        dish.feedbackTimer = 0.7;
+        sounds.push("good_catch");
+        particles.push(...makeBurst(210, 260, PALETTE.pumpkinGold, 5, "star", rng));
+        if (dish.tamedProgress >= 100) {
+          dish.chairAngle = 0;
+          dish.chairHopY = 0;
+          dish.tamedCelebrateTimer = 0.7;
+          dish.score += 120;
+          dish.feedbackText = "Tamed! Chair is ready for guests!";
+          dish.feedbackTimer = 1;
+          sounds.push("dish_win");
+          particles.push(...makeBurst(210, 240, PALETTE.butter, 14, "star", rng));
+        }
+      } else {
+        dish.springBackTimer -= dt;
+        if (dish.springBackTimer <= 0) {
+          dish.springBackTimer = isCozy ? 2.4 : 1.35;
+          if (dish.tamedProgress > 12 && dish.tamedProgress < 94) {
+            dish.tamedProgress = Math.max(8, dish.tamedProgress - (isCozy ? 4 : 9));
+            dish.chairAngle = (rng() > 0.5 ? 1 : -1) * 0.42;
+            dish.chairHopY = 24;
+            dish.feedbackText = "BOING! It popped back open!";
+            dish.feedbackTimer = 0.85;
+            sounds.push("chair_boing");
+            particles.push(...makeBurst(210, 250, PALETTE.mapleCrimson, 6, "crumb", rng));
+          }
+        } else {
+          dish.chairAngle *= Math.pow(0.25, dt);
+        }
+      }
+    } else {
+      dish.tamedCelebrateTimer = Math.max(0, dish.tamedCelebrateTimer - dt);
+    }
+    const done = dish.tamedProgress >= 100 && dish.tamedCelebrateTimer <= 0 || dish.timeLeftSec !== null && dish.timeLeftSec <= 0;
+    if (done && dish.tamedProgress < 100) {
+      sounds.push("dish_win");
+    }
+    let stars = 1;
+    if (dish.tamedProgress >= 100) {
+      stars = dish.timeLeftSec === null || dish.timeLeftSec >= 6 ? 3 : 2;
+    } else if (dish.tamedProgress >= 65) {
+      stars = 2;
+    }
+    return {
+      completed: done,
+      stars,
+      score: dish.score,
+      dishesMade: Math.round(dish.tamedProgress),
+      particles,
+      sounds
+    };
+  }
+  function stepPlatterDish(dish, difficulty, dt, input, rng) {
+    const particles = [];
+    const sounds = [];
+    const isCozy = difficulty === "cozy";
+    dish.wrongFlashTimer = Math.max(0, dish.wrongFlashTimer - dt);
+    dish.platterBounce = Math.max(0, dish.platterBounce - dt * 4);
+    dish.birdHintTimer = Math.max(0, dish.birdHintTimer - dt);
+    dish.feedbackTimer = Math.max(0, dish.feedbackTimer - dt);
+    if (dish.timeLeftSec !== null) {
+      dish.timeLeftSec = Math.max(0, dish.timeLeftSec - dt);
+    }
+    if (input.snackPick && dish.plattersDone < dish.target) {
+      const expected = dish.order[dish.matchedCount];
+      if (input.snackPick === expected) {
+        dish.matchedCount += 1;
+        dish.platterBounce = 1;
+        dish.streak += 1;
+        dish.score += 55 + Math.min(dish.streak - 1, 5) * 10;
+        sounds.push("good_catch");
+        particles.push(...makeBurst(210, 265, PALETTE.butter, 7, "star", rng));
+        if (dish.matchedCount >= dish.order.length) {
+          dish.plattersDone += 1;
+          dish.score += 80;
+          dish.feedbackText = "Platter #" + String(dish.plattersDone) + " Delicious!";
+          dish.feedbackTimer = 0.9;
+          particles.push(...makeBurst(210, 250, PALETTE.pumpkinGold, 12, "star", rng));
+          if (dish.plattersDone < dish.target) {
+            const nextLen = isCozy ? 2 : dish.plattersDone >= dish.target - 2 ? 4 : 3;
+            dish.order = makeOrder(nextLen, rng);
+            dish.matchedCount = 0;
+          }
+        } else {
+          dish.feedbackText = "Yum! Next snack!";
+          dish.feedbackTimer = 0.6;
+        }
+      } else {
+        dish.wrongFlashTimer = 0.45;
+        dish.birdHintTimer = 0.9;
+        dish.streak = 0;
+        dish.feedbackText = "Check the highlighted snack!";
+        dish.feedbackTimer = 0.85;
+        sounds.push("silly_bonk");
+      }
+    }
+    const done = dish.plattersDone >= dish.target || dish.timeLeftSec !== null && dish.timeLeftSec <= 0;
+    if (done) {
+      sounds.push("dish_win");
+    }
+    return {
+      completed: done,
+      stars: computeStars(difficulty, dish.plattersDone, dish.target, dish.score),
+      score: dish.score,
+      dishesMade: dish.plattersDone,
+      particles,
+      sounds
+    };
+  }
   function stepPieDish(dish, difficulty, dt, input, rng) {
     const particles = [];
     const sounds = [];
@@ -1177,13 +1647,14 @@ var __ThanksgivingBundle = (() => {
     if (dish.timeLeftSec !== null) {
       dish.timeLeftSec = Math.max(0, dish.timeLeftSec - dt);
     }
+    const tapCount = (input.primaryTap ? 1 : 0) + (input.secondaryTap ? 1 : 0);
     if (dish.stage === "whipping") {
       let added = 0;
       if (input.swipeDelta > 0.01) {
         added += input.swipeDelta * (isCozy ? 0.95 : 0.72);
       }
-      if (input.primaryTap) {
-        added += isCozy ? 0.24 : 0.17;
+      if (tapCount > 0) {
+        added += (isCozy ? 0.24 : 0.17) * tapCount;
       }
       if (added > 0) {
         const prevDots = dish.creamDots.length;
@@ -1211,7 +1682,7 @@ var __ThanksgivingBundle = (() => {
         dish.feedbackTimer = 1.5;
       }
     } else if (dish.stage === "cookie_drop") {
-      if (input.primaryTap) {
+      if (tapCount > 0) {
         dish.stage = "pie_celebrate";
         dish.cookieDropY = 1;
         dish.celebrateTimer = 0.85;
@@ -1246,12 +1717,18 @@ var __ThanksgivingBundle = (() => {
       sounds
     };
   }
-  function stepActiveDish(dish, difficulty, dt, input, rng) {
+  function stepActiveDish(dish, difficulty, playMode, dt, input, rng) {
     if (dish.kind === "golden_toast") {
       return stepToastDish(dish, difficulty, dt, input, rng);
     }
     if (dish.kind === "flying_popcorn") {
-      return stepPopcornDish(dish, difficulty, dt, input, rng);
+      return stepPopcornDish(dish, difficulty, playMode, dt, input, rng);
+    }
+    if (dish.kind === "folding_chair") {
+      return stepChairDish(dish, difficulty, dt, input, rng);
+    }
+    if (dish.kind === "pretzel_platter") {
+      return stepPlatterDish(dish, difficulty, dt, input, rng);
     }
     return stepPieDish(dish, difficulty, dt, input, rng);
   }
@@ -1259,9 +1736,12 @@ var __ThanksgivingBundle = (() => {
   // thanksgiving/ts/game.ts
   var EMPTY_INPUT = {
     primaryTap: false,
+    secondaryTap: false,
     moveDir: 0,
+    moveDirP2: 0,
     pointerXNorm: null,
-    swipeDelta: 0
+    swipeDelta: 0,
+    snackPick: null
   };
   function nextRandom(state) {
     state.rngState = state.rngState + 1831565813 | 0;
@@ -1271,8 +1751,8 @@ var __ThanksgivingBundle = (() => {
   }
   function createInitialState(config = {}) {
     const playMode = config.playMode ?? "pass_and_play";
-    const rawCount = config.chefCount ?? (playMode === "solo" ? 1 : 2);
-    const chefCount = playMode === "solo" ? 1 : Math.max(2, Math.min(4, rawCount));
+    const rawCount = config.chefCount ?? (playMode === "solo" ? 1 : playMode === "laptop_coop" ? 2 : 2);
+    const chefCount = playMode === "solo" ? 1 : playMode === "laptop_coop" ? 2 : Math.max(2, Math.min(4, rawCount));
     return {
       phase: "title",
       difficulty: config.difficulty ?? "cozy",
@@ -1302,7 +1782,7 @@ var __ThanksgivingBundle = (() => {
   }
   function beginCurrentDish(state) {
     const dishId = getCurrentDishId(state);
-    state.dishState = createDishState(dishId, state.difficulty);
+    state.dishState = createDishState(dishId, state.difficulty, () => nextRandom(state));
     state.phase = "dish_play";
   }
   function applyAction(state, action) {
@@ -1315,6 +1795,8 @@ var __ThanksgivingBundle = (() => {
         state.playMode = action.playMode;
         if (action.playMode === "solo") {
           state.chefCount = 1;
+        } else if (action.playMode === "laptop_coop") {
+          state.chefCount = 2;
         } else {
           const count = action.chefCount ?? Math.max(2, state.chefCount);
           state.chefCount = Math.max(2, Math.min(4, count));
@@ -1446,7 +1928,14 @@ var __ThanksgivingBundle = (() => {
     }
     state.particles = nextParticles;
     if (state.phase === "dish_play" && state.dishState) {
-      const res = stepActiveDish(state.dishState, state.difficulty, dt, input, () => nextRandom(state));
+      const res = stepActiveDish(
+        state.dishState,
+        state.difficulty,
+        state.playMode,
+        dt,
+        input,
+        () => nextRandom(state)
+      );
       if (res.particles.length > 0) {
         state.particles.push(...res.particles);
       }
@@ -1544,12 +2033,19 @@ var __ThanksgivingBundle = (() => {
     ctx.font = "700 28px system-ui, -apple-system, sans-serif";
     const year = (/* @__PURE__ */ new Date()).getFullYear();
     ctx.fillText("Beagle Chef's Backyard Feast  -  " + String(year), W / 2, 188);
-    const starCount = Math.max(3, Math.min(9, state.totalStars));
-    const starStartX = W / 2 - (starCount - 1) * 44 / 2;
-    for (let i = 0; i < starCount; i++) {
-      drawStar(ctx, starStartX + i * 44, 238, 17, PALETTE.pumpkinGold);
+    const displayedStars = 5;
+    const starStartX = W / 2 - (displayedStars - 1) * 46 / 2;
+    for (let i = 0; i < displayedStars; i++) {
+      drawStar(ctx, starStartX + i * 46, 236, 17, PALETTE.pumpkinGold);
     }
-    drawRoundedRect(ctx, 88, 282, W - 176, 510, 28);
+    ctx.fillStyle = PALETTE.toastedSienna;
+    ctx.font = "700 22px system-ui, -apple-system, sans-serif";
+    ctx.fillText(
+      "Feast Stars Earned: " + String(state.totalStars) + " / 15",
+      W / 2,
+      272
+    );
+    drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
     ctx.fillStyle = "#FCE5C0";
     ctx.fill();
     ctx.lineWidth = 4;
@@ -1557,16 +2053,28 @@ var __ThanksgivingBundle = (() => {
     ctx.stroke();
     ctx.save();
     ctx.beginPath();
-    drawRoundedRect(ctx, 88, 282, W - 176, 510, 28);
+    drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
     ctx.clip();
     ctx.fillStyle = "#B6C285";
     ctx.beginPath();
     ctx.ellipse(W / 2, 830, 580, 160, 0, Math.PI, 0);
     ctx.fill();
-    drawMapleTree(ctx, W / 2, 705, 480, 410, state.leaves, false);
-    drawBackyardTable(ctx, W / 2, 718, 620, state.seatedGuests.length, true, true, true, 0);
-    drawBeagleChef(ctx, 210, 725, 1.55, "excited", 0);
-    drawLittleBird(ctx, 868, 632, 2, 0.3);
+    drawMapleTree(ctx, W / 2, 705, 480, 404, state.leaves, false);
+    drawBackyardTable(
+      ctx,
+      W / 2,
+      718,
+      580,
+      state.seatedGuests.length,
+      true,
+      true,
+      true,
+      0,
+      true,
+      true
+    );
+    drawBeagleChef(ctx, 195, 725, 1.5, "excited", 0);
+    drawLittleBird(ctx, 882, 626, 2, 0.3);
     ctx.restore();
     ctx.fillStyle = PALETTE.mapleCrimson;
     ctx.font = "800 34px system-ui, -apple-system, sans-serif";
@@ -1707,7 +2215,7 @@ var __ThanksgivingBundle = (() => {
     ctx.save();
     ctx.font = "700 15px system-ui, -apple-system, sans-serif";
     const tw = ctx.measureText(text).width;
-    const bw = Math.min(STAGE_LOGICAL_W - 28, tw + 28);
+    const bw = Math.min(STAGE_LOGICAL_W - 24, tw + 28);
     const bx = cx - bw / 2;
     drawRoundedRect(ctx, bx, y - 18, bw, 34, 14);
     ctx.fillStyle = PALETTE.cream;
@@ -1743,7 +2251,7 @@ var __ThanksgivingBundle = (() => {
     const bob = Math.sin(state.elapsedSec * 4) * 3;
     const mood = dish.slices.some((s) => s.state === "hat_bounce") ? "oops" : dish.feedbackTimer > 0.2 && dish.streak > 0 ? "excited" : "happy";
     drawBeagleChef(ctx, 78, 326, 1.05, mood, bob);
-    const birdY = dish.birdAssistTimer > 0 ? 250 : 288 + Math.sin(state.elapsedSec * 6) * 6;
+    const birdY = dish.birdAssistTimer > 0 ? 245 : 288 + Math.sin(state.elapsedSec * 6) * 6;
     drawLittleBird(ctx, 344, birdY, 1.25, Math.sin(state.elapsedSec * 14));
     for (let i = 0; i < dish.slices.length; i++) {
       const s = dish.slices[i];
@@ -1780,6 +2288,7 @@ var __ThanksgivingBundle = (() => {
   }
   function renderPopcornStage(ctx, state, dish) {
     drawWarmBackdrop(ctx, state.elapsedSec, false);
+    const isCoop = state.playMode === "laptop_coop";
     ctx.save();
     ctx.translate(STAGE_LOGICAL_W / 2, 108);
     ctx.fillStyle = "#4A4340";
@@ -1802,8 +2311,26 @@ var __ThanksgivingBundle = (() => {
         drawPopcornKernel(ctx, px, py, 1.15, it.itemType === "golden_kernel", it.rotation);
       }
     }
-    const birdY = dish.birdAssistTimer > 0 ? 344 : 292 + Math.sin(state.elapsedSec * 5) * 8;
-    drawLittleBird(ctx, dish.birdX * STAGE_LOGICAL_W, birdY, 1.15, Math.sin(state.elapsedSec * 14));
+    const birdPx = dish.birdX * STAGE_LOGICAL_W;
+    const birdPy = isCoop ? 258 + Math.sin(state.elapsedSec * 7) * 4 : dish.birdAssistTimer > 0 ? 344 : 292 + Math.sin(state.elapsedSec * 5) * 8;
+    drawLittleBird(ctx, birdPx, birdPy, 1.18, Math.sin(state.elapsedSec * 14));
+    if (isCoop) {
+      ctx.save();
+      ctx.translate(birdPx, birdPy + 18);
+      ctx.fillStyle = PALETTE.pumpkinGold;
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = "800 11px system-ui, sans-serif";
+      ctx.fillStyle = PALETTE.ink;
+      ctx.textAlign = "center";
+      ctx.fillText("P2", 0, -34);
+      ctx.restore();
+    }
     const bx = dish.bowlX * STAGE_LOGICAL_W;
     const wobble = Math.sin(state.elapsedSec * 36) * dish.bowlWobble * 7;
     drawBeagleChef(ctx, bx, 382, 0.9, dish.bowlWobble > 0.2 ? "oops" : "happy", 0);
@@ -1824,6 +2351,147 @@ var __ThanksgivingBundle = (() => {
     ctx.restore();
     if (dish.feedbackTimer > 0) {
       drawSpeechBubble(ctx, dish.feedbackText, STAGE_LOGICAL_W / 2, 38);
+    }
+  }
+  function renderChairStage(ctx, state, dish) {
+    drawWarmBackdrop(ctx, state.elapsedSec, true);
+    const flap = Math.sin(state.elapsedSec * 9) * (1 - dish.tamedProgress / 100) * 6;
+    drawBackyardTable(ctx, STAGE_LOGICAL_W / 2, 168 + flap * 0.2, 230, 3, true, true, false, flap * 0.3);
+    const openAmount = Math.max(0.2, 1 - dish.tamedProgress / 100 * 0.75);
+    const idleWobble = dish.tamedProgress >= 100 ? 0 : Math.sin(state.elapsedSec * 12) * 0.08;
+    drawFoldingChair(
+      ctx,
+      STAGE_LOGICAL_W / 2,
+      292 - dish.chairHopY,
+      1.7,
+      dish.chairAngle + idleWobble,
+      openAmount
+    );
+    const chefMood = dish.tamedProgress >= 100 ? "excited" : dish.chairHopY > 15 ? "oops" : "happy";
+    drawBeagleChef(ctx, 84, 342, 1, chefMood, Math.sin(state.elapsedSec * 8) * 3);
+    drawLittleBird(
+      ctx,
+      340,
+      264 - dish.chairHopY * 0.5 + Math.sin(state.elapsedSec * 10) * 5,
+      1.3,
+      Math.sin(state.elapsedSec * 18)
+    );
+    const barW = 290;
+    const barX = (STAGE_LOGICAL_W - barW) / 2;
+    const barY = 392;
+    drawRoundedRect(ctx, barX, barY, barW, 24, 12);
+    ctx.fillStyle = PALETTE.cream;
+    ctx.fill();
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    const fillW = Math.max(0, (barW - 6) * dish.tamedProgress / 100);
+    if (fillW > 4) {
+      drawRoundedRect(ctx, barX + 3, barY + 3, fillW, 18, 9);
+      ctx.fillStyle = dish.tamedProgress >= 100 ? PALETTE.sageLeaf : PALETTE.mapleCrimson;
+      ctx.fill();
+    }
+    ctx.font = "800 12px system-ui, sans-serif";
+    ctx.fillStyle = PALETTE.ink;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("CHAIR TAMED: " + String(Math.round(dish.tamedProgress)) + "%", STAGE_LOGICAL_W / 2, barY + 12);
+    if (dish.feedbackTimer > 0) {
+      drawSpeechBubble(ctx, dish.feedbackText, STAGE_LOGICAL_W / 2, 38);
+    }
+  }
+  function renderPlatterStage(ctx, state, dish) {
+    drawWarmBackdrop(ctx, state.elapsedSec, false);
+    const count = dish.order.length;
+    const slotGap = 62;
+    const boxW = Math.max(190, count * slotGap + 44);
+    const boxX = (STAGE_LOGICAL_W - boxW) / 2;
+    const shakeX = dish.wrongFlashTimer > 0 ? Math.sin(state.elapsedSec * 55) * 6 : 0;
+    ctx.save();
+    ctx.translate(shakeX, 0);
+    drawRoundedRect(ctx, boxX, 66, boxW, 84, 22);
+    ctx.fillStyle = dish.wrongFlashTimer > 0 ? "#FFE1DA" : PALETTE.cream;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = dish.wrongFlashTimer > 0 ? PALETTE.mapleCrimson : PALETTE.ink;
+    ctx.stroke();
+    const startX = STAGE_LOGICAL_W / 2 - (count - 1) * slotGap / 2;
+    for (let i = 0; i < count; i++) {
+      const sx = startX + i * slotGap;
+      const sy = 108;
+      const isDone = i < dish.matchedCount;
+      const isNext = i === dish.matchedCount;
+      if (isNext) {
+        ctx.fillStyle = "rgba(242, 165, 65, 0.35)";
+        ctx.beginPath();
+        ctx.arc(sx, sy, 26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.mapleCrimson;
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+      } else if (isDone) {
+        ctx.fillStyle = "rgba(107, 143, 113, 0.25)";
+        ctx.beginPath();
+        ctx.arc(sx, sy, 23, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      drawSnackIcon(ctx, dish.order[i], sx, sy, 32);
+      if (isDone) {
+        ctx.fillStyle = PALETTE.sageLeaf;
+        ctx.strokeStyle = PALETTE.ink;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(sx + 16, sy - 16, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(sx + 12, sy - 16);
+        ctx.lineTo(sx + 15, sy - 13);
+        ctx.lineTo(sx + 20, sy - 19);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    drawBeagleChef(
+      ctx,
+      82,
+      244,
+      0.96,
+      dish.wrongFlashTimer > 0 ? "oops" : dish.platterBounce > 0.2 ? "excited" : "happy",
+      Math.sin(state.elapsedSec * 5) * 2.5
+    );
+    drawLittleBird(ctx, 344, 214 + Math.sin(state.elapsedSec * 7) * 5, 1.25, Math.sin(state.elapsedSec * 14));
+    const bounceY = -dish.platterBounce * 10;
+    ctx.save();
+    ctx.translate(STAGE_LOGICAL_W / 2, 338 + bounceY);
+    ctx.fillStyle = "#C68642";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 118, 42, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#E6B87A";
+    ctx.beginPath();
+    ctx.ellipse(0, -2, 98, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    for (let i = 0; i < dish.matchedCount; i++) {
+      const px = -((dish.order.length - 1) * 40) / 2 + i * 40;
+      drawSnackIcon(ctx, dish.order[i], px, -6, 28);
+    }
+    ctx.restore();
+    ctx.font = "700 14px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = PALETTE.ink;
+    ctx.textAlign = "center";
+    ctx.fillText(
+      "Platter " + String(Math.min(dish.plattersDone + 1, dish.target)) + " of " + String(dish.target),
+      STAGE_LOGICAL_W / 2,
+      404
+    );
+    if (dish.feedbackTimer > 0) {
+      drawSpeechBubble(ctx, dish.feedbackText, STAGE_LOGICAL_W / 2, 34);
     }
   }
   function renderPieStage(ctx, state, dish) {
@@ -1867,9 +2535,21 @@ var __ThanksgivingBundle = (() => {
     if (state.phase === "title") {
       drawWarmBackdrop(ctx, state.elapsedSec, true);
       drawMapleTree(ctx, STAGE_LOGICAL_W / 2, 330, 260, 260, state.leaves, false);
-      drawBackyardTable(ctx, STAGE_LOGICAL_W / 2, 344, 290, 4, true, true, true, Math.sin(state.elapsedSec * 3) * 2);
-      drawBeagleChef(ctx, 114, 330, 1.05, "excited", Math.sin(state.elapsedSec * 4) * 3);
-      drawLittleBird(ctx, 314, 286 + Math.sin(state.elapsedSec * 6) * 6, 1.3, Math.sin(state.elapsedSec * 14));
+      drawBackyardTable(
+        ctx,
+        STAGE_LOGICAL_W / 2,
+        344,
+        290,
+        6,
+        true,
+        true,
+        true,
+        Math.sin(state.elapsedSec * 3) * 2,
+        true,
+        true
+      );
+      drawBeagleChef(ctx, 88, 330, 1, "excited", Math.sin(state.elapsedSec * 4) * 3);
+      drawLittleBird(ctx, 324, 282 + Math.sin(state.elapsedSec * 6) * 6, 1.3, Math.sin(state.elapsedSec * 14));
       drawSpeechBubble(ctx, "Happy Thanksgiving! Let's cook!", STAGE_LOGICAL_W / 2, 42);
     } else if (state.phase === "pass_banner") {
       drawWarmBackdrop(ctx, state.elapsedSec, true);
@@ -1881,6 +2561,10 @@ var __ThanksgivingBundle = (() => {
         renderToastStage(ctx, state, state.dishState);
       } else if (state.dishState.kind === "flying_popcorn") {
         renderPopcornStage(ctx, state, state.dishState);
+      } else if (state.dishState.kind === "folding_chair") {
+        renderChairStage(ctx, state, state.dishState);
+      } else if (state.dishState.kind === "pretzel_platter") {
+        renderPlatterStage(ctx, state, state.dishState);
       } else {
         renderPieStage(ctx, state, state.dishState);
       }
@@ -1888,20 +2572,24 @@ var __ThanksgivingBundle = (() => {
       drawWarmBackdrop(ctx, state.elapsedSec, true);
       const hasToast = state.results.some((r) => r.dishId === "golden_toast");
       const hasPopcorn = state.results.some((r) => r.dishId === "flying_popcorn");
+      const hasChair = state.results.some((r) => r.dishId === "folding_chair");
+      const hasPlatter = state.results.some((r) => r.dishId === "pretzel_platter");
       const hasPie = state.results.some((r) => r.dishId === "pumpkin_pie");
       drawBackyardTable(
         ctx,
         STAGE_LOGICAL_W / 2,
         320,
-        310,
+        300,
         state.seatedGuests.length,
         hasToast,
         hasPopcorn,
         hasPie,
-        Math.sin(state.elapsedSec * 4) * 2
+        Math.sin(state.elapsedSec * 4) * 2,
+        hasPlatter,
+        hasChair
       );
-      drawBeagleChef(ctx, 74, 344, 0.95, "excited", Math.sin(state.elapsedSec * 5) * 3);
-      drawLittleBird(ctx, 352, 274, 1.25, Math.sin(state.elapsedSec * 14));
+      drawBeagleChef(ctx, 64, 344, 0.92, "excited", Math.sin(state.elapsedSec * 5) * 3);
+      drawLittleBird(ctx, 356, 270, 1.25, Math.sin(state.elapsedSec * 14));
       const last = state.results[state.results.length - 1];
       if (last) {
         const spec = DISH_SPECS[last.dishId];
@@ -1914,7 +2602,7 @@ var __ThanksgivingBundle = (() => {
             i < last.stars ? PALETTE.pumpkinGold : "#E2D5C3"
           );
         }
-        drawSpeechBubble(ctx, spec.shortTitle + " Ready! +" + last.guestUnlocked, STAGE_LOGICAL_W / 2, 46);
+        drawSpeechBubble(ctx, spec.shortTitle + " Done! +" + last.guestUnlocked, STAGE_LOGICAL_W / 2, 46);
       }
     } else if (state.phase === "gratitude_tree") {
       drawWarmBackdrop(ctx, state.elapsedSec, true);
@@ -1934,15 +2622,17 @@ var __ThanksgivingBundle = (() => {
         ctx,
         STAGE_LOGICAL_W / 2,
         344,
-        336,
+        316,
         state.seatedGuests.length,
         true,
         true,
         true,
-        Math.sin(state.elapsedSec * 4) * 2.5
+        Math.sin(state.elapsedSec * 4) * 2.5,
+        true,
+        true
       );
-      drawBeagleChef(ctx, 64, 360, 0.95, "excited", Math.sin(state.elapsedSec * 6) * 3);
-      drawLittleBird(ctx, 358, 286 + Math.sin(state.elapsedSec * 7) * 5, 1.25, Math.sin(state.elapsedSec * 15));
+      drawBeagleChef(ctx, 56, 360, 0.92, "excited", Math.sin(state.elapsedSec * 6) * 3);
+      drawLittleBird(ctx, 360, 282 + Math.sin(state.elapsedSec * 7) * 5, 1.25, Math.sin(state.elapsedSec * 15));
       drawSpeechBubble(ctx, "Happy Thanksgiving Feast!", STAGE_LOGICAL_W / 2, 38);
     }
     drawParticles(ctx, state);
@@ -1992,8 +2682,12 @@ var __ThanksgivingBundle = (() => {
     let lastRenderedPhaseKey = "";
     let lastPostcardCanvas = null;
     let pendingPrimaryTap = false;
-    let heldLeft = false;
-    let heldRight = false;
+    let pendingSecondaryTap = false;
+    let pendingSnackPick = null;
+    let heldLeftP1 = false;
+    let heldRightP1 = false;
+    let heldLeftP2 = false;
+    let heldRightP2 = false;
     let activePointerXNorm = null;
     let pendingSwipeDelta = 0;
     let lastSwipeX = null;
@@ -2011,8 +2705,12 @@ var __ThanksgivingBundle = (() => {
     }
     function clearInputs() {
       pendingPrimaryTap = false;
-      heldLeft = false;
-      heldRight = false;
+      pendingSecondaryTap = false;
+      pendingSnackPick = null;
+      heldLeftP1 = false;
+      heldRightP1 = false;
+      heldLeftP2 = false;
+      heldRightP2 = false;
       activePointerXNorm = null;
       pendingSwipeDelta = 0;
       lastSwipeX = null;
@@ -2055,7 +2753,7 @@ var __ThanksgivingBundle = (() => {
       const rect = canvas.getBoundingClientRect();
       const nx = (e.clientX - rect.left) / Math.max(1, rect.width);
       const ny = (e.clientY - rect.top) / Math.max(1, rect.height);
-      if (state.dishState.kind === "golden_toast") {
+      if (state.dishState.kind === "golden_toast" || state.dishState.kind === "folding_chair") {
         pendingPrimaryTap = true;
       } else if (state.dishState.kind === "flying_popcorn") {
         activePointerXNorm = nx;
@@ -2083,8 +2781,7 @@ var __ThanksgivingBundle = (() => {
         activePointerXNorm = nx;
       } else if (state.dishState.kind === "pumpkin_pie" && state.dishState.stage === "whipping") {
         if (lastSwipeX !== null && lastSwipeY !== null) {
-          const dist = Math.hypot(nx - lastSwipeX, ny - lastSwipeY);
-          pendingSwipeDelta += dist;
+          pendingSwipeDelta += Math.hypot(nx - lastSwipeX, ny - lastSwipeY);
         }
         lastSwipeX = nx;
         lastSwipeY = ny;
@@ -2103,15 +2800,54 @@ var __ThanksgivingBundle = (() => {
         return;
       }
       unlockAudio();
-      if (e.code === "ArrowLeft" || e.code === "KeyA") {
-        heldLeft = true;
-      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-        heldRight = true;
-      } else if (e.code === "Space" || e.code === "Enter") {
-        if (state.phase === "dish_play") {
+      const isCoop = state.playMode === "laptop_coop";
+      if (e.code === "KeyA") {
+        heldLeftP1 = true;
+      } else if (e.code === "KeyD") {
+        heldRightP1 = true;
+      } else if (e.code === "ArrowLeft") {
+        if (isCoop) {
+          heldLeftP2 = true;
+        } else {
+          heldLeftP1 = true;
+        }
+      } else if (e.code === "ArrowRight") {
+        if (isCoop) {
+          heldRightP2 = true;
+        } else {
+          heldRightP1 = true;
+        }
+      }
+      if (state.phase === "dish_play" && state.dishState) {
+        if (state.dishState.kind === "pretzel_platter") {
+          if (e.code === "Digit1" || isCoop && e.code === "KeyA") {
+            e.preventDefault();
+            pendingSnackPick = "pretzel";
+          } else if (e.code === "Digit2" || isCoop && e.code === "KeyS") {
+            e.preventDefault();
+            pendingSnackPick = "orange_bean";
+          } else if (e.code === "Digit3" || isCoop && e.code === "ArrowLeft") {
+            e.preventDefault();
+            pendingSnackPick = "berry_bean";
+          } else if (e.code === "Digit4" || isCoop && e.code === "ArrowRight") {
+            e.preventDefault();
+            pendingSnackPick = "cider";
+          }
+          return;
+        }
+        if (e.code === "Space" || e.code === "KeyW") {
           e.preventDefault();
           pendingPrimaryTap = true;
-        } else if (state.phase === "pass_banner") {
+        } else if (e.code === "Enter" || e.code === "ArrowUp") {
+          e.preventDefault();
+          if (isCoop) {
+            pendingSecondaryTap = true;
+          } else {
+            pendingPrimaryTap = true;
+          }
+        }
+      } else if (e.code === "Space" || e.code === "Enter") {
+        if (state.phase === "pass_banner") {
           e.preventDefault();
           applyAction(state, { type: "CONFIRM_PASS" });
         } else if (state.phase === "dish_complete") {
@@ -2121,10 +2857,23 @@ var __ThanksgivingBundle = (() => {
       }
     });
     window.addEventListener("keyup", (e) => {
-      if (e.code === "ArrowLeft" || e.code === "KeyA") {
-        heldLeft = false;
-      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
-        heldRight = false;
+      const isCoop = state.playMode === "laptop_coop";
+      if (e.code === "KeyA") {
+        heldLeftP1 = false;
+      } else if (e.code === "KeyD") {
+        heldRightP1 = false;
+      } else if (e.code === "ArrowLeft") {
+        if (isCoop) {
+          heldLeftP2 = false;
+        } else {
+          heldLeftP1 = false;
+        }
+      } else if (e.code === "ArrowRight") {
+        if (isCoop) {
+          heldRightP2 = false;
+        } else {
+          heldRightP1 = false;
+        }
       }
     });
     function makeBtn(label, className, onClick) {
@@ -2138,6 +2887,24 @@ var __ThanksgivingBundle = (() => {
       });
       return btn;
     }
+    function makeInstantActionBtn(label, className, onTrigger) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = className;
+      btn.textContent = label;
+      btn.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        unlockAudio();
+        onTrigger();
+      });
+      btn.addEventListener("click", (e) => {
+        if (e.detail === 0) {
+          unlockAudio();
+          onTrigger();
+        }
+      });
+      return btn;
+    }
     function renderDeck() {
       deckEl.innerHTML = "";
       if (state.phase === "title") {
@@ -2145,7 +2912,7 @@ var __ThanksgivingBundle = (() => {
         wrap.className = "deck-stack";
         const intro = document.createElement("p");
         intro.className = "deck-note";
-        intro.textContent = "Cook 3 goofy Thanksgiving dishes, gather everyone at the backyard table, and hang leaves on the Gratitude Maple Tree!";
+        intro.textContent = "Cook 4 Thanksgiving treats, tame the runaway lawn chair, hang leaves on the Gratitude Maple Tree, and save your Family Postcard!";
         wrap.appendChild(intro);
         const diffRow = document.createElement("div");
         diffRow.className = "seg-row";
@@ -2155,40 +2922,52 @@ var __ThanksgivingBundle = (() => {
         ];
         for (let i = 0; i < modes.length; i++) {
           const m = modes[i];
-          const b = makeBtn(
-            m.label,
-            "seg-btn" + (state.difficulty === m.id ? " active" : ""),
-            () => {
+          diffRow.appendChild(
+            makeBtn(m.label, "seg-btn" + (state.difficulty === m.id ? " active" : ""), () => {
               applyAction(state, { type: "SET_DIFFICULTY", difficulty: m.id });
               lastRenderedPhaseKey = "";
-            }
+            })
           );
-          diffRow.appendChild(b);
         }
         wrap.appendChild(diffRow);
         const playRow = document.createElement("div");
         playRow.className = "seg-row";
         const setups = [
           { mode: "solo", chefs: 1, label: "1 Chef" },
-          { mode: "pass_and_play", chefs: 2, label: "2 Chefs" },
-          { mode: "pass_and_play", chefs: 3, label: "3 Chefs" },
-          { mode: "pass_and_play", chefs: 4, label: "4 Chefs" }
+          { mode: "pass_and_play", chefs: 2, label: "2 Pass" },
+          { mode: "pass_and_play", chefs: 3, label: "3 Pass" },
+          { mode: "pass_and_play", chefs: 4, label: "4 Pass" }
         ];
         for (let i = 0; i < setups.length; i++) {
           const s = setups[i];
           const active = state.playMode === s.mode && state.chefCount === s.chefs;
-          const b = makeBtn(s.label, "seg-btn" + (active ? " active" : ""), () => {
-            applyAction(state, { type: "SET_PLAY_MODE", playMode: s.mode, chefCount: s.chefs });
-            lastRenderedPhaseKey = "";
-          });
-          playRow.appendChild(b);
+          playRow.appendChild(
+            makeBtn(s.label, "seg-btn" + (active ? " active" : ""), () => {
+              applyAction(state, { type: "SET_PLAY_MODE", playMode: s.mode, chefCount: s.chefs });
+              lastRenderedPhaseKey = "";
+            })
+          );
         }
         wrap.appendChild(playRow);
-        const startBtn = makeBtn("Start the Backyard Feast!", "primary-btn big-btn", () => {
-          clearInputs();
-          applyAction(state, { type: "START_FEAST" });
-        });
-        wrap.appendChild(startBtn);
+        const coopRow = document.createElement("div");
+        coopRow.className = "seg-row";
+        coopRow.appendChild(
+          makeBtn(
+            "Laptop 2P Co-op (P1: WASD/Space + P2: Arrows/Enter)",
+            "seg-btn" + (state.playMode === "laptop_coop" ? " active" : ""),
+            () => {
+              applyAction(state, { type: "SET_PLAY_MODE", playMode: "laptop_coop", chefCount: 2 });
+              lastRenderedPhaseKey = "";
+            }
+          )
+        );
+        wrap.appendChild(coopRow);
+        wrap.appendChild(
+          makeBtn("Start the Backyard Feast!", "primary-btn big-btn", () => {
+            clearInputs();
+            applyAction(state, { type: "START_FEAST" });
+          })
+        );
         deckEl.appendChild(wrap);
         return;
       }
@@ -2205,39 +2984,36 @@ var __ThanksgivingBundle = (() => {
         sub.className = "deck-note";
         sub.textContent = "Up next: " + spec.title + " - " + spec.instruction;
         wrap.appendChild(sub);
-        const readyBtn = makeBtn("I'm Ready to Cook!", "primary-btn big-btn", () => {
-          clearInputs();
-          applyAction(state, { type: "CONFIRM_PASS" });
-        });
-        wrap.appendChild(readyBtn);
+        wrap.appendChild(
+          makeBtn("I'm Ready!", "primary-btn big-btn", () => {
+            clearInputs();
+            applyAction(state, { type: "CONFIRM_PASS" });
+          })
+        );
         deckEl.appendChild(wrap);
         return;
       }
       if (state.phase === "dish_play" && state.dishState) {
         const wrap = document.createElement("div");
         wrap.className = "deck-stack";
+        const isCoop = state.playMode === "laptop_coop";
         if (state.dishState.kind === "golden_toast") {
           const tip = document.createElement("p");
           tip.className = "deck-note";
-          tip.textContent = "Tap when toast pops into the dashed Golden Zone!";
+          tip.textContent = isCoop ? "P1 (Space) & P2 Bird (Enter): catch toast in the Golden Zone!" : "Tap when toast pops into the dashed Golden Zone!";
           wrap.appendChild(tip);
-          const catchBtn = document.createElement("button");
-          catchBtn.type = "button";
-          catchBtn.className = "primary-btn giant-btn";
-          catchBtn.textContent = "CATCH & BUTTER!";
-          catchBtn.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            unlockAudio();
-            pendingPrimaryTap = true;
-          });
-          catchBtn.addEventListener("click", (e) => {
-            if (e.detail === 0) {
-              unlockAudio();
+          wrap.appendChild(
+            makeInstantActionBtn("CATCH & BUTTER!", "primary-btn giant-btn", () => {
               pendingPrimaryTap = true;
-            }
-          });
-          wrap.appendChild(catchBtn);
+            })
+          );
         } else if (state.dishState.kind === "flying_popcorn") {
+          if (isCoop) {
+            const coopTip = document.createElement("p");
+            coopTip.className = "deck-note";
+            coopTip.textContent = "P1: A / D moves Beagle Bowl | P2: Left / Right flies Bird Cup!";
+            wrap.appendChild(coopTip);
+          }
           const track = document.createElement("div");
           track.className = "slide-track";
           track.textContent = "<--  Slide thumb here to move the bowl  -->";
@@ -2270,10 +3046,10 @@ var __ThanksgivingBundle = (() => {
           leftBtn.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             unlockAudio();
-            heldLeft = true;
+            heldLeftP1 = true;
           });
           const stopL = () => {
-            heldLeft = false;
+            heldLeftP1 = false;
           };
           leftBtn.addEventListener("pointerup", stopL);
           leftBtn.addEventListener("pointerleave", stopL);
@@ -2285,10 +3061,10 @@ var __ThanksgivingBundle = (() => {
           rightBtn.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             unlockAudio();
-            heldRight = true;
+            heldRightP1 = true;
           });
           const stopR = () => {
-            heldRight = false;
+            heldRightP1 = false;
           };
           rightBtn.addEventListener("pointerup", stopR);
           rightBtn.addEventListener("pointerleave", stopR);
@@ -2296,17 +3072,70 @@ var __ThanksgivingBundle = (() => {
           lrRow.appendChild(leftBtn);
           lrRow.appendChild(rightBtn);
           wrap.appendChild(lrRow);
+        } else if (state.dishState.kind === "folding_chair") {
+          const tip = document.createElement("p");
+          tip.className = "deck-note";
+          tip.textContent = isCoop ? "Team up! P1 (Space/W) + P2 (Enter/Up) tap fast to fold the lawn chair!" : "Tap fast to fold and tame the runaway backyard lawn chair!";
+          wrap.appendChild(tip);
+          wrap.appendChild(
+            makeInstantActionBtn("TAME THE CHAIR!", "primary-btn giant-btn", () => {
+              pendingPrimaryTap = true;
+            })
+          );
+        } else if (state.dishState.kind === "pretzel_platter") {
+          const tip = document.createElement("p");
+          tip.className = "deck-note";
+          tip.textContent = isCoop ? "Tap snacks in order! (P1: 1/2 or A/S | P2: 3/4 or Left/Right)" : "Tap the highlighted snacks in order to fill the platter!";
+          wrap.appendChild(tip);
+          const grid = document.createElement("div");
+          grid.className = "snack-grid";
+          for (let i = 0; i < SNACK_SPECS.length; i++) {
+            const sp = SNACK_SPECS[i];
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "snack-btn";
+            const ic = document.createElement("canvas");
+            ic.width = 48;
+            ic.height = 48;
+            const ictx = ic.getContext("2d");
+            if (ictx) {
+              drawSnackIcon(ictx, sp.id, 24, 24, 34);
+            }
+            const lbl = document.createElement("span");
+            lbl.className = "snack-label";
+            lbl.textContent = sp.label;
+            const hint = document.createElement("span");
+            hint.className = "key-hint";
+            hint.textContent = "[" + sp.keyHint + "]";
+            btn.appendChild(ic);
+            btn.appendChild(lbl);
+            btn.appendChild(hint);
+            btn.addEventListener("pointerdown", (e) => {
+              e.preventDefault();
+              unlockAudio();
+              pendingSnackPick = sp.id;
+            });
+            btn.addEventListener("click", (e) => {
+              if (e.detail === 0) {
+                unlockAudio();
+                pendingSnackPick = sp.id;
+              }
+            });
+            grid.appendChild(btn);
+          }
+          wrap.appendChild(grid);
         } else if (state.dishState.kind === "pumpkin_pie") {
           const isCookie = state.dishState.stage === "cookie_drop";
           if (isCookie) {
-            const dropBtn = makeBtn("DROP MAPLE COOKIE!", "primary-btn giant-btn", () => {
-              pendingPrimaryTap = true;
-            });
-            wrap.appendChild(dropBtn);
+            wrap.appendChild(
+              makeInstantActionBtn("DROP MAPLE COOKIE!", "primary-btn giant-btn", () => {
+                pendingPrimaryTap = true;
+              })
+            );
           } else {
             const pad = document.createElement("div");
             pad.className = "slide-track pie-pad";
-            pad.textContent = "Rub back & forth here (or tap below) to whip cream!";
+            pad.textContent = isCoop ? "Swipe here, or P1 (Space) + P2 (Enter) tap together to whip cream!" : "Rub back & forth here (or tap below) to whip cream!";
             pad.addEventListener("pointerdown", (e) => {
               e.preventDefault();
               unlockAudio();
@@ -2336,10 +3165,11 @@ var __ThanksgivingBundle = (() => {
             pad.addEventListener("pointerup", endPad);
             pad.addEventListener("pointercancel", endPad);
             wrap.appendChild(pad);
-            const whipBtn = makeBtn("WHIP CREAM SWIRL!", "primary-btn big-btn", () => {
-              pendingPrimaryTap = true;
-            });
-            wrap.appendChild(whipBtn);
+            wrap.appendChild(
+              makeInstantActionBtn("WHIP CREAM SWIRL!", "primary-btn big-btn", () => {
+                pendingPrimaryTap = true;
+              })
+            );
           }
         }
         deckEl.appendChild(wrap);
@@ -2351,18 +3181,19 @@ var __ThanksgivingBundle = (() => {
         wrap.className = "deck-stack center-stack";
         const msg = document.createElement("p");
         msg.className = "deck-note";
-        msg.textContent = last ? last.guestUnlocked + " joined the backyard table! (" + String(last.stars) + " stars earned)" : "Dish served!";
+        msg.textContent = last ? last.guestUnlocked + " joined the backyard table! (" + String(last.stars) + " stars earned)" : "Stage complete!";
         wrap.appendChild(msg);
         const isFinalDish = state.stageIndex + 1 >= DISH_SEQUENCE.length;
-        const nextBtn = makeBtn(
-          isFinalDish ? "Visit the Gratitude Maple Tree!" : "Cook Next Dish!",
-          "primary-btn big-btn",
-          () => {
-            clearInputs();
-            applyAction(state, { type: "NEXT_STAGE" });
-          }
+        wrap.appendChild(
+          makeBtn(
+            isFinalDish ? "Visit the Gratitude Maple Tree!" : "Next Backyard Station!",
+            "primary-btn big-btn",
+            () => {
+              clearInputs();
+              applyAction(state, { type: "NEXT_STAGE" });
+            }
+          )
         );
-        wrap.appendChild(nextBtn);
         deckEl.appendChild(wrap);
         return;
       }
@@ -2490,57 +3321,73 @@ var __ThanksgivingBundle = (() => {
         wrap.appendChild(promptBox);
         const btnRow = document.createElement("div");
         btnRow.className = "seg-row";
-        const postcardBtn = makeBtn("Save Family Postcard", "primary-btn", () => {
-          lastPostcardCanvas = renderPostcardCanvas(state);
-          if (modalImg && modalEl && modalStatus) {
-            modalImg.src = lastPostcardCanvas.toDataURL("image/png");
-            modalStatus.textContent = "Tap Share / Save below, or press & hold the postcard on iPhone to save to Photos.";
-            modalEl.classList.remove("hidden");
-          }
-        });
-        const shuffleBtn = makeBtn("New Table Prompt", "secondary-btn", () => {
-          applyAction(state, { type: "SHUFFLE_PROMPT" });
-          lastRenderedPhaseKey = "";
-        });
-        btnRow.appendChild(postcardBtn);
-        btnRow.appendChild(shuffleBtn);
+        btnRow.appendChild(
+          makeBtn("Save Family Postcard", "primary-btn", () => {
+            lastPostcardCanvas = renderPostcardCanvas(state);
+            if (modalImg && modalEl && modalStatus) {
+              modalImg.src = lastPostcardCanvas.toDataURL("image/png");
+              modalStatus.textContent = "Tap Share / Save below, or press & hold the postcard on iPhone to save to Photos.";
+              modalEl.classList.remove("hidden");
+            }
+          })
+        );
+        btnRow.appendChild(
+          makeBtn("New Table Prompt", "secondary-btn", () => {
+            applyAction(state, { type: "SHUFFLE_PROMPT" });
+            lastRenderedPhaseKey = "";
+          })
+        );
         wrap.appendChild(btnRow);
-        const replayBtn = makeBtn("Cook Another Feast!", "ghost-btn", () => {
-          clearInputs();
-          applyAction(state, { type: "PLAY_AGAIN" });
-        });
-        wrap.appendChild(replayBtn);
+        wrap.appendChild(
+          makeBtn("Cook Another Feast!", "ghost-btn", () => {
+            clearInputs();
+            applyAction(state, { type: "PLAY_AGAIN" });
+          })
+        );
         deckEl.appendChild(wrap);
       }
     }
     function updateHud() {
       if (modePillEl) {
-        modePillEl.textContent = state.difficulty === "cozy" ? "Cozy Mode" : "Bustling Chef";
+        const diffTxt = state.difficulty === "cozy" ? "Cozy" : "Bustling";
+        const playTxt = state.playMode === "laptop_coop" ? "2P Co-op" : diffTxt;
+        modePillEl.textContent = state.playMode === "laptop_coop" ? diffTxt + " | " + playTxt : diffTxt + " Mode";
       }
       if (!hudTitleEl || !hudMeterEl) {
         return;
       }
       if (state.phase === "title") {
         hudTitleEl.textContent = "Beagle Chef's Backyard Feast";
-        hudMeterEl.textContent = "3 Dishes + Gratitude Tree";
+        hudMeterEl.textContent = "5 Stages + Gratitude Tree";
       } else if (state.phase === "pass_banner") {
         hudTitleEl.textContent = getChefLabel(state.activeChefIndex) + "'s Turn";
-        hudMeterEl.textContent = "Dish " + String(state.stageIndex + 1) + "/" + String(DISH_SEQUENCE.length);
+        hudMeterEl.textContent = "Stage " + String(state.stageIndex + 1) + "/" + String(DISH_SEQUENCE.length);
       } else if (state.phase === "dish_play" && state.dishState) {
         const spec = DISH_SPECS[state.dishState.kind];
         hudTitleEl.textContent = spec.shortTitle;
-        const doneCount = state.dishState.kind === "golden_toast" ? state.dishState.plated : state.dishState.kind === "flying_popcorn" ? state.dishState.caught : state.dishState.piesFinished;
+        let progressTxt = "";
+        if (state.dishState.kind === "golden_toast") {
+          progressTxt = String(state.dishState.plated) + "/" + String(state.dishState.target);
+        } else if (state.dishState.kind === "flying_popcorn") {
+          progressTxt = String(state.dishState.caught) + "/" + String(state.dishState.target);
+        } else if (state.dishState.kind === "folding_chair") {
+          progressTxt = String(Math.round(state.dishState.tamedProgress)) + "%";
+        } else if (state.dishState.kind === "pretzel_platter") {
+          progressTxt = String(state.dishState.plattersDone) + "/" + String(state.dishState.target);
+        } else {
+          progressTxt = String(state.dishState.piesFinished) + "/" + String(state.dishState.target);
+        }
         const timerTxt = state.dishState.timeLeftSec !== null ? " | " + String(Math.ceil(state.dishState.timeLeftSec)) + "s" : " | Cozy";
-        hudMeterEl.textContent = String(doneCount) + "/" + String(state.dishState.target) + timerTxt;
+        hudMeterEl.textContent = progressTxt + timerTxt;
       } else if (state.phase === "dish_complete") {
-        hudTitleEl.textContent = "Dish Served!";
+        hudTitleEl.textContent = "Stage Complete!";
         hudMeterEl.textContent = "Stars: " + String(state.totalStars);
       } else if (state.phase === "gratitude_tree") {
         hudTitleEl.textContent = "Gratitude Maple Tree";
         hudMeterEl.textContent = "Leaves: " + String(state.leaves.length) + "/" + String(MAX_LEAVES);
       } else {
         hudTitleEl.textContent = "Happy Thanksgiving!";
-        hudMeterEl.textContent = "Total Stars: " + String(state.totalStars);
+        hudMeterEl.textContent = "Total Stars: " + String(state.totalStars) + "/15";
       }
     }
     function phaseKey() {
@@ -2562,15 +3409,21 @@ var __ThanksgivingBundle = (() => {
     function loop(now) {
       const dt = Math.min(0.05, Math.max(1e-3, (now - lastTs) / 1e3));
       lastTs = now;
-      const moveDir = heldLeft && !heldRight ? -1 : heldRight && !heldLeft ? 1 : 0;
+      const moveDir = heldLeftP1 && !heldRightP1 ? -1 : heldRightP1 && !heldLeftP1 ? 1 : 0;
+      const moveDirP2 = heldLeftP2 && !heldRightP2 ? -1 : heldRightP2 && !heldLeftP2 ? 1 : 0;
       stepGame(state, dt, {
         primaryTap: pendingPrimaryTap,
+        secondaryTap: pendingSecondaryTap,
         moveDir,
+        moveDirP2,
         pointerXNorm: activePointerXNorm,
-        swipeDelta: pendingSwipeDelta
+        swipeDelta: pendingSwipeDelta,
+        snackPick: pendingSnackPick
       });
       pendingPrimaryTap = false;
+      pendingSecondaryTap = false;
       pendingSwipeDelta = 0;
+      pendingSnackPick = null;
       const sounds = drainPendingSounds(state);
       for (let i = 0; i < sounds.length; i++) {
         audio.play(sounds[i]);
