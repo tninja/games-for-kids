@@ -89,7 +89,7 @@ function begin(p:Player, kind:ActionKind, target:Point, receiver:number|null=nul
 function shoot(s:State, p:Player) { begin(p,"shoot",aimShot(s,p)); }
 function pass(p:Player, q:Player) { begin(p,"pass",q,q.id); }
 function tackle(s:State, p:Player) {
-  if(s.ball.owner===p.id)return;
+  if(s.ball.owner!==null&&s.players[s.ball.owner].team===p.team)return;
   begin(p,"tackle",s.ball);
 }
 function receive(p:Player, dx:number,dy:number) {
@@ -169,7 +169,7 @@ function updateBall(s:State) {
     b.x=clamp(b.x,1,W-1);b.vx*=-0.65;
   }
   if(b.y<=0||b.y>=H){b.y=clamp(b.y,1,H-1);b.vy*=-0.65;}
-  const nearest=s.players.filter(p=>b.lock<=0&&(p.id!==b.last||(!p.action&&p.cooldown<=0))).sort((a,c)=>distance(a,b)-distance(c,b))[0];
+  const nearest=s.players.filter(p=>b.lock<=0&&!p.action&&(p.id!==b.last||p.cooldown<=0)).sort((a,c)=>distance(a,b)-distance(c,b))[0];
   if(nearest&&distance(nearest,b)<(nearest.role==="keeper"?13:10)) {
     const previous=b.last===null?null:s.players[b.last];
     if(previous?.team!==nearest.team&&nearest.id===s.user)event(s,"Great interception!");
