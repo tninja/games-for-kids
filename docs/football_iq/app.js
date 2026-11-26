@@ -46,7 +46,7 @@ function restore(){
 function input(){
   const x=joy.x+Number(keys.has("arrowright")||keys.has("d"))-Number(keys.has("arrowleft")||keys.has("a"));
   const y=joy.y+Number(keys.has("arrowdown")||keys.has("s"))-Number(keys.has("arrowup")||keys.has("w"));
-  return {x,y,pass:keys.has("z")||actions.has("pass")||queuedActions.has("pass"),shoot:keys.has("x")||actions.has("shoot")||queuedActions.has("shoot"),sprint:keys.has("shift")||actions.has("sprint")};
+  return {x,y,pass:keys.has("z")||actions.has("pass")||queuedActions.has("pass"),shoot:keys.has("x")||actions.has("shoot")||queuedActions.has("shoot"),sprint:keys.has("c")||keys.has("shift")||actions.has("sprint")};
 }
 function tick(){
   const oldBlue=state.score[0],oldRed=state.score[1],oldEvent=state.eventTick;
@@ -104,6 +104,9 @@ function render(){
   const own=state.ball.owner===state.user, friendly=state.ball.owner!==null&&state.players[state.ball.owner].team===0;
   get("passLabel").textContent=own?"PASS":friendly?"CALL":"PASS";
   get("shootLabel").textContent=own?"SHOOT":"TACKLE";
+  get("passLabel").parentElement.classList.toggle("key-pressed",keys.has("z"));
+  get("shootLabel").parentElement.classList.toggle("key-pressed",keys.has("x"));
+  document.querySelector('[data-action="sprint"]')?.classList.toggle("key-pressed",keys.has("c")||keys.has("shift"));
   const action=state.players[state.user].action;
   const actionText=action?({pass:"Passing...",shoot:"Shooting...",tackle:"Tackling...",receive:(action.total??13)>18?"Difficult first touch — control the ball...":"Control the ball..."})[action.kind]:null;
   get("status").textContent=paused?"Paused":actionText??(state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.");
@@ -122,9 +125,9 @@ get("continue").addEventListener("click",resume);
 get("retry").addEventListener("click",restore);
 coach.addEventListener("change",()=>{if(coach.value!=="balanced"){if(paused&&tip&&tip.freeze)resume();hideTip();retry=null;get("retry").hidden=true;}coach.blur();});
 window.addEventListener("keydown",e=>{
-  if(e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&e.key===" "))return;
+  if(e.ctrlKey||e.metaKey||e.altKey||e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&e.key===" "))return;
   const k=e.key.toLowerCase();
-  if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","z","x","shift"," "].includes(k)){
+  if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","z","x","c","shift"," "].includes(k)){
     e.preventDefault();if(k===" "){if(!e.repeat)togglePause();}else {keys.add(k);if(!e.repeat&&running&&!paused){if(k==="z")queuedActions.add("pass");if(k==="x")queuedActions.add("shoot");}}
   }
 });
