@@ -29,15 +29,27 @@ Open http://localhost:8000/football_iq/ . Commit both TypeScript sources and
 rebuilt browser modules so GitHub Pages does not need a build server.
 
 The pure engine uses 60 Hz steps and copyable state, with no random generator,
-DOM, dependencies or network. The app owns input, rendering, snapshots and
-coaching policy. The engine test covers all three positions, deterministic
+DOM, dependencies or network. The app owns input, snapshots and coaching policy; visual.ts owns rendering. The engine test covers all three positions, deterministic
 matches, bounds, snapshot isolation, scoring, passing, tackling and a cover
-tip. Art is original, procedurally drawn using Canvas 2D.
+tip. The visual tests exercise both renderer contracts, atlas bounds, failure
+fallback, and read-only rendering with DOM/Phaser mocks.
+
+## Presentation
+Phaser 3.90.0 (pinned, loaded from jsDelivr) is the preferred renderer. It
+uses a cached original stadium texture, a 400-frame atlas (ten players, eight
+directions, idle plus four running frames), depth-sorted sprites, graphics
+for coaching hints, shadows, dust, ball trails and goal confetti. The same
+art and effects are available in the Canvas 2D fallback if Phaser fails to
+load or boot. The header identifies the actual renderer. The CDN is the only
+new network request; no game data is sent to it. Sound effects are synthesized
+locally via Web Audio and can be muted. No third-party game art is used.
+The Phaser API is kept behind a small typed presentation boundary; no engine
+or coaching state is owned by Phaser.
 
 ## Scope and limitations
 This is an arcade prototype: the boundary rebounds the ball outside goal
 mouths; no throw-ins, corners, offside, fouls, substitutions, or 7v7 yet.
 Coaching is heuristic and should be checked against a youth coach before
 treating it as authoritative. Gameplay speed, tactical AI and mobile layout
-need real-device playtesting. No accounts, backend, runtime LLM or new
-dependencies. Future work may add 7v7, richer team shape, and animated replay.
+need real-device playtesting. No accounts, backend or runtime LLM. The optional pinned Phaser CDN is a
+new presentation dependency; the game does not require it to play. Future work may add 7v7, richer team shape, and animated replay.
