@@ -82,7 +82,13 @@ export function createInitialState(config: GameConfig = {}): GameState {
     autoRead: false,
     elapsedSec: 0,
     rngState: (config.seed ?? 20261125) >>> 0,
-    pendingSounds: []
+    pendingSounds: [],
+    easterSource: "none",
+    easterLineIndex: 0,
+    easterTimer: 0,
+    jesusGlowTimer: 0,
+    treeRustleTimer: 0,
+    friendHopTimer: 0
   };
 }
 
@@ -93,6 +99,21 @@ export function stepGame(
 ): GameState {
   const dt = Math.max(0, Math.min(0.08, dtSec));
   state.elapsedSec += dt;
+  if (state.easterTimer > 0) {
+    state.easterTimer = Math.max(0, state.easterTimer - dt);
+    if (state.easterTimer === 0) {
+      state.easterSource = "none";
+    }
+  }
+  if (state.jesusGlowTimer > 0) {
+    state.jesusGlowTimer = Math.max(0, state.jesusGlowTimer - dt);
+  }
+  if (state.treeRustleTimer > 0) {
+    state.treeRustleTimer = Math.max(0, state.treeRustleTimer - dt);
+  }
+  if (state.friendHopTimer > 0) {
+    state.friendHopTimer = Math.max(0, state.friendHopTimer - dt);
+  }
 
   if (state.phase !== "stage_play" || !state.stageState) {
     return state;
@@ -178,7 +199,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
         state.stageState.prayedWithJesus = true;
         state.stageState.prayGlowTimer = 1.6;
         state.stageState.score += 100;
-        state.stageState.lastPopText = "Amen!";
+        state.stageState.lastPopKey = "popAmen";
         state.stageState.lastPopTimer = 1.1;
         state.pendingSounds.push("pray_blessing");
       }
@@ -260,6 +281,27 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       break;
     case "SHUFFLE_PROMPT":
       state.promptIndex += 1;
+      break;
+    case "POKE_JESUS":
+      state.easterSource = "jesus";
+      state.easterLineIndex += 1;
+      state.easterTimer = 3.2;
+      state.jesusGlowTimer = 2.4;
+      state.pendingSounds.push("jesus_chime");
+      break;
+    case "POKE_TREE":
+      state.easterSource = "tree";
+      state.easterLineIndex += 1;
+      state.easterTimer = 3.0;
+      state.treeRustleTimer = 2.2;
+      state.pendingSounds.push("tree_rustle");
+      break;
+    case "POKE_FRIEND":
+      state.easterSource = "friend";
+      state.easterLineIndex += 1;
+      state.easterTimer = 3.0;
+      state.friendHopTimer = 2.2;
+      state.pendingSounds.push("blessing_token");
       break;
     case "TOGGLE_MUTE":
       state.muted = !state.muted;

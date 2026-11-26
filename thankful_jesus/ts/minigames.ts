@@ -65,7 +65,7 @@ export function createStageState(
       spawnTimer: 0.35,
       nextItemId: 1,
       items: [],
-      lastPopText: "",
+      lastPopKey: "",
       lastPopTimer: 0
     };
   }
@@ -85,7 +85,7 @@ export function createStageState(
       spawnTimer: 0.3,
       nextItemId: 1,
       items: [],
-      lastPopText: "",
+      lastPopKey: "",
       lastPopTimer: 0
     };
   }
@@ -135,7 +135,7 @@ export function stepLoavesStage(
       stage.prayedWithJesus = true;
       stage.prayGlowTimer = 1.6;
       stage.score += 100;
-      stage.lastPopText = "Amen!";
+      stage.lastPopKey = "popAmen";
       stage.lastPopTimer = 1.1;
       sounds.push("pray_blessing");
     }
@@ -183,11 +183,11 @@ export function stepLoavesStage(
       if (item.itemType === "blessing") {
         stage.blessingsCollected += 1;
         stage.score += 120 + stage.streak * 15;
-        stage.lastPopText = "+Blessing!";
+        stage.lastPopKey = "popBlessing";
         sounds.push("blessing_token");
       } else {
         stage.score += 65 + stage.streak * 10;
-        stage.lastPopText = "+Shared!";
+        stage.lastPopKey = "popShared";
         sounds.push("good_catch");
       }
       stage.lastPopTimer = 0.65;
@@ -268,13 +268,13 @@ export function stepRunBackStage(
           stage.sparklesCollected += 1;
           stage.roadProgress = clamp(stage.roadProgress + 0.09, 0, 1);
           stage.score += 80;
-          stage.lastPopText = "+Grace!";
-          stage.lastPopTimer = 0.6;
+          stage.lastPopKey = "popGrace";
+          stage.lastPopTimer = 0.7;
           sounds.push("blessing_token");
         } else {
           stage.wobbleTimer = 0.45;
-          stage.lastPopText = "Oops!";
-          stage.lastPopTimer = 0.55;
+          stage.lastPopKey = "popOops";
+          stage.lastPopTimer = 0.65;
           sounds.push("gentle_bump");
         }
         continue;
@@ -293,8 +293,8 @@ export function stepRunBackStage(
     ) {
       stage.subPhase = "turn_back";
       stage.items = [];
-      stage.lastPopText = "Turn Back!";
-      stage.lastPopTimer = 1.0;
+      stage.lastPopKey = "popTurnBack";
+      stage.lastPopTimer = 1.1;
       sounds.push("pray_blessing");
     }
     return false;
@@ -306,8 +306,8 @@ export function stepRunBackStage(
     const step = isExplorer ? 18 : 14;
     stage.turnBackProgress = clamp(stage.turnBackProgress + step, 0, 100);
     stage.score += 45;
-    stage.lastPopText = "Thank You Jesus!";
-    stage.lastPopTimer = 0.5;
+    stage.lastPopKey = "popThankJesus";
+    stage.lastPopTimer = 0.65;
     sounds.push("turn_step");
   } else if (stage.turnBackProgress > 12) {
     stage.turnBackProgress = Math.max(12, stage.turnBackProgress - dt * (isExplorer ? 2.5 : 5.0));

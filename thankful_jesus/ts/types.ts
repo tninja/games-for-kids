@@ -54,7 +54,9 @@ export type SoundEvent =
   | "tile_hint"
   | "stage_win"
   | "prayer_hang"
-  | "journey_fanfare";
+  | "journey_fanfare"
+  | "jesus_chime"
+  | "tree_rustle";
 
 export interface LocalizedText {
   en: string;
@@ -125,6 +127,16 @@ export interface LoavesDropItem {
   itemType: "loaf" | "fish" | "blessing";
 }
 
+export type PopKey =
+  | ""
+  | "popAmen"
+  | "popShared"
+  | "popBlessing"
+  | "popGrace"
+  | "popOops"
+  | "popTurnBack"
+  | "popThankJesus";
+
 export interface LoavesStageState {
   kind: "loaves_and_fish";
   prayedWithJesus: boolean;
@@ -139,7 +151,7 @@ export interface LoavesStageState {
   spawnTimer: number;
   nextItemId: number;
   items: LoavesDropItem[];
-  lastPopText: string;
+  lastPopKey: PopKey;
   lastPopTimer: number;
 }
 
@@ -164,7 +176,7 @@ export interface RunBackStageState {
   spawnTimer: number;
   nextItemId: number;
   items: RoadObstacle[];
-  lastPopText: string;
+  lastPopKey: PopKey;
   lastPopTimer: number;
 }
 
@@ -218,6 +230,9 @@ export type GameAction =
     }
   | { type: "FINISH_PRAYERS" }
   | { type: "SHUFFLE_PROMPT" }
+  | { type: "POKE_JESUS" }
+  | { type: "POKE_TREE" }
+  | { type: "POKE_FRIEND" }
   | { type: "TOGGLE_MUTE" }
   | { type: "TOGGLE_AUTO_READ" }
   | { type: "PLAY_AGAIN" };
@@ -229,6 +244,8 @@ export interface GameConfig {
   playerCount?: number;
   seed?: number;
 }
+
+export type EasterSource = "none" | "jesus" | "tree" | "friend";
 
 export interface GameState {
   phase: GamePhase;
@@ -249,4 +266,10 @@ export interface GameState {
   elapsedSec: number;
   rngState: number;
   pendingSounds: SoundEvent[];
+  easterSource: EasterSource;
+  easterLineIndex: number;
+  easterTimer: number;
+  jesusGlowTimer: number;
+  treeRustleTimer: number;
+  friendHopTimer: number;
 }

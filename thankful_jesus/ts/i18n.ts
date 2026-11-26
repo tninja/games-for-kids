@@ -1,4 +1,4 @@
-import { LangMode, LocalizedText, StageId, StickerPreset } from "./types";
+import { EasterSource, LangMode, LocalizedText, StageId, StickerPreset } from "./types";
 
 // All Chinese text uses ASCII-safe \uXXXX escapes so code files and bundles stay strictly ASCII.
 
@@ -233,8 +233,106 @@ export const UI_TEXT = {
   pcFooter: {
     en: "Give thanks in Christ Jesus - games-for-kids",
     zh: "\u5728\u57fa\u7763\u8036\u7a23\u91cc\u51e1\u4e8b\u8c22\u6069"
+  },
+  s1TapPrayCanvas: {
+    en: "Tap below to give thanks with Jesus!",
+    zh: "\u70b9\u51fb\u4e0b\u65b9\uff0c\u5148\u4e0e\u8036\u7a23\u4e00\u8d77\u795d\u8c22\uff01"
+  },
+  popAmen: {
+    en: "Amen! Thank You!",
+    zh: "\u963f\u4eec\uff01\u795d\u8c22\uff01"
+  },
+  popShared: {
+    en: "+1 Shared!",
+    zh: "+1 \u5206\u4eab\u7ed9\u670b\u53cb\uff01"
+  },
+  popBlessing: {
+    en: "+1 Blessing Basket!",
+    zh: "+1 \u5341\u4e8c\u7bee\u6069\u5178\uff01"
+  },
+  popGrace: {
+    en: "+1 Grace Sparkle!",
+    zh: "+1 \u6069\u5178\u5149\u70b9\uff01"
+  },
+  popOops: {
+    en: "Stay focused!",
+    zh: "\u5c0f\u5fc3\u522b\u5206\u5fc3\u54e6\uff01"
+  },
+  popTurnBack: {
+    en: "Run back to Jesus!",
+    zh: "\u8f6c\u8eab\u8dd1\u5411\u8036\u7a23\uff01"
+  },
+  popThankJesus: {
+    en: "Thank You Jesus!",
+    zh: "\u8c22\u8c22\u8036\u7a23\uff01"
+  },
+  easterHint: {
+    en: "Tip: Tap Jesus or the Olive Tree!",
+    zh: "\u5c0f\u5f69\u86cb\uff1a\u70b9\u4e00\u70b9\u753b\u9762\u91cc\u7684\u8036\u7a23\u6216\u6a44\u6984\u6811\uff01"
+  },
+  readTreeBtn: {
+    en: "Read All Tree Prayers",
+    zh: "\u6717\u8bfb\u611f\u6069\u6811\u4e0a\u7684\u7977\u544a"
   }
 } as const;
+
+export const JESUS_EASTER_LINES: LocalizedText[] = [
+  {
+    en: "Jesus loves you and watches over you every day!",
+    zh: "\u8036\u7a23\u597d\u7231\u4f60\uff0c\u5929\u5929\u770b\u987e\u4f60\uff01"
+  },
+  {
+    en: "Praise our Father with a joyful, thankful heart!",
+    zh: "\u7528\u559c\u4e50\u611f\u6069\u7684\u5fc3\uff0c\u8d5e\u7f8e\u5929\u7236\u5427\uff01"
+  },
+  {
+    en: "Give thanks in all things! Jesus is always with you!",
+    zh: "\u51e1\u4e8b\u8c22\u6069\uff0c\u8036\u7a23\u4e00\u76f4\u4e0e\u4f60\u540c\u5728\uff01"
+  },
+  {
+    en: "Jesus sees every loving gift you share!",
+    zh: "\u4f60\u5206\u4eab\u7684\u6bcf\u4e00\u4efd\u7231\uff0c\u8036\u7a23\u90fd\u770b\u89c1\u5566\uff01"
+  }
+];
+
+export const TREE_EASTER_LINES: LocalizedText[] = [
+  {
+    en: "Rustling leaves! Count Jesus' wonderful blessings!",
+    zh: "\u79cb\u53f6\u98d8\u5440\u98d8\uff0c\u6570\u7b97\u8036\u7a23\u6ee1\u6ee1\u7684\u6069\u5178\uff01"
+  },
+  {
+    en: "Look! Our Gratitude Olive Tree is shining bright!",
+    zh: "\u54c7\uff01\u611f\u6069\u6811\u53c8\u95ea\u95ea\u53d1\u5149\u5566\uff01"
+  },
+  {
+    en: "Thank You God for blue skies, Galilee water, and olive trees!",
+    zh: "\u8c22\u8c22\u795e\u521b\u9020\u84dd\u5929\u3001\u6e56\u6c34\u548c\u6a44\u6984\u6811\uff01"
+  }
+];
+
+export const FRIEND_EASTER_LINES: LocalizedText[] = [
+  {
+    en: "Yay! Let's run and say thank you to Jesus together!",
+    zh: "\u8036\uff01\u4e00\u8d77\u53bb\u5411\u8036\u7a23\u8bf4\u8c22\u8c22\uff01"
+  },
+  {
+    en: "Hallelujah! What a joyful Thanksgiving Day!",
+    zh: "\u54c8\u5229\u8def\u4e9a\uff01\u4eca\u5929\u771f\u662f\u611f\u6069\u7684\u4e00\u5929\uff01"
+  }
+];
+
+export function getEasterLine(source: EasterSource, index: number): LocalizedText | null {
+  if (source === "jesus") {
+    return JESUS_EASTER_LINES[index % JESUS_EASTER_LINES.length];
+  }
+  if (source === "tree") {
+    return TREE_EASTER_LINES[index % TREE_EASTER_LINES.length];
+  }
+  if (source === "friend") {
+    return FRIEND_EASTER_LINES[index % FRIEND_EASTER_LINES.length];
+  }
+  return null;
+}
 
 export type UiTextKey = keyof typeof UI_TEXT;
 

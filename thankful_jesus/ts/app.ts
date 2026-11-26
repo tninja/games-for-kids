@@ -13,16 +13,20 @@ import { EMPTY_INPUT, applyAction, createInitialState, drainSounds, stepGame } f
 import { createPrayerLeaf, getChurchPrompt, getStickerPreset, sanitizeNote } from "./gratitude";
 import {
   CHURCH_PROMPTS,
+  FRIEND_EASTER_LINES,
+  JESUS_EASTER_LINES,
   STAGE_TEXT,
   STICKER_PRESETS,
+  TREE_EASTER_LINES,
   UI_TEXT,
   formatLocalized,
   formatPrimary,
-  formatSecondary
+  formatSecondary,
+  getEasterLine
 } from "./i18n";
 import { exportPostcard, renderPostcardCanvas } from "./postcard";
 import { renderStageCanvas } from "./renderer";
-import { JourneySpeech } from "./speech";
+import { JourneySpeech, buildPrayerTreeSegments, detectLangTag } from "./speech";
 import {
   AgeMode,
   FrameInput,
@@ -48,6 +52,8 @@ export {
   BUILDER_VERSE_QUEUE,
   CHURCH_PROMPTS,
   EMPTY_INPUT,
+  FRIEND_EASTER_LINES,
+  JESUS_EASTER_LINES,
   JourneyAudio,
   JourneySpeech,
   LEAF_COLORS,
@@ -58,12 +64,15 @@ export {
   STAGE_SEQUENCE,
   STAGE_TEXT,
   STICKER_PRESETS,
+  TREE_EASTER_LINES,
   UI_TEXT,
   VERSES,
   VERSE_ORDER,
   applyAction,
+  buildPrayerTreeSegments,
   createInitialState,
   createPrayerLeaf,
+  detectLangTag,
   drainSounds,
   drawStickerIcon,
   drawTileIcon,
@@ -72,6 +81,7 @@ export {
   formatPrimary,
   formatSecondary,
   getChurchPrompt,
+  getEasterLine,
   getStickerPreset,
   getVerseById,
   getVerseTiles,
@@ -244,6 +254,20 @@ export function mountThankfulJesusApp(): void {
 
   function speakCurrentScreen(): void {
     unlockAudio();
+    if (state.phase === "journey_finale") {
+      const segs = buildPrayerTreeSegments(
+        state.prayers,
+        state.langMode,
+        getVerseById("thess_5_18").text
+      );
+      speech.speakSequence(segs);
+      return;
+    }
+    if (state.phase === "prayer_card" && state.prayers.length > 0) {
+      const segs = buildPrayerTreeSegments(state.prayers, state.langMode);
+      speech.speakSequence(segs);
+      return;
+    }
     const payload = getCurrentSpeechPayload();
     if (payload) {
       speech.speakLocalized(payload, state.langMode);
@@ -532,6 +556,12 @@ export function mountThankfulJesusApp(): void {
         maybeAutoRead();
       });
       stack.appendChild(startBtn);
+
+      const easterHint = document.createElement("div");
+      easterHint.className = "deck-note";
+      easterHint.textContent = formatLocalized(UI_TEXT.easterHint, state.langMode, " / ");
+      stack.appendChild(easterHint);
+
       controlDeck.appendChild(stack);
       return;
     }
@@ -963,6 +993,20 @@ export function mountThankfulJesusApp(): void {
       actionRow.appendChild(hangBtn);
       actionRow.appendChild(doneBtn);
       stack.appendChild(actionRow);
+
+      if (speech.isSupported() && state.prayers.length > 0) {
+        const readTreeBtn = document.createElement("button");
+        readTreeBtn.type = "button";
+        readTreeBtn.className = "ghost-btn";
+        readTreeBtn.appendChild(makeDualButtonContent(UI_TEXT.readTreeBtn, state.langMode));
+        readTreeBtn.addEventListener("click", () => {
+          unlockAudio();
+          const segs = buildPrayerTreeSegments(state.prayers, state.langMode);
+          speech.speakSequence(segs);
+        });
+        stack.appendChild(readTreeBtn);
+      }
+
       controlDeck.appendChild(stack);
       return;
     }
@@ -1105,11 +1149,35 @@ export function mountThankfulJesusApp(): void {
     });
   }
 
-  // Direct Canvas touch/pointer support for tactile iPhone play
+  // Direct Canvas touch/pointer support for tactile iPhone play + Easter eggs
   stageCanvas.addEventListener("pointerdown", (ev) => {
     unlockAudio();
     const rect = stageCanvas.getBoundingClientRect();
     const xNorm = rect.width > 0 ? Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width)) : 0.5;
+    const yNorm = rect.height > 0 ? Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height)) : 0.5;
+    if (
+      state.phase === "title" ||
+      state.phase === "prayer_card" ||
+      state.phase === "journey_finale"
+    ) {
+      const jesusCutoff = state.phase === "title" ? 0.44 : 0.35;
+      const friendCutoff = state.phase === "title" ? 0.62 : 0.50;
+      if (yNorm > 0.24) {
+        if (xNorm < jesusCutoff) {
+          applyAction(state, { type: "POKE_JESUS" });
+        } else if (xNorm < friendCutoff && yNorm > 0.52) {
+          applyAction(state, { type: "POKE_FRIEND" });
+        } else {
+          applyAction(state, { type: "POKE_TREE" });
+        }
+        const line = getEasterLine(state.easterSource, state.easterLineIndex);
+        if (line) {
+          speech.speakLocalized(line, state.langMode);
+        }
+        syncAll(false);
+      }
+      return;
+    }
     if (state.phase === "stage_play" && state.stageState) {
       if (state.stageState.kind === "loaves_and_fish") {
         if (!state.stageState.prayedWithJesus) {

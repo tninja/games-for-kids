@@ -74,6 +74,16 @@ export class JourneyAudio {
         this.tone(783.99, 783.99, 0.15, "triangle", 0.15, now + 0.22);
         this.tone(1046.5, 1046.5, 0.34, "sine", 0.17, now + 0.34);
         break;
+      case "jesus_chime":
+        this.tone(523.25, 523.25, 0.14, "sine", 0.12, now);
+        this.tone(659.25, 659.25, 0.14, "sine", 0.12, now + 0.08);
+        this.tone(783.99, 783.99, 0.18, "sine", 0.13, now + 0.16);
+        this.tone(1046.5, 1046.5, 0.26, "sine", 0.12, now + 0.24);
+        break;
+      case "tree_rustle":
+        this.tone(698.46, 880.0, 0.10, "sine", 0.10, now);
+        this.tone(880.0, 1046.5, 0.12, "sine", 0.09, now + 0.07);
+        break;
     }
   }
 

@@ -5,11 +5,14 @@ import {
   drawCross,
   drawFish,
   drawGalileeBackdrop,
+  drawGoldenFootprint,
   drawGratitudeOliveTree,
+  drawHeartBurst,
   drawJesus,
   drawLeaf,
   drawMarketCart,
   drawRoundedRect,
+  drawSpeechBubble,
   drawStar,
   drawSunRays,
   drawToyBlock,
@@ -17,7 +20,7 @@ import {
   safeArc
 } from "./artwork";
 import { PALETTE, STAGE_LOGICAL_H, STAGE_LOGICAL_W, STAGE_SEQUENCE } from "./constants";
-import { STAGE_TEXT, UI_TEXT, formatPrimary, formatSecondary } from "./i18n";
+import { STAGE_TEXT, UI_TEXT, formatPrimary, formatSecondary, getEasterLine } from "./i18n";
 import { GameState, LoavesStageState, RunBackStageState, VerseBuilderStageState } from "./types";
 import { getVerseById, getVerseTiles } from "./verses";
 
@@ -58,8 +61,42 @@ function drawTitleBanner(
   ctx.fillText(sub, w / 2, 78);
 }
 
+function drawEasterOverlay(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  w: number,
+  jesusX: number,
+  treeX: number,
+  friendX: number,
+  topY: number
+): void {
+  if (state.easterTimer <= 0 || state.easterSource === "none") {
+    return;
+  }
+  const line = getEasterLine(state.easterSource, state.easterLineIndex);
+  if (!line) {
+    return;
+  }
+  const anchorX =
+    state.easterSource === "jesus"
+      ? jesusX
+      : state.easterSource === "tree"
+        ? treeX
+        : friendX;
+  drawSpeechBubble(
+    ctx,
+    anchorX,
+    topY,
+    formatPrimary(line, state.langMode),
+    formatSecondary(line, state.langMode),
+    w,
+    anchorX
+  );
+}
+
 function renderLoavesPlay(
   ctx: CanvasRenderingContext2D,
+  state: GameState,
   stage: LoavesStageState,
   w: number,
   h: number,
@@ -73,24 +110,34 @@ function renderLoavesPlay(
 
   // Jesus blessing the loaves and fish on the hilltop
   drawJesus(ctx, w * 0.5, 162, 1.05, stage.prayedWithJesus ? "celebrate" : "bless", timeSec);
+  if (stage.prayGlowTimer > 0) {
+    drawHeartBurst(ctx, w * 0.5, 106, stage.prayGlowTimer / 1.6, timeSec);
+  }
 
   // Boy offering basket before prayer
   if (!stage.prayedWithJesus) {
     drawChildFriend(ctx, w * 0.25, 186, 0.92, "#6BA8C9", true, timeSec);
     drawWovenBasket(ctx, w * 0.5, 212, 1.0, 3);
-    drawRoundedRect(ctx, 56, 260, w - 112, 66, 16);
-    ctx.fillStyle = "rgba(255, 248, 235, 0.94)";
+    const johnRef = getVerseById("john_6_11").reference;
+    drawRoundedRect(ctx, 32, 256, w - 64, 82, 16);
+    ctx.fillStyle = "rgba(255, 248, 235, 0.95)";
     ctx.fill();
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
     ctx.textAlign = "center";
     ctx.fillStyle = PALETTE.terracottaDark;
-    ctx.font = "800 17px system-ui, -apple-system, sans-serif";
-    ctx.fillText("John 6:11", w / 2, 286);
+    ctx.font = "800 16px system-ui, -apple-system, sans-serif";
+    ctx.fillText(formatPrimary(johnRef, state.langMode), w / 2, 282);
     ctx.fillStyle = PALETTE.ink;
     ctx.font = "700 14px system-ui, -apple-system, sans-serif";
-    ctx.fillText("Tap below to give thanks with Jesus!", w / 2, 310);
+    ctx.fillText(formatPrimary(UI_TEXT.s1TapPrayCanvas, state.langMode), w / 2, 306);
+    const secHint = formatSecondary(UI_TEXT.s1TapPrayCanvas, state.langMode);
+    if (secHint) {
+      ctx.fillStyle = PALETTE.mutedInk;
+      ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(secHint, w / 2, 326);
+    }
     return;
   }
 
@@ -118,16 +165,23 @@ function renderLoavesPlay(
   // Player's woven sharing basket
   drawWovenBasket(ctx, stage.basketX * w, h * 0.81, 1.15, stage.sharedCount);
 
-  if (stage.lastPopTimer > 0 && stage.lastPopText) {
-    ctx.textAlign = "center";
-    ctx.fillStyle = PALETTE.terracottaDark;
-    ctx.font = "800 19px system-ui, -apple-system, sans-serif";
-    ctx.fillText(stage.lastPopText, stage.basketX * w, h * 0.70);
+  if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+    const pop = UI_TEXT[stage.lastPopKey];
+    drawSpeechBubble(
+      ctx,
+      stage.basketX * w,
+      h * 0.56,
+      formatPrimary(pop, state.langMode),
+      formatSecondary(pop, state.langMode),
+      w,
+      stage.basketX * w
+    );
   }
 }
 
 function renderRunBackPlay(
   ctx: CanvasRenderingContext2D,
+  state: GameState,
   stage: RunBackStageState,
   w: number,
   h: number,
@@ -138,7 +192,6 @@ function renderRunBackPlay(
   if (stage.subPhase === "turn_back") {
     // Joyful turn-back climax running back to open-armed Jesus!
     drawSunRays(ctx, w * 0.5, 130, 180, timeSec, 0.34);
-    // Winding sunlit path leading directly up to Jesus
     ctx.fillStyle = "#EAD1A6";
     ctx.beginPath();
     ctx.moveTo(w * 0.38, 175);
@@ -151,11 +204,23 @@ function renderRunBackPlay(
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    drawJesus(ctx, w * 0.5, 176, 1.18, "welcome", timeSec);
-
-    // Traveler sprinting closer to Jesus as turnBackProgress rises 0..100
+    // Animated golden footprints trailing behind the thankful traveler
     const p = stage.turnBackProgress / 100;
     const ty = h - 38 - p * (h - 236);
+    const stepCount = Math.min(7, Math.floor(p * 8));
+    for (let i = 0; i < stepCount; i++) {
+      const fy = h - 24 - i * 26;
+      if (fy > ty + 14) {
+        const fx = w * 0.5 + (i % 2 === 0 ? -13 : 13);
+        drawGoldenFootprint(ctx, fx, fy, 1.0, i % 2 === 0 ? -0.15 : 0.15);
+      }
+    }
+
+    drawJesus(ctx, w * 0.5, 176, 1.18, "welcome", timeSec);
+    if (p > 0.55) {
+      drawHeartBurst(ctx, w * 0.5, 118, 1 - Math.min(1, (p - 0.55) * 2), timeSec);
+    }
+
     const tScale = 1.15 - p * 0.22;
     drawChildFriend(ctx, w * 0.5, ty, tScale, "#D46A43", true, timeSec * 1.6);
 
@@ -170,11 +235,17 @@ function renderRunBackPlay(
     ctx.fillStyle = PALETTE.sunGold;
     ctx.fill();
 
-    if (stage.lastPopTimer > 0 && stage.lastPopText) {
-      ctx.textAlign = "center";
-      ctx.fillStyle = PALETTE.terracottaDark;
-      ctx.font = "800 18px system-ui, -apple-system, sans-serif";
-      ctx.fillText(stage.lastPopText, w * 0.5, Math.max(76, ty - 70));
+    if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+      const pop = UI_TEXT[stage.lastPopKey];
+      drawSpeechBubble(
+        ctx,
+        w * 0.5,
+        Math.max(54, ty - 116),
+        formatPrimary(pop, state.langMode),
+        formatSecondary(pop, state.langMode),
+        w,
+        w * 0.5
+      );
     }
     return;
   }
@@ -225,11 +296,17 @@ function renderRunBackPlay(
   const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 42) * 7 : 0;
   drawChildFriend(ctx, laneX[stage.lane] + wobbleX, h - 26, 1.05, "#D46A43", stage.wobbleTimer === 0, timeSec);
 
-  if (stage.lastPopTimer > 0 && stage.lastPopText) {
-    ctx.textAlign = "center";
-    ctx.fillStyle = PALETTE.terracottaDark;
-    ctx.font = "800 18px system-ui, -apple-system, sans-serif";
-    ctx.fillText(stage.lastPopText, laneX[stage.lane], h - 104);
+  if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+    const pop = UI_TEXT[stage.lastPopKey];
+    drawSpeechBubble(
+      ctx,
+      laneX[stage.lane],
+      h - 156,
+      formatPrimary(pop, state.langMode),
+      formatSecondary(pop, state.langMode),
+      w,
+      laneX[stage.lane]
+    );
   }
 }
 
@@ -337,12 +414,36 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
 
   if (state.phase === "title") {
     drawGalileeBackdrop(ctx, w, h, t);
-    drawGratitudeOliveTree(ctx, w * 0.77, h - 34, 175, 175, [], t);
-    drawJesus(ctx, w * 0.34, h - 36, 1.32, "welcome", t);
-    drawChildFriend(ctx, w * 0.56, h - 32, 0.92, "#D46A43", true, t);
+    drawGratitudeOliveTree(ctx, w * 0.77, h - 34, 175, 175, [], t, state.treeRustleTimer);
+    if (state.jesusGlowTimer > 0) {
+      drawSunRays(ctx, w * 0.34, h - 120, 120, t, 0.36);
+      drawHeartBurst(ctx, w * 0.34, h - 122, state.jesusGlowTimer / 2.4, t);
+    }
+    drawJesus(
+      ctx,
+      w * 0.34,
+      h - 36,
+      1.32,
+      state.jesusGlowTimer > 0 ? "celebrate" : "welcome",
+      t
+    );
+    drawChildFriend(
+      ctx,
+      w * 0.56,
+      h - 32,
+      0.92,
+      "#D46A43",
+      true,
+      state.friendHopTimer > 0 ? t * 2.4 : t
+    );
+    if (state.friendHopTimer > 0) {
+      drawStar(ctx, w * 0.56 - 20, h - 98, 8, PALETTE.sunGold);
+      drawStar(ctx, w * 0.56 + 20, h - 94, 8, PALETTE.sunGold);
+    }
     drawWovenBasket(ctx, w * 0.16, h - 38, 0.78, 3);
     drawFloatingLeaves(ctx, w, h, t);
     drawTitleBanner(ctx, state, w);
+    drawEasterOverlay(ctx, state, w, w * 0.34, w * 0.77, w * 0.56, 106);
     return;
   }
 
@@ -410,9 +511,9 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
 
   if (state.phase === "stage_play" && state.stageState) {
     if (state.stageState.kind === "loaves_and_fish") {
-      renderLoavesPlay(ctx, state.stageState, w, h, t);
+      renderLoavesPlay(ctx, state, state.stageState, w, h, t);
     } else if (state.stageState.kind === "run_back_to_jesus") {
-      renderRunBackPlay(ctx, state.stageState, w, h, t);
+      renderRunBackPlay(ctx, state, state.stageState, w, h, t);
     } else {
       renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
     }
@@ -471,16 +572,32 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
     drawSunRays(ctx, w * 0.5, 128, 185, t, 0.30);
     drawFloatingLeaves(ctx, w, h, t);
   }
-  drawGratitudeOliveTree(ctx, w * 0.62, h - 30, 224, 248, state.prayers, t);
+  drawGratitudeOliveTree(ctx, w * 0.64, h - 30, 224, 248, state.prayers, t, state.treeRustleTimer);
+  if (state.jesusGlowTimer > 0) {
+    drawSunRays(ctx, w * 0.24, h - 118, 115, t, 0.35);
+    drawHeartBurst(ctx, w * 0.24, h - 120, state.jesusGlowTimer / 2.4, t);
+  }
   drawJesus(
     ctx,
     w * 0.24,
     h - 32,
     1.28,
-    state.phase === "journey_finale" ? "celebrate" : "welcome",
+    state.phase === "journey_finale" || state.jesusGlowTimer > 0 ? "celebrate" : "welcome",
     t
   );
-  drawChildFriend(ctx, w * 0.42, h - 26, 0.85, "#D46A43", true, t);
+  drawChildFriend(
+    ctx,
+    w * 0.42,
+    h - 26,
+    0.85,
+    "#D46A43",
+    true,
+    state.friendHopTimer > 0 ? t * 2.4 : t
+  );
+  if (state.friendHopTimer > 0) {
+    drawStar(ctx, w * 0.42 - 18, h - 88, 7.5, PALETTE.sunGold);
+    drawStar(ctx, w * 0.42 + 18, h - 84, 7.5, PALETTE.sunGold);
+  }
 
   // Small joyful sparkle halo on finale
   if (state.phase === "journey_finale") {
@@ -492,4 +609,5 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
       ctx.fill();
     }
   }
+  drawEasterOverlay(ctx, state, w, w * 0.24, w * 0.64, w * 0.42, 18);
 }

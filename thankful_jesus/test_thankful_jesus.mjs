@@ -240,6 +240,9 @@ function testBilingualLocalizationAndAsciiSources() {
   for (const st of api.STICKER_PRESETS) {
     assert.ok(st.caption.en.length > 0 && cjkRe.test(st.caption.zh));
   }
+  for (const line of [...api.JESUS_EASTER_LINES, ...api.TREE_EASTER_LINES, ...api.FRIEND_EASTER_LINES]) {
+    assert.ok(line.en.length > 0 && cjkRe.test(line.zh), "Easter line has EN & ZH");
+  }
   assert.equal(api.formatLocalized({ en: "Hello", zh: "NiHao" }, "en"), "Hello");
   assert.equal(api.formatLocalized({ en: "Hello", zh: "NiHao" }, "zh"), "NiHao");
   assert.equal(api.formatLocalized({ en: "Hello", zh: "NiHao" }, "dual", " / "), "Hello / NiHao");
@@ -299,6 +302,26 @@ function testWebSpeechControllerBilingualChainingAndMute() {
   staleFirst.onend();
   assert.equal(spoken.length, countAfterRetap, "Stale utterance onend must not trigger chained speech");
 
+  // Sequence reading for entire Prayer Tree (verse + English + Chinese custom prayers)
+  const prayers = [
+    api.createPrayerLeaf(0, "jesus_love", "gold", "Thank You Jesus for my church!", "Anna", "dual"),
+    api.createPrayerLeaf(1, "family", "crimson", "\u8c22\u8c22\u8036\u7a23\u7231\u6211\u7684\u5bb6\u4eba\uff01", "Ben", "dual")
+  ];
+  const segs = api.buildPrayerTreeSegments(prayers, "dual", api.getVerseById("thess_5_18").text);
+  assert.equal(segs.length, 4, "Dual verse (2) + 2 custom prayers (2) = 4 speech segments");
+  assert.equal(segs[2].langTag, "en-US");
+  assert.equal(segs[3].langTag, "zh-CN");
+  const beforeSeq = spoken.length;
+  assert.equal(speech.speakSequence(segs), true);
+  assert.equal(spoken.length, beforeSeq + 1);
+  spoken[spoken.length - 1].onend();
+  assert.equal(spoken.length, beforeSeq + 2);
+  spoken[spoken.length - 1].onend();
+  assert.equal(spoken.length, beforeSeq + 3);
+  spoken[spoken.length - 1].onend();
+  assert.equal(spoken.length, beforeSeq + 4);
+  assert.equal(spoken[spoken.length - 1].lang, "zh-CN");
+
   // Muting cancels active speech and suppresses further calls
   const cancelsBeforeMute = cancelCount;
   speech.setMuted(true);
@@ -356,6 +379,20 @@ function testStrictCanvasRenderingAndPostcard() {
   });
   api.renderStageCanvas(ctx, state); // title
 
+  // Exercise all 3 interactive Easter eggs (Jesus, Olive Tree, Child Friend)
+  api.applyAction(state, { type: "POKE_JESUS" });
+  assert.ok(state.jesusGlowTimer > 0 && state.easterSource === "jesus");
+  assert.ok(api.getEasterLine(state.easterSource, state.easterLineIndex).en.length > 0);
+  api.renderStageCanvas(ctx, state);
+
+  api.applyAction(state, { type: "POKE_TREE" });
+  assert.ok(state.treeRustleTimer > 0 && state.easterSource === "tree");
+  api.renderStageCanvas(ctx, state);
+
+  api.applyAction(state, { type: "POKE_FRIEND" });
+  assert.ok(state.friendHopTimer > 0 && state.easterSource === "friend");
+  api.renderStageCanvas(ctx, state);
+
   api.applyAction(state, { type: "START_JOURNEY" });
   api.renderStageCanvas(ctx, state); // pass_banner
 
@@ -374,8 +411,13 @@ function testStrictCanvasRenderingAndPostcard() {
       runLoavesToCompletion(state, true, false);
     } else if (state.stageState.kind === "run_back_to_jesus") {
       api.stepGame(state, 1 / 30, api.EMPTY_INPUT);
+      state.stageState.lastPopKey = "popGrace";
+      state.stageState.lastPopTimer = 0.5;
       api.renderStageCanvas(ctx, state);
       state.stageState.subPhase = "turn_back";
+      state.stageState.turnBackProgress = 65;
+      state.stageState.lastPopKey = "popThankJesus";
+      state.stageState.lastPopTimer = 0.5;
       api.renderStageCanvas(ctx, state);
       runRunBackToCompletion(state, true);
     } else {

@@ -1,4 +1,53 @@
-import { LangMode, LocalizedText } from "./types";
+import { LangMode, LocalizedText, PrayerLeaf } from "./types";
+
+export interface SpeechSegment {
+  text: string;
+  langTag: "en-US" | "zh-CN";
+}
+
+export function detectLangTag(text: string, fallback: "en-US" | "zh-CN"): "en-US" | "zh-CN" {
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x4e00 && code <= 0x9fff) {
+      return "zh-CN";
+    }
+  }
+  return fallback;
+}
+
+export function buildPrayerTreeSegments(
+  prayers: PrayerLeaf[],
+  langMode: LangMode,
+  featuredVerse?: LocalizedText
+): SpeechSegment[] {
+  const segments: SpeechSegment[] = [];
+  if (featuredVerse) {
+    if (langMode === "en" || langMode === "dual") {
+      segments.push({ text: featuredVerse.en, langTag: "en-US" });
+    }
+    if (langMode === "zh" || langMode === "dual") {
+      segments.push({ text: featuredVerse.zh, langTag: "zh-CN" });
+    }
+  }
+
+  const fallbackTag: "en-US" | "zh-CN" = langMode === "zh" ? "zh-CN" : "en-US";
+  for (let i = 0; i < prayers.length; i++) {
+    const p = prayers[i];
+    const parts = p.message.split(" / ").map((s) => s.trim()).filter(Boolean);
+    if (parts.length === 2) {
+      if (langMode === "en" || langMode === "dual") {
+        segments.push({ text: p.authorLabel + ": " + parts[0], langTag: detectLangTag(parts[0], "en-US") });
+      }
+      if (langMode === "zh" || langMode === "dual") {
+        segments.push({ text: parts[1], langTag: detectLangTag(parts[1], "zh-CN") });
+      }
+    } else {
+      const combined = p.authorLabel ? p.authorLabel + ": " + p.message : p.message;
+      segments.push({ text: combined, langTag: detectLangTag(combined, fallbackTag) });
+    }
+  }
+  return segments;
+}
 
 export interface SpeechVoiceLike {
   lang: string;
@@ -121,18 +170,42 @@ export class JourneySpeech {
   }
 
   public speakPlain(text: string, langTag: "en-US" | "zh-CN"): boolean {
+    return this.speakSequence([{ text, langTag }]);
+  }
+
+  public speakSequence(segments: SpeechSegment[]): boolean {
     if (this.muted || !this.host.synth || !this.host.createUtterance) {
       return false;
     }
-    const clean = text.trim();
-    if (!clean) {
+    const cleaned = segments
+      .map((s) => ({ text: s.text.trim(), langTag: s.langTag }))
+      .filter((s) => s.text.length > 0);
+    if (cleaned.length === 0) {
       return false;
     }
     this.refreshVoices();
     this.stop();
     const token = this.generation;
-    const rate = langTag === "zh-CN" ? 0.90 : 0.92;
-    return this.speakSingle(clean, langTag, rate, 1.04, token, null);
+
+    const runIndex = (idx: number): boolean => {
+      if (this.muted || this.generation !== token || idx >= cleaned.length) {
+        return false;
+      }
+      const seg = cleaned[idx];
+      const rate = seg.langTag === "zh-CN" ? 0.90 : 0.92;
+      const pitch = seg.langTag === "zh-CN" ? 1.03 : 1.04;
+      const hasNext = idx + 1 < cleaned.length;
+      return this.speakSingle(
+        seg.text,
+        seg.langTag,
+        rate,
+        pitch,
+        token,
+        hasNext ? () => { runIndex(idx + 1); } : null
+      );
+    };
+
+    return runIndex(0);
   }
 
   private pickVoice(langPrefix: "en" | "zh"): SpeechVoiceLike | null {

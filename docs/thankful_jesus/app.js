@@ -33,6 +33,8 @@ var __ThankfulJesusBundle = (() => {
     BUILDER_VERSE_QUEUE: () => BUILDER_VERSE_QUEUE,
     CHURCH_PROMPTS: () => CHURCH_PROMPTS,
     EMPTY_INPUT: () => EMPTY_INPUT,
+    FRIEND_EASTER_LINES: () => FRIEND_EASTER_LINES,
+    JESUS_EASTER_LINES: () => JESUS_EASTER_LINES,
     JourneyAudio: () => JourneyAudio,
     JourneySpeech: () => JourneySpeech,
     LEAF_COLORS: () => LEAF_COLORS,
@@ -43,12 +45,15 @@ var __ThankfulJesusBundle = (() => {
     STAGE_SEQUENCE: () => STAGE_SEQUENCE,
     STAGE_TEXT: () => STAGE_TEXT,
     STICKER_PRESETS: () => STICKER_PRESETS,
+    TREE_EASTER_LINES: () => TREE_EASTER_LINES,
     UI_TEXT: () => UI_TEXT,
     VERSES: () => VERSES,
     VERSE_ORDER: () => VERSE_ORDER,
     applyAction: () => applyAction,
+    buildPrayerTreeSegments: () => buildPrayerTreeSegments,
     createInitialState: () => createInitialState,
     createPrayerLeaf: () => createPrayerLeaf,
+    detectLangTag: () => detectLangTag,
     drainSounds: () => drainSounds,
     drawStickerIcon: () => drawStickerIcon,
     drawTileIcon: () => drawTileIcon,
@@ -57,6 +62,7 @@ var __ThankfulJesusBundle = (() => {
     formatPrimary: () => formatPrimary,
     formatSecondary: () => formatSecondary,
     getChurchPrompt: () => getChurchPrompt,
+    getEasterLine: () => getEasterLine,
     getStickerPreset: () => getStickerPreset,
     getVerseById: () => getVerseById,
     getVerseTiles: () => getVerseTiles,
@@ -274,6 +280,199 @@ var __ThankfulJesusBundle = (() => {
     }
     ctx.restore();
   }
+  function drawSoftCloud(ctx, cx, cy, scale = 1) {
+    const s = safeR(scale);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.fillStyle = "rgba(255, 253, 248, 0.85)";
+    ctx.beginPath();
+    safeArc(ctx, -18, 4, 14, 0, Math.PI * 2);
+    safeArc(ctx, 0, -3, 18, 0, Math.PI * 2);
+    safeArc(ctx, 19, 4, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawWhiteDove(ctx, cx, cy, scale = 1, timeSec = 0) {
+    const s = safeR(scale);
+    const flap = Math.sin(timeSec * 5.2) * 7;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.fillStyle = "#FFFDF9";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    safeEllipse(ctx, 0, 0, 11, 5.5, -0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-2, -1);
+    ctx.quadraticCurveTo(-8, -14 + flap, -17, -6 + flap * 0.7);
+    ctx.quadraticCurveTo(-7, -3, -2, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(1, -2);
+    ctx.quadraticCurveTo(6, -15 - flap * 0.5, 13, -7 - flap * 0.4);
+    ctx.quadraticCurveTo(6, -3, 2, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = PALETTE.oliveGreen;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(10, -1);
+    ctx.lineTo(17, 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawGalileeBoat(ctx, cx, cy, scale = 1, timeSec = 0) {
+    const s = safeR(scale);
+    const bob = Math.sin(timeSec * 2.1) * 1.8;
+    const tilt = Math.sin(timeSec * 1.7) * 0.05;
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+    ctx.rotate(tilt);
+    ctx.scale(s, s);
+    ctx.fillStyle = "#FFF9EC";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, -24);
+    ctx.quadraticCurveTo(15, -14, 12, -3);
+    ctx.lineTo(0, -3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = "#7D4C1E";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -25);
+    ctx.lineTo(0, 0);
+    ctx.stroke();
+    ctx.fillStyle = "#B67346";
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.7;
+    ctx.beginPath();
+    ctx.moveTo(-18, -1);
+    ctx.lineTo(18, -1);
+    ctx.lineTo(12, 8);
+    ctx.lineTo(-12, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawWildflower(ctx, cx, cy, scale = 1, petalColor = "#FFF2A6") {
+    const s = safeR(scale);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.strokeStyle = PALETTE.oliveDark;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, 10);
+    ctx.stroke();
+    ctx.fillStyle = petalColor;
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI * 2 / 5;
+      ctx.beginPath();
+      safeArc(ctx, Math.cos(a) * 4, Math.sin(a) * 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = PALETTE.sunGold;
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  function drawGoldenFootprint(ctx, cx, cy, scale = 1, tilt = 0) {
+    const s = safeR(scale);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(tilt);
+    ctx.scale(s, s);
+    ctx.fillStyle = "rgba(246, 196, 83, 0.85)";
+    ctx.strokeStyle = PALETTE.terracottaDark;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    safeEllipse(ctx, 0, -4, 4.5, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    safeArc(ctx, 0, 6, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawHeartBurst(ctx, cx, cy, progress, timeSec) {
+    const p = Math.max(0, Math.min(1, progress));
+    const spread = 24 + (1 - p) * 46;
+    const items = 5;
+    for (let i = 0; i < items; i++) {
+      const a = -Math.PI * 0.85 + i / (items - 1) * Math.PI * 0.7 + Math.sin(timeSec * 4 + i) * 0.08;
+      const px = cx + Math.cos(a) * spread;
+      const py = cy + Math.sin(a) * spread;
+      if (i % 2 === 0) {
+        drawHeart(ctx, px, py, 6.5, "#E06D53");
+      } else {
+        drawStar(ctx, px, py, 6.5, PALETTE.sunGold);
+      }
+    }
+  }
+  function drawSpeechBubble(ctx, cx, topY, primary, secondary, canvasWidth, tailX) {
+    ctx.save();
+    ctx.font = "800 13px system-ui, -apple-system, sans-serif";
+    const w1 = ctx.measureText(primary).width;
+    let w2 = 0;
+    if (secondary) {
+      ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+      w2 = ctx.measureText(secondary).width;
+    }
+    const boxW = Math.min(canvasWidth - 28, Math.max(126, Math.max(w1, w2) + 28));
+    const boxH = secondary ? 48 : 32;
+    const x = Math.max(14, Math.min(canvasWidth - 14 - boxW, cx - boxW / 2));
+    const y = Math.max(10, topY);
+    drawRoundedRect(ctx, x, y, boxW, boxH, 14);
+    ctx.fillStyle = "rgba(255, 251, 242, 0.96)";
+    ctx.fill();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    if (typeof tailX === "number") {
+      const tx = Math.max(x + 18, Math.min(x + boxW - 18, tailX));
+      ctx.beginPath();
+      ctx.moveTo(tx - 7, y + boxH - 1);
+      ctx.lineTo(tx, y + boxH + 9);
+      ctx.lineTo(tx + 7, y + boxH - 1);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(255, 251, 242, 0.96)";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(tx - 7, y + boxH);
+      ctx.lineTo(tx, y + boxH + 9);
+      ctx.lineTo(tx + 7, y + boxH);
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+    }
+    ctx.textAlign = "center";
+    ctx.fillStyle = PALETTE.ink;
+    ctx.font = "800 13px system-ui, -apple-system, sans-serif";
+    const trimPrimary = primary.length > 36 ? primary.slice(0, 35) + "..." : primary;
+    ctx.fillText(trimPrimary, x + boxW / 2, secondary ? y + 19 : y + 21);
+    if (secondary) {
+      ctx.fillStyle = PALETTE.terracottaDark;
+      ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+      const trimSec = secondary.length > 26 ? secondary.slice(0, 25) + "..." : secondary;
+      ctx.fillText(trimSec, x + boxW / 2, y + 38);
+    }
+    ctx.restore();
+  }
   function drawGalileeBackdrop(ctx, w, h, timeSec) {
     const sky = ctx.createLinearGradient(0, 0, 0, h * 0.7);
     sky.addColorStop(0, "#D8EEF7");
@@ -281,6 +480,10 @@ var __ThankfulJesusBundle = (() => {
     sky.addColorStop(1, "#FBE1B8");
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, w, h);
+    const cloud1X = (timeSec * 8 + w * 0.22) % (w + 90) - 45;
+    const cloud2X = (timeSec * 5 + w * 0.62) % (w + 90) - 45;
+    drawSoftCloud(ctx, cloud1X, h * 0.14, 0.95);
+    drawSoftCloud(ctx, cloud2X, h * 0.24, 0.78);
     drawSunRays(ctx, w * 0.82, h * 0.16, 95, timeSec, 0.22);
     ctx.save();
     ctx.beginPath();
@@ -291,6 +494,9 @@ var __ThankfulJesusBundle = (() => {
     ctx.strokeStyle = "#E5A93B";
     ctx.stroke();
     ctx.restore();
+    const doveX = (timeSec * 16 + w * 0.15) % (w + 60) - 30;
+    const doveY = h * 0.29 + Math.sin(timeSec * 1.8) * 6;
+    drawWhiteDove(ctx, doveX, doveY, 0.82, timeSec);
     ctx.fillStyle = "#B6C9A4";
     ctx.beginPath();
     ctx.moveTo(0, h * 0.56);
@@ -312,6 +518,7 @@ var __ThankfulJesusBundle = (() => {
       ctx.lineTo(w * (0.28 + i * 0.16) + shift, y);
       ctx.stroke();
     }
+    drawGalileeBoat(ctx, w * 0.72 + Math.sin(timeSec * 0.4) * 14, h * 0.58, 0.72, timeSec);
     ctx.fillStyle = "#A9C17D";
     ctx.beginPath();
     ctx.moveTo(0, h * 0.65);
@@ -320,6 +527,15 @@ var __ThankfulJesusBundle = (() => {
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
+    const flowers = [
+      { x: 0.09, y: 0.86, c: "#FFF4B5" },
+      { x: 0.22, y: 0.91, c: "#FFD5C2" },
+      { x: 0.88, y: 0.84, c: "#FFF4B5" },
+      { x: 0.93, y: 0.92, c: "#E8F6FF" }
+    ];
+    for (let i = 0; i < flowers.length; i++) {
+      drawWildflower(ctx, w * flowers[i].x, h * flowers[i].y, 0.85, flowers[i].c);
+    }
   }
   function drawJesus(ctx, cx, baseY, scale, pose, timeSec) {
     const s = safeR(scale);
@@ -613,11 +829,12 @@ var __ThankfulJesusBundle = (() => {
     ctx.fill();
     ctx.restore();
   }
-  function drawGratitudeOliveTree(ctx, cx, baseY, width, height, prayers, timeSec) {
+  function drawGratitudeOliveTree(ctx, cx, baseY, width, height, prayers, timeSec, rustleTimer = 0) {
     const w = safeR(width);
     const h = safeR(height);
     const trunkW = w * 0.16;
     const trunkH = h * 0.42;
+    const rustleShift = rustleTimer > 0 ? Math.sin(timeSec * 22) * 3.5 * Math.min(1, rustleTimer) : 0;
     ctx.save();
     ctx.fillStyle = "#8C5A37";
     ctx.strokeStyle = PALETTE.ink;
@@ -642,24 +859,33 @@ var __ThankfulJesusBundle = (() => {
     for (let i = 0; i < puffs.length; i++) {
       const p = puffs[i];
       ctx.beginPath();
-      safeEllipse(ctx, cx + p.dx, canopyCenterY + p.dy, p.rx, p.ry, 0, 0, Math.PI * 2);
+      safeEllipse(ctx, cx + p.dx + rustleShift, canopyCenterY + p.dy, p.rx, p.ry, 0, 0, Math.PI * 2);
       ctx.fillStyle = p.fill;
       ctx.fill();
       ctx.lineWidth = 2.4;
       ctx.strokeStyle = PALETTE.ink;
       ctx.stroke();
     }
-    const boxLeft = cx - w * 0.46;
+    const boxLeft = cx - w * 0.46 + rustleShift;
     const boxTop = canopyTop + h * 0.06;
     const boxW = w * 0.92;
     const boxH = h * 0.62;
     for (let i = 0; i < prayers.length; i++) {
       const leaf = prayers[i];
       const slot = TREE_LEAF_SLOTS[leaf.treeSlot % TREE_LEAF_SLOTS.length];
-      const sway = Math.sin(timeSec * 2.1 + i * 0.9) * 0.08;
+      const sway = Math.sin(timeSec * (rustleTimer > 0 ? 10 : 2.1) + i * 0.9) * (rustleTimer > 0 ? 0.22 : 0.08);
       const lx = boxLeft + slot.x * boxW;
       const ly = boxTop + slot.y * boxH;
       drawLeaf(ctx, lx, ly, Math.max(10, w * 0.055), leaf.leafColor, slot.tilt + sway);
+    }
+    if (rustleTimer > 0) {
+      const burstColors = ["gold", "crimson", "olive", "sky"];
+      const fall = 2.2 - rustleTimer;
+      for (let i = 0; i < 4; i++) {
+        const lx = cx + (i - 1.5) * (w * 0.22) + Math.sin(timeSec * 6 + i) * 10;
+        const ly = canopyCenterY + fall * 42 + i * 8;
+        drawLeaf(ctx, lx, ly, 9, burstColors[i], timeSec * 2 + i);
+      }
     }
     ctx.restore();
   }
@@ -839,6 +1065,16 @@ var __ThankfulJesusBundle = (() => {
           this.tone(659.25, 659.25, 0.12, "triangle", 0.14, now + 0.11);
           this.tone(783.99, 783.99, 0.15, "triangle", 0.15, now + 0.22);
           this.tone(1046.5, 1046.5, 0.34, "sine", 0.17, now + 0.34);
+          break;
+        case "jesus_chime":
+          this.tone(523.25, 523.25, 0.14, "sine", 0.12, now);
+          this.tone(659.25, 659.25, 0.14, "sine", 0.12, now + 0.08);
+          this.tone(783.99, 783.99, 0.18, "sine", 0.13, now + 0.16);
+          this.tone(1046.5, 1046.5, 0.26, "sine", 0.12, now + 0.24);
+          break;
+        case "tree_rustle":
+          this.tone(698.46, 880, 0.1, "sine", 0.1, now);
+          this.tone(880, 1046.5, 0.12, "sine", 0.09, now + 0.07);
           break;
       }
     }
@@ -1095,8 +1331,102 @@ var __ThankfulJesusBundle = (() => {
     pcFooter: {
       en: "Give thanks in Christ Jesus - games-for-kids",
       zh: "\u5728\u57FA\u7763\u8036\u7A23\u91CC\u51E1\u4E8B\u8C22\u6069"
+    },
+    s1TapPrayCanvas: {
+      en: "Tap below to give thanks with Jesus!",
+      zh: "\u70B9\u51FB\u4E0B\u65B9\uFF0C\u5148\u4E0E\u8036\u7A23\u4E00\u8D77\u795D\u8C22\uFF01"
+    },
+    popAmen: {
+      en: "Amen! Thank You!",
+      zh: "\u963F\u4EEC\uFF01\u795D\u8C22\uFF01"
+    },
+    popShared: {
+      en: "+1 Shared!",
+      zh: "+1 \u5206\u4EAB\u7ED9\u670B\u53CB\uFF01"
+    },
+    popBlessing: {
+      en: "+1 Blessing Basket!",
+      zh: "+1 \u5341\u4E8C\u7BEE\u6069\u5178\uFF01"
+    },
+    popGrace: {
+      en: "+1 Grace Sparkle!",
+      zh: "+1 \u6069\u5178\u5149\u70B9\uFF01"
+    },
+    popOops: {
+      en: "Stay focused!",
+      zh: "\u5C0F\u5FC3\u522B\u5206\u5FC3\u54E6\uFF01"
+    },
+    popTurnBack: {
+      en: "Run back to Jesus!",
+      zh: "\u8F6C\u8EAB\u8DD1\u5411\u8036\u7A23\uFF01"
+    },
+    popThankJesus: {
+      en: "Thank You Jesus!",
+      zh: "\u8C22\u8C22\u8036\u7A23\uFF01"
+    },
+    easterHint: {
+      en: "Tip: Tap Jesus or the Olive Tree!",
+      zh: "\u5C0F\u5F69\u86CB\uFF1A\u70B9\u4E00\u70B9\u753B\u9762\u91CC\u7684\u8036\u7A23\u6216\u6A44\u6984\u6811\uFF01"
+    },
+    readTreeBtn: {
+      en: "Read All Tree Prayers",
+      zh: "\u6717\u8BFB\u611F\u6069\u6811\u4E0A\u7684\u7977\u544A"
     }
   };
+  var JESUS_EASTER_LINES = [
+    {
+      en: "Jesus loves you and watches over you every day!",
+      zh: "\u8036\u7A23\u597D\u7231\u4F60\uFF0C\u5929\u5929\u770B\u987E\u4F60\uFF01"
+    },
+    {
+      en: "Praise our Father with a joyful, thankful heart!",
+      zh: "\u7528\u559C\u4E50\u611F\u6069\u7684\u5FC3\uFF0C\u8D5E\u7F8E\u5929\u7236\u5427\uFF01"
+    },
+    {
+      en: "Give thanks in all things! Jesus is always with you!",
+      zh: "\u51E1\u4E8B\u8C22\u6069\uFF0C\u8036\u7A23\u4E00\u76F4\u4E0E\u4F60\u540C\u5728\uFF01"
+    },
+    {
+      en: "Jesus sees every loving gift you share!",
+      zh: "\u4F60\u5206\u4EAB\u7684\u6BCF\u4E00\u4EFD\u7231\uFF0C\u8036\u7A23\u90FD\u770B\u89C1\u5566\uFF01"
+    }
+  ];
+  var TREE_EASTER_LINES = [
+    {
+      en: "Rustling leaves! Count Jesus' wonderful blessings!",
+      zh: "\u79CB\u53F6\u98D8\u5440\u98D8\uFF0C\u6570\u7B97\u8036\u7A23\u6EE1\u6EE1\u7684\u6069\u5178\uFF01"
+    },
+    {
+      en: "Look! Our Gratitude Olive Tree is shining bright!",
+      zh: "\u54C7\uFF01\u611F\u6069\u6811\u53C8\u95EA\u95EA\u53D1\u5149\u5566\uFF01"
+    },
+    {
+      en: "Thank You God for blue skies, Galilee water, and olive trees!",
+      zh: "\u8C22\u8C22\u795E\u521B\u9020\u84DD\u5929\u3001\u6E56\u6C34\u548C\u6A44\u6984\u6811\uFF01"
+    }
+  ];
+  var FRIEND_EASTER_LINES = [
+    {
+      en: "Yay! Let's run and say thank you to Jesus together!",
+      zh: "\u8036\uFF01\u4E00\u8D77\u53BB\u5411\u8036\u7A23\u8BF4\u8C22\u8C22\uFF01"
+    },
+    {
+      en: "Hallelujah! What a joyful Thanksgiving Day!",
+      zh: "\u54C8\u5229\u8DEF\u4E9A\uFF01\u4ECA\u5929\u771F\u662F\u611F\u6069\u7684\u4E00\u5929\uFF01"
+    }
+  ];
+  function getEasterLine(source, index) {
+    if (source === "jesus") {
+      return JESUS_EASTER_LINES[index % JESUS_EASTER_LINES.length];
+    }
+    if (source === "tree") {
+      return TREE_EASTER_LINES[index % TREE_EASTER_LINES.length];
+    }
+    if (source === "friend") {
+      return FRIEND_EASTER_LINES[index % FRIEND_EASTER_LINES.length];
+    }
+    return null;
+  }
   var STAGE_TEXT = {
     loaves_and_fish: {
       title: {
@@ -1520,7 +1850,7 @@ var __ThankfulJesusBundle = (() => {
         spawnTimer: 0.35,
         nextItemId: 1,
         items: [],
-        lastPopText: "",
+        lastPopKey: "",
         lastPopTimer: 0
       };
     }
@@ -1539,7 +1869,7 @@ var __ThankfulJesusBundle = (() => {
         spawnTimer: 0.3,
         nextItemId: 1,
         items: [],
-        lastPopText: "",
+        lastPopKey: "",
         lastPopTimer: 0
       };
     }
@@ -1579,7 +1909,7 @@ var __ThankfulJesusBundle = (() => {
         stage.prayedWithJesus = true;
         stage.prayGlowTimer = 1.6;
         stage.score += 100;
-        stage.lastPopText = "Amen!";
+        stage.lastPopKey = "popAmen";
         stage.lastPopTimer = 1.1;
         sounds.push("pray_blessing");
       }
@@ -1620,11 +1950,11 @@ var __ThankfulJesusBundle = (() => {
         if (item.itemType === "blessing") {
           stage.blessingsCollected += 1;
           stage.score += 120 + stage.streak * 15;
-          stage.lastPopText = "+Blessing!";
+          stage.lastPopKey = "popBlessing";
           sounds.push("blessing_token");
         } else {
           stage.score += 65 + stage.streak * 10;
-          stage.lastPopText = "+Shared!";
+          stage.lastPopKey = "popShared";
           sounds.push("good_catch");
         }
         stage.lastPopTimer = 0.65;
@@ -1690,13 +2020,13 @@ var __ThankfulJesusBundle = (() => {
             stage.sparklesCollected += 1;
             stage.roadProgress = clamp(stage.roadProgress + 0.09, 0, 1);
             stage.score += 80;
-            stage.lastPopText = "+Grace!";
-            stage.lastPopTimer = 0.6;
+            stage.lastPopKey = "popGrace";
+            stage.lastPopTimer = 0.7;
             sounds.push("blessing_token");
           } else {
             stage.wobbleTimer = 0.45;
-            stage.lastPopText = "Oops!";
-            stage.lastPopTimer = 0.55;
+            stage.lastPopKey = "popOops";
+            stage.lastPopTimer = 0.65;
             sounds.push("gentle_bump");
           }
           continue;
@@ -1710,8 +2040,8 @@ var __ThankfulJesusBundle = (() => {
       if (stage.sparklesCollected >= stage.targetSparkles || stage.roadProgress >= 1 || !isExplorer && stage.timeLeftSec <= 8) {
         stage.subPhase = "turn_back";
         stage.items = [];
-        stage.lastPopText = "Turn Back!";
-        stage.lastPopTimer = 1;
+        stage.lastPopKey = "popTurnBack";
+        stage.lastPopTimer = 1.1;
         sounds.push("pray_blessing");
       }
       return false;
@@ -1721,8 +2051,8 @@ var __ThankfulJesusBundle = (() => {
       const step = isExplorer ? 18 : 14;
       stage.turnBackProgress = clamp(stage.turnBackProgress + step, 0, 100);
       stage.score += 45;
-      stage.lastPopText = "Thank You Jesus!";
-      stage.lastPopTimer = 0.5;
+      stage.lastPopKey = "popThankJesus";
+      stage.lastPopTimer = 0.65;
       sounds.push("turn_step");
     } else if (stage.turnBackProgress > 12) {
       stage.turnBackProgress = Math.max(12, stage.turnBackProgress - dt * (isExplorer ? 2.5 : 5));
@@ -1921,12 +2251,33 @@ var __ThankfulJesusBundle = (() => {
       autoRead: false,
       elapsedSec: 0,
       rngState: (config.seed ?? 20261125) >>> 0,
-      pendingSounds: []
+      pendingSounds: [],
+      easterSource: "none",
+      easterLineIndex: 0,
+      easterTimer: 0,
+      jesusGlowTimer: 0,
+      treeRustleTimer: 0,
+      friendHopTimer: 0
     };
   }
   function stepGame(state, dtSec, input = EMPTY_INPUT) {
     const dt = Math.max(0, Math.min(0.08, dtSec));
     state.elapsedSec += dt;
+    if (state.easterTimer > 0) {
+      state.easterTimer = Math.max(0, state.easterTimer - dt);
+      if (state.easterTimer === 0) {
+        state.easterSource = "none";
+      }
+    }
+    if (state.jesusGlowTimer > 0) {
+      state.jesusGlowTimer = Math.max(0, state.jesusGlowTimer - dt);
+    }
+    if (state.treeRustleTimer > 0) {
+      state.treeRustleTimer = Math.max(0, state.treeRustleTimer - dt);
+    }
+    if (state.friendHopTimer > 0) {
+      state.friendHopTimer = Math.max(0, state.friendHopTimer - dt);
+    }
     if (state.phase !== "stage_play" || !state.stageState) {
       return state;
     }
@@ -2003,7 +2354,7 @@ var __ThankfulJesusBundle = (() => {
           state.stageState.prayedWithJesus = true;
           state.stageState.prayGlowTimer = 1.6;
           state.stageState.score += 100;
-          state.stageState.lastPopText = "Amen!";
+          state.stageState.lastPopKey = "popAmen";
           state.stageState.lastPopTimer = 1.1;
           state.pendingSounds.push("pray_blessing");
         }
@@ -2077,6 +2428,27 @@ var __ThankfulJesusBundle = (() => {
         break;
       case "SHUFFLE_PROMPT":
         state.promptIndex += 1;
+        break;
+      case "POKE_JESUS":
+        state.easterSource = "jesus";
+        state.easterLineIndex += 1;
+        state.easterTimer = 3.2;
+        state.jesusGlowTimer = 2.4;
+        state.pendingSounds.push("jesus_chime");
+        break;
+      case "POKE_TREE":
+        state.easterSource = "tree";
+        state.easterLineIndex += 1;
+        state.easterTimer = 3;
+        state.treeRustleTimer = 2.2;
+        state.pendingSounds.push("tree_rustle");
+        break;
+      case "POKE_FRIEND":
+        state.easterSource = "friend";
+        state.easterLineIndex += 1;
+        state.easterTimer = 3;
+        state.friendHopTimer = 2.2;
+        state.pendingSounds.push("blessing_token");
         break;
       case "TOGGLE_MUTE":
         state.muted = !state.muted;
@@ -2343,28 +2715,57 @@ var __ThankfulJesusBundle = (() => {
     ctx.font = "700 15px system-ui, -apple-system, sans-serif";
     ctx.fillText(sub, w / 2, 78);
   }
-  function renderLoavesPlay(ctx, stage, w, h, timeSec) {
+  function drawEasterOverlay(ctx, state, w, jesusX, treeX, friendX, topY) {
+    if (state.easterTimer <= 0 || state.easterSource === "none") {
+      return;
+    }
+    const line = getEasterLine(state.easterSource, state.easterLineIndex);
+    if (!line) {
+      return;
+    }
+    const anchorX = state.easterSource === "jesus" ? jesusX : state.easterSource === "tree" ? treeX : friendX;
+    drawSpeechBubble(
+      ctx,
+      anchorX,
+      topY,
+      formatPrimary(line, state.langMode),
+      formatSecondary(line, state.langMode),
+      w,
+      anchorX
+    );
+  }
+  function renderLoavesPlay(ctx, state, stage, w, h, timeSec) {
     drawGalileeBackdrop(ctx, w, h, timeSec);
     if (stage.prayGlowTimer > 0 || !stage.prayedWithJesus) {
       drawSunRays(ctx, w * 0.5, 118, stage.prayedWithJesus ? 165 : 105, timeSec, 0.34);
     }
     drawJesus(ctx, w * 0.5, 162, 1.05, stage.prayedWithJesus ? "celebrate" : "bless", timeSec);
+    if (stage.prayGlowTimer > 0) {
+      drawHeartBurst(ctx, w * 0.5, 106, stage.prayGlowTimer / 1.6, timeSec);
+    }
     if (!stage.prayedWithJesus) {
       drawChildFriend(ctx, w * 0.25, 186, 0.92, "#6BA8C9", true, timeSec);
       drawWovenBasket(ctx, w * 0.5, 212, 1, 3);
-      drawRoundedRect(ctx, 56, 260, w - 112, 66, 16);
-      ctx.fillStyle = "rgba(255, 248, 235, 0.94)";
+      const johnRef = getVerseById("john_6_11").reference;
+      drawRoundedRect(ctx, 32, 256, w - 64, 82, 16);
+      ctx.fillStyle = "rgba(255, 248, 235, 0.95)";
       ctx.fill();
       ctx.lineWidth = 2.5;
       ctx.strokeStyle = PALETTE.ink;
       ctx.stroke();
       ctx.textAlign = "center";
       ctx.fillStyle = PALETTE.terracottaDark;
-      ctx.font = "800 17px system-ui, -apple-system, sans-serif";
-      ctx.fillText("John 6:11", w / 2, 286);
+      ctx.font = "800 16px system-ui, -apple-system, sans-serif";
+      ctx.fillText(formatPrimary(johnRef, state.langMode), w / 2, 282);
       ctx.fillStyle = PALETTE.ink;
       ctx.font = "700 14px system-ui, -apple-system, sans-serif";
-      ctx.fillText("Tap below to give thanks with Jesus!", w / 2, 310);
+      ctx.fillText(formatPrimary(UI_TEXT.s1TapPrayCanvas, state.langMode), w / 2, 306);
+      const secHint = formatSecondary(UI_TEXT.s1TapPrayCanvas, state.langMode);
+      if (secHint) {
+        ctx.fillStyle = PALETTE.mutedInk;
+        ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+        ctx.fillText(secHint, w / 2, 326);
+      }
       return;
     }
     const seats = [0.14, 0.3, 0.7, 0.86];
@@ -2385,14 +2786,20 @@ var __ThankfulJesusBundle = (() => {
       }
     }
     drawWovenBasket(ctx, stage.basketX * w, h * 0.81, 1.15, stage.sharedCount);
-    if (stage.lastPopTimer > 0 && stage.lastPopText) {
-      ctx.textAlign = "center";
-      ctx.fillStyle = PALETTE.terracottaDark;
-      ctx.font = "800 19px system-ui, -apple-system, sans-serif";
-      ctx.fillText(stage.lastPopText, stage.basketX * w, h * 0.7);
+    if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+      const pop = UI_TEXT[stage.lastPopKey];
+      drawSpeechBubble(
+        ctx,
+        stage.basketX * w,
+        h * 0.56,
+        formatPrimary(pop, state.langMode),
+        formatSecondary(pop, state.langMode),
+        w,
+        stage.basketX * w
+      );
     }
   }
-  function renderRunBackPlay(ctx, stage, w, h, timeSec) {
+  function renderRunBackPlay(ctx, state, stage, w, h, timeSec) {
     drawGalileeBackdrop(ctx, w, h, timeSec);
     if (stage.subPhase === "turn_back") {
       drawSunRays(ctx, w * 0.5, 130, 180, timeSec, 0.34);
@@ -2407,9 +2814,20 @@ var __ThankfulJesusBundle = (() => {
       ctx.strokeStyle = PALETTE.sandalwood;
       ctx.lineWidth = 2.5;
       ctx.stroke();
-      drawJesus(ctx, w * 0.5, 176, 1.18, "welcome", timeSec);
       const p = stage.turnBackProgress / 100;
       const ty = h - 38 - p * (h - 236);
+      const stepCount = Math.min(7, Math.floor(p * 8));
+      for (let i = 0; i < stepCount; i++) {
+        const fy = h - 24 - i * 26;
+        if (fy > ty + 14) {
+          const fx = w * 0.5 + (i % 2 === 0 ? -13 : 13);
+          drawGoldenFootprint(ctx, fx, fy, 1, i % 2 === 0 ? -0.15 : 0.15);
+        }
+      }
+      drawJesus(ctx, w * 0.5, 176, 1.18, "welcome", timeSec);
+      if (p > 0.55) {
+        drawHeartBurst(ctx, w * 0.5, 118, 1 - Math.min(1, (p - 0.55) * 2), timeSec);
+      }
       const tScale = 1.15 - p * 0.22;
       drawChildFriend(ctx, w * 0.5, ty, tScale, "#D46A43", true, timeSec * 1.6);
       drawRoundedRect(ctx, 52, 22, w - 104, 24, 12);
@@ -2421,11 +2839,17 @@ var __ThankfulJesusBundle = (() => {
       drawRoundedRect(ctx, 56, 26, Math.max(12, (w - 112) * p), 16, 8);
       ctx.fillStyle = PALETTE.sunGold;
       ctx.fill();
-      if (stage.lastPopTimer > 0 && stage.lastPopText) {
-        ctx.textAlign = "center";
-        ctx.fillStyle = PALETTE.terracottaDark;
-        ctx.font = "800 18px system-ui, -apple-system, sans-serif";
-        ctx.fillText(stage.lastPopText, w * 0.5, Math.max(76, ty - 70));
+      if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+        const pop = UI_TEXT[stage.lastPopKey];
+        drawSpeechBubble(
+          ctx,
+          w * 0.5,
+          Math.max(54, ty - 116),
+          formatPrimary(pop, state.langMode),
+          formatSecondary(pop, state.langMode),
+          w,
+          w * 0.5
+        );
       }
       return;
     }
@@ -2467,11 +2891,17 @@ var __ThankfulJesusBundle = (() => {
     }
     const wobbleX = stage.wobbleTimer > 0 ? Math.sin(timeSec * 42) * 7 : 0;
     drawChildFriend(ctx, laneX[stage.lane] + wobbleX, h - 26, 1.05, "#D46A43", stage.wobbleTimer === 0, timeSec);
-    if (stage.lastPopTimer > 0 && stage.lastPopText) {
-      ctx.textAlign = "center";
-      ctx.fillStyle = PALETTE.terracottaDark;
-      ctx.font = "800 18px system-ui, -apple-system, sans-serif";
-      ctx.fillText(stage.lastPopText, laneX[stage.lane], h - 104);
+    if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+      const pop = UI_TEXT[stage.lastPopKey];
+      drawSpeechBubble(
+        ctx,
+        laneX[stage.lane],
+        h - 156,
+        formatPrimary(pop, state.langMode),
+        formatSecondary(pop, state.langMode),
+        w,
+        laneX[stage.lane]
+      );
     }
   }
   function renderVerseBuilderPlay(ctx, state, stage, w, h, timeSec) {
@@ -2558,12 +2988,36 @@ var __ThankfulJesusBundle = (() => {
     ctx.clearRect(0, 0, w, h);
     if (state.phase === "title") {
       drawGalileeBackdrop(ctx, w, h, t);
-      drawGratitudeOliveTree(ctx, w * 0.77, h - 34, 175, 175, [], t);
-      drawJesus(ctx, w * 0.34, h - 36, 1.32, "welcome", t);
-      drawChildFriend(ctx, w * 0.56, h - 32, 0.92, "#D46A43", true, t);
+      drawGratitudeOliveTree(ctx, w * 0.77, h - 34, 175, 175, [], t, state.treeRustleTimer);
+      if (state.jesusGlowTimer > 0) {
+        drawSunRays(ctx, w * 0.34, h - 120, 120, t, 0.36);
+        drawHeartBurst(ctx, w * 0.34, h - 122, state.jesusGlowTimer / 2.4, t);
+      }
+      drawJesus(
+        ctx,
+        w * 0.34,
+        h - 36,
+        1.32,
+        state.jesusGlowTimer > 0 ? "celebrate" : "welcome",
+        t
+      );
+      drawChildFriend(
+        ctx,
+        w * 0.56,
+        h - 32,
+        0.92,
+        "#D46A43",
+        true,
+        state.friendHopTimer > 0 ? t * 2.4 : t
+      );
+      if (state.friendHopTimer > 0) {
+        drawStar(ctx, w * 0.56 - 20, h - 98, 8, PALETTE.sunGold);
+        drawStar(ctx, w * 0.56 + 20, h - 94, 8, PALETTE.sunGold);
+      }
       drawWovenBasket(ctx, w * 0.16, h - 38, 0.78, 3);
       drawFloatingLeaves(ctx, w, h, t);
       drawTitleBanner(ctx, state, w);
+      drawEasterOverlay(ctx, state, w, w * 0.34, w * 0.77, w * 0.56, 106);
       return;
     }
     if (state.phase === "pass_banner") {
@@ -2628,9 +3082,9 @@ var __ThankfulJesusBundle = (() => {
     }
     if (state.phase === "stage_play" && state.stageState) {
       if (state.stageState.kind === "loaves_and_fish") {
-        renderLoavesPlay(ctx, state.stageState, w, h, t);
+        renderLoavesPlay(ctx, state, state.stageState, w, h, t);
       } else if (state.stageState.kind === "run_back_to_jesus") {
-        renderRunBackPlay(ctx, state.stageState, w, h, t);
+        renderRunBackPlay(ctx, state, state.stageState, w, h, t);
       } else {
         renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
       }
@@ -2685,16 +3139,32 @@ var __ThankfulJesusBundle = (() => {
       drawSunRays(ctx, w * 0.5, 128, 185, t, 0.3);
       drawFloatingLeaves(ctx, w, h, t);
     }
-    drawGratitudeOliveTree(ctx, w * 0.62, h - 30, 224, 248, state.prayers, t);
+    drawGratitudeOliveTree(ctx, w * 0.64, h - 30, 224, 248, state.prayers, t, state.treeRustleTimer);
+    if (state.jesusGlowTimer > 0) {
+      drawSunRays(ctx, w * 0.24, h - 118, 115, t, 0.35);
+      drawHeartBurst(ctx, w * 0.24, h - 120, state.jesusGlowTimer / 2.4, t);
+    }
     drawJesus(
       ctx,
       w * 0.24,
       h - 32,
       1.28,
-      state.phase === "journey_finale" ? "celebrate" : "welcome",
+      state.phase === "journey_finale" || state.jesusGlowTimer > 0 ? "celebrate" : "welcome",
       t
     );
-    drawChildFriend(ctx, w * 0.42, h - 26, 0.85, "#D46A43", true, t);
+    drawChildFriend(
+      ctx,
+      w * 0.42,
+      h - 26,
+      0.85,
+      "#D46A43",
+      true,
+      state.friendHopTimer > 0 ? t * 2.4 : t
+    );
+    if (state.friendHopTimer > 0) {
+      drawStar(ctx, w * 0.42 - 18, h - 88, 7.5, PALETTE.sunGold);
+      drawStar(ctx, w * 0.42 + 18, h - 84, 7.5, PALETTE.sunGold);
+    }
     if (state.phase === "journey_finale") {
       for (let i = 0; i < 3; i++) {
         const a = t * 1.4 + i * 2.1;
@@ -2704,9 +3174,47 @@ var __ThankfulJesusBundle = (() => {
         ctx.fill();
       }
     }
+    drawEasterOverlay(ctx, state, w, w * 0.24, w * 0.64, w * 0.42, 18);
   }
 
   // thankful_jesus/ts/speech.ts
+  function detectLangTag(text, fallback) {
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code >= 19968 && code <= 40959) {
+        return "zh-CN";
+      }
+    }
+    return fallback;
+  }
+  function buildPrayerTreeSegments(prayers, langMode, featuredVerse) {
+    const segments = [];
+    if (featuredVerse) {
+      if (langMode === "en" || langMode === "dual") {
+        segments.push({ text: featuredVerse.en, langTag: "en-US" });
+      }
+      if (langMode === "zh" || langMode === "dual") {
+        segments.push({ text: featuredVerse.zh, langTag: "zh-CN" });
+      }
+    }
+    const fallbackTag = langMode === "zh" ? "zh-CN" : "en-US";
+    for (let i = 0; i < prayers.length; i++) {
+      const p = prayers[i];
+      const parts = p.message.split(" / ").map((s) => s.trim()).filter(Boolean);
+      if (parts.length === 2) {
+        if (langMode === "en" || langMode === "dual") {
+          segments.push({ text: p.authorLabel + ": " + parts[0], langTag: detectLangTag(parts[0], "en-US") });
+        }
+        if (langMode === "zh" || langMode === "dual") {
+          segments.push({ text: parts[1], langTag: detectLangTag(parts[1], "zh-CN") });
+        }
+      } else {
+        const combined = p.authorLabel ? p.authorLabel + ": " + p.message : p.message;
+        segments.push({ text: combined, langTag: detectLangTag(combined, fallbackTag) });
+      }
+    }
+    return segments;
+  }
   function getDefaultHost() {
     if (typeof window === "undefined") {
       return { synth: null, createUtterance: null };
@@ -2785,18 +3293,39 @@ var __ThankfulJesusBundle = (() => {
       });
     }
     speakPlain(text, langTag) {
+      return this.speakSequence([{ text, langTag }]);
+    }
+    speakSequence(segments) {
       if (this.muted || !this.host.synth || !this.host.createUtterance) {
         return false;
       }
-      const clean = text.trim();
-      if (!clean) {
+      const cleaned = segments.map((s) => ({ text: s.text.trim(), langTag: s.langTag })).filter((s) => s.text.length > 0);
+      if (cleaned.length === 0) {
         return false;
       }
       this.refreshVoices();
       this.stop();
       const token = this.generation;
-      const rate = langTag === "zh-CN" ? 0.9 : 0.92;
-      return this.speakSingle(clean, langTag, rate, 1.04, token, null);
+      const runIndex = (idx) => {
+        if (this.muted || this.generation !== token || idx >= cleaned.length) {
+          return false;
+        }
+        const seg = cleaned[idx];
+        const rate = seg.langTag === "zh-CN" ? 0.9 : 0.92;
+        const pitch = seg.langTag === "zh-CN" ? 1.03 : 1.04;
+        const hasNext = idx + 1 < cleaned.length;
+        return this.speakSingle(
+          seg.text,
+          seg.langTag,
+          rate,
+          pitch,
+          token,
+          hasNext ? () => {
+            runIndex(idx + 1);
+          } : null
+        );
+      };
+      return runIndex(0);
     }
     pickVoice(langPrefix) {
       if (this.voices.length === 0) {
@@ -3011,6 +3540,20 @@ var __ThankfulJesusBundle = (() => {
     }
     function speakCurrentScreen() {
       unlockAudio();
+      if (state.phase === "journey_finale") {
+        const segs = buildPrayerTreeSegments(
+          state.prayers,
+          state.langMode,
+          getVerseById("thess_5_18").text
+        );
+        speech.speakSequence(segs);
+        return;
+      }
+      if (state.phase === "prayer_card" && state.prayers.length > 0) {
+        const segs = buildPrayerTreeSegments(state.prayers, state.langMode);
+        speech.speakSequence(segs);
+        return;
+      }
       const payload = getCurrentSpeechPayload();
       if (payload) {
         speech.speakLocalized(payload, state.langMode);
@@ -3227,6 +3770,10 @@ var __ThankfulJesusBundle = (() => {
           maybeAutoRead();
         });
         stack.appendChild(startBtn);
+        const easterHint = document.createElement("div");
+        easterHint.className = "deck-note";
+        easterHint.textContent = formatLocalized(UI_TEXT.easterHint, state.langMode, " / ");
+        stack.appendChild(easterHint);
         controlDeck.appendChild(stack);
         return;
       }
@@ -3610,6 +4157,18 @@ var __ThankfulJesusBundle = (() => {
         actionRow.appendChild(hangBtn);
         actionRow.appendChild(doneBtn);
         stack.appendChild(actionRow);
+        if (speech.isSupported() && state.prayers.length > 0) {
+          const readTreeBtn = document.createElement("button");
+          readTreeBtn.type = "button";
+          readTreeBtn.className = "ghost-btn";
+          readTreeBtn.appendChild(makeDualButtonContent(UI_TEXT.readTreeBtn, state.langMode));
+          readTreeBtn.addEventListener("click", () => {
+            unlockAudio();
+            const segs = buildPrayerTreeSegments(state.prayers, state.langMode);
+            speech.speakSequence(segs);
+          });
+          stack.appendChild(readTreeBtn);
+        }
         controlDeck.appendChild(stack);
         return;
       }
@@ -3738,6 +4297,26 @@ var __ThankfulJesusBundle = (() => {
       unlockAudio();
       const rect = stageCanvas.getBoundingClientRect();
       const xNorm = rect.width > 0 ? Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width)) : 0.5;
+      const yNorm = rect.height > 0 ? Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height)) : 0.5;
+      if (state.phase === "title" || state.phase === "prayer_card" || state.phase === "journey_finale") {
+        const jesusCutoff = state.phase === "title" ? 0.44 : 0.35;
+        const friendCutoff = state.phase === "title" ? 0.62 : 0.5;
+        if (yNorm > 0.24) {
+          if (xNorm < jesusCutoff) {
+            applyAction(state, { type: "POKE_JESUS" });
+          } else if (xNorm < friendCutoff && yNorm > 0.52) {
+            applyAction(state, { type: "POKE_FRIEND" });
+          } else {
+            applyAction(state, { type: "POKE_TREE" });
+          }
+          const line = getEasterLine(state.easterSource, state.easterLineIndex);
+          if (line) {
+            speech.speakLocalized(line, state.langMode);
+          }
+          syncAll(false);
+        }
+        return;
+      }
       if (state.phase === "stage_play" && state.stageState) {
         if (state.stageState.kind === "loaves_and_fish") {
           if (!state.stageState.prayedWithJesus) {
