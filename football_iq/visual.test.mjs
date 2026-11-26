@@ -17,8 +17,9 @@ async function exercise(make,E){
  const V=make(document,window,E);
  const s=E.createMatch(),before=JSON.stringify(s),tip={id:"cover",text:"Cover!",target:{x:100,y:150},freeze:true};
  for(const p of s.players)for(let a=0;a<8;a++)for(let t=0;t<20;t+=5){
-   const f=V.spriteIndex({...p,vx:Math.cos(a*Math.PI/4)*90,vy:Math.sin(a*Math.PI/4)*90},t);
+   const f=V.spriteIndex({...p,heading:a*Math.PI/4,vx:Math.cos(a*Math.PI/4)*90,vy:Math.sin(a*Math.PI/4)*90},t);
    check(f.x>=0&&f.x+f.w<=1584&&f.y>=0&&f.y+f.h<=1360,"atlas bounds");
+   check(Math.floor(f.x/f.w/9)===a%4&&Math.floor(f.y/f.h)%2===Math.floor(a/4),"heading frame");
  }
  const u=s.players[s.user], kick=E.copyState(s), p=kick.players[s.user];
  p.action={kind:"shoot",elapsed:0,receiver:null,dx:1,dy:0};
@@ -30,6 +31,8 @@ async function exercise(make,E){
  p.action.kind="receive";p.action.elapsed=0;
  check(V.spriteIndex(p,kick.tick).x===8*t.w,"receive frame");
  check(u.action===null,"copy action isolation");
+ p.action.total=25;p.action.elapsed=15;
+ check(V.marks(kick,null,false).every(m=>Number.isFinite(m.x)&&Number.isFinite(m.a)),"variable receive recovery bar");
  const fallback=await V.createVisual(canvas());check(fallback.name==="Canvas fallback","fallback renderer");
  fallback.draw(s,tip,true);check(draws>=12,"canvas draws");check(JSON.stringify(s)===before,"fallback mutated state");
  window.Phaser=mock;const phaser=await V.createVisual(canvas());check(phaser.name==="Phaser 3.90","Phaser renderer");
@@ -40,5 +43,5 @@ async function exercise(make,E){
  return {frames,sprites,draws};
 }
 
-const make = new Function("document","window","E","const {W,H,GOAL,ACTION_TIMING}=E;\n"+visual.replace(/^import .*;\n/m,"").replace(/export /g,"")+"\nreturn {spriteIndex,marks,createVisual};");
+const make = new Function("document","window","E","const {W,H,GOAL,ACTION_TIMING,actionDuration}=E;\n"+visual.replace(/^import .*;\n/m,"").replace(/export /g,"")+"\nreturn {spriteIndex,marks,createVisual};");
 console.log("Football IQ visual contracts:", await exercise(make,E));
