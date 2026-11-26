@@ -10,7 +10,7 @@ match, without changing the simulation rules.
 - Phone/tablet: move with the left joystick; use Pass/Call, Shoot/Tackle and
   Sprint with the other hand. Portrait and landscape are supported by layout.
 - Keyboard: arrows or WASD, J to pass/request, K to shoot/tackle, L or Shift to
-  sprint, Space to pause. Action buttons display J, K and L keycaps.
+  sprint, Space to pause. Action buttons display J, K and L keycaps. Physical key codes are supported; starting/resuming a match restores keyboard focus.
 - Coach Off: uninterrupted football. Light: short text feedback. Balanced:
   text, target arrows, up to three automatic teaching pauses, and one optional
   retry per match after an intercepted user pass or conceded goal.
@@ -101,6 +101,22 @@ are arcade tuning parameters. Replays preserve the pair-specific state.
 Regression tests reproduce the face-to-face loop in both AI/AI and human/AI
 matches and check that a fresh challenge and a third-party tackle remain
 possible.
+
+## Team defensive assignments
+When the other team has the ball, the closest suitable AI outfield player
+presses unless the human is already actively closing down nearby. A second
+AI player moves toward a goal-side cover position 48 field units from the
+ball carrier, with a preference for defenders. The remaining players keep
+their shape. On a loose pass, the intended receiver is prioritized rather
+than having all teammates run toward the same ball. The existing
+reachable-ball, duel reset, movement and recovery rules still apply.
+These are deterministic tactical heuristics, not a full marking or
+interception planner.
+
+Keyboard regression tests run the actual published app handlers and engine:
+J releases a pass, K releases a shot, L increases running speed, and Z/X/C
+are inactive. Browser tests additionally observe inputs at the simulation
+boundary, not only the button highlighting.
 
 ## Optional browser verification
 ```sh
