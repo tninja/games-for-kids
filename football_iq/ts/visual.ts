@@ -10,7 +10,7 @@ type PhaserAPI = { AUTO: number; Game: new(config:Record<string,unknown>)=>{dest
 type Mark = { kind:"ellipse"|"ring"|"line"|"dot"; x:number;y:number;a:number;b:number;color:number;alpha:number;width:number };
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
-const CW=40, CH=60, FOOT=44, FRAMES=5;
+const CW=44, CH=60, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
 const color=(n:number)=>"#"+n.toString(16).padStart(6,"0");
 function surface(w:number,h:number):Surface {
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
@@ -58,6 +58,10 @@ export function stadium() {
     const x=Math.floor(rand()*W),y=Math.floor(rand()*H);
     box(c,OX+x,OY+y,1+Math.floor(rand()*3),1,i%3===0?"#66ad59":i%3===1?"#2d7b44":"#46994e");
   }
+  for(const side of [0,1]){
+    const x=side?OX+W:OX;
+    for(let j=0;j<5;j++)box(c,side?x-j-1:x+j,OY,1,H,["#286e40","#2c7845","#35854b","#3b9050","#409852"][j]);
+  }
   const white="#e6efcd";c.strokeStyle=white;c.lineWidth=2;c.strokeRect(OX,OY,W,H);
   line(c,OX+W/2,OY,OX+W/2,OY+H,white,2);
   c.beginPath();c.arc(OX+W/2,OY+H/2,48,0,Math.PI*2);c.stroke();ellipse(c,OX+W/2,OY+H/2,2,2,white);
@@ -70,7 +74,7 @@ export function stadium() {
     for(let k=0;k<=GOAL;k+=8)line(c,x,gy+k,gx,gy+k-9,"#c8d9c4");
     for(let k=0;k<=18;k+=6)line(c,x-d*k,gy-k/2,x-d*k,gy+GOAL-k/2,"#91b59d");
     line(c,gx,gy-9,gx,gy+GOAL-9,"#a8bfb5",2);
-    line(c,x,gy,x,gy+GOAL,"#f6f3dd",3);line(c,x,gy,gx,gy-9,"#fff4dd",3);line(c,x,gy+GOAL,gx,gy+GOAL-9,"#e1e6d2",3);
+    box(c,x-2,gy-2,4,5,"#fff4dd");box(c,x-2,gy+GOAL-2,4,5,"#fff4dd");line(c,x,gy,gx,gy-9,"#fff4dd",3);line(c,x,gy+GOAL,gx,gy+GOAL-9,"#e1e6d2",3);
   }
   for(const x of [OX+2,OX+W-2])for(const y of [OY+2,OY+H-2]){
     box(c,x-1,y-13,2,14,"#f4f2d4");path(c,[[x,y-14],[x+9,y-10],[x,y-7]],"#f7c750");
@@ -82,18 +86,20 @@ const skins=[["#6a4032","#bd8059","#e7a873"],["#996449","#e3a57b","#ffd5a6"],["#
 function spriteFrame(c:CanvasRenderingContext2D,id:number,direction:number,frame:number){
   const kit=kits[id%5===0?2:id<5?0:1],skin=skins[id%4],hair=["#352b29","#201d25","#7d4a2d","#d6a45b"][id%4];
   const [dx,dy]=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]][direction];
-  const phase=frame===0?0:[0,-3,3,-2,4][frame],bob=frame===2||frame===4?-1:0;
-  c.save();c.translate(20,FOOT+bob);
+  const kicking=frame===5, tackling=frame===6;
+  const phase=frame===0?0:[0,-3,3,-2,4,0,0][frame],bob=frame===2||frame===4?-1:0;
+  c.save();c.translate(CW/2,FOOT+bob+(tackling?6:0));
   // Dark outline, staggered cleats, shorts and two-shade socks.
   for(const side of [-1,1]){
-    const lx=side*4+Math.round(dx*phase*side*.5),ly=2+Math.round(dy*phase*side*.5)+phase*side;
+    const reach=side===1&&(kicking||tackling)?(tackling?12:10):0;
+    const lx=side*4+Math.round(dx*(phase*side*.5+reach)),ly=2+Math.round(dy*(phase*side*.5+reach*.55))+phase*side-(kicking&&side===1?5:0);
     box(c,lx-2,-7,5,12+ly,"#172737");
     box(c,lx-1,-4,3,7+ly,kit[3]);box(c,lx-1,-4,3,3,kit[0]);
     box(c,lx-3,3+ly,7,4,"#172737");box(c,lx-2,3+ly,5,2,"#ecf1d9");
   }
-  box(c,-8,-12,16,7,"#152b43");box(c,-6,-11,12,4,kit[0]);
+  box(c,-8,-12,16,7,"#152b43");box(c,-6,-11,12,4,kit[0]);box(c,-6,-10,3,4,kit[2]);
   for(const side of [-1,1]){
-    const ax=side*9+Math.round(dx*2),ay=-19+side*phase;
+    const ax=side*(kicking||tackling?12:9)+Math.round(dx*2),ay=-19+side*phase+(tackling?2:0);
     box(c,ax-2,ay,5,12,"#172737");box(c,ax-1,ay+1,3,6,kit[1]);box(c,ax-1,ay+7,3,4,skin[1]);
   }
   path(c,[[-9,-24],[-5,-27],[5,-27],[9,-24],[8,-12],[-8,-12]],"#142a3e");
@@ -101,6 +107,8 @@ function spriteFrame(c:CanvasRenderingContext2D,id:number,direction:number,frame
   box(c,-6,-23,3,10,kit[2]);box(c,4,-22,2,9,kit[0]);
   if(dy<0){box(c,-2,-22,4,7,kit[3]);box(c,-1,-21,2,5,kit[1]);}
   else {box(c,-2,-25,4,2,kit[3]);box(c,-5,-15,10,2,kit[0]);}
+  // Distinct chest badge and jersey stripe, readable at native pixel size.
+  box(c,-4,-22,2,3,kit[3]);box(c,2,-23,3,2,kit[3]);
   // Four skin palettes, distinct hair, face/eyes and direction-aware details.
   const hx=Math.round(dx*2),hy=-31+Math.round(dy*1);
   box(c,hx-7,hy-6,14,12,"#24272c");box(c,hx-6,hy-7,12,12,skin[0]);
@@ -113,9 +121,9 @@ function spriteFrame(c:CanvasRenderingContext2D,id:number,direction:number,frame
   c.restore();
 }
 function atlas(){
-  const {canvas,ctx}=surface(CW*8*FRAMES,CH*10);
+  const {canvas,ctx}=surface(CW*COLS,CH*ROWS);
   for(let id=0;id<10;id++)for(let d=0;d<8;d++)for(let f=0;f<FRAMES;f++){
-    ctx.save();ctx.translate((d*FRAMES+f)*CW,id*CH);spriteFrame(ctx,id,d,f);ctx.restore();
+    ctx.save();ctx.translate(((d%4)*FRAMES+f)*CW,(id*2+Math.floor(d/4))*CH);spriteFrame(ctx,id,d,f);ctx.restore();
   }
   return canvas;
 }
@@ -126,11 +134,14 @@ function ballArt(){
   path(c,[[6,5],[10,5],[12,8],[9,11],[5,9]],"#3e5057");box(c,3,4,2,2,"#ffffff");box(c,11,11,2,2,"#9baaad");
   return canvas;
 }
-export function spriteIndex(p:Player,tick:number):Frame{
+export function spriteIndex(p:Player,tick:number,s?:State):Frame{
   const moving=Math.hypot(p.vx,p.vy)>3;
-  const d=moving?(Math.round(Math.atan2(p.vy,p.vx)/(Math.PI/4))+8)%8:p.face<0?4:0;
-  const f=moving?1+Math.floor(tick/5)%4:0;
-  return {x:(d*FRAMES+f)*CW,y:p.id*CH,w:CW,h:CH};
+  const kicking=!!s&&s.ball.owner===null&&s.ball.last===p.id&&p.cooldown>.16&&Math.hypot(s.ball.vx,s.ball.vy)>60;
+  const tackling=!!s&&p.id===s.user&&s.event==="Great tackle!"&&tick-s.eventTick<12;
+  const dx=kicking&&s?s.ball.vx:p.vx,dy=kicking&&s?s.ball.vy:p.vy;
+  const d=moving||kicking?(Math.round(Math.atan2(dy,dx)/(Math.PI/4))+8)%8:p.face<0?4:0;
+  const f=kicking?5:tackling?6:moving?1+Math.floor(tick/(Math.hypot(p.vx,p.vy)>95?3:5))%4:0;
+  return {x:((d%4)*FRAMES+f)*CW,y:(p.id*2+Math.floor(d/4))*CH,w:CW,h:CH};
 }
 const frameName=(f:Frame)=>f.x/CW+":"+f.y/CH;
 export function marks(s:State,tip:Tip|null,paused:boolean):Mark[]{
@@ -143,6 +154,16 @@ export function marks(s:State,tip:Tip|null,paused:boolean):Mark[]{
   }
   add("ring",OX+u.x,OY+u.y+2,16,0,0xffe078,1,3);
   const b=s.ball, speed=Math.hypot(b.vx,b.vy);
+  if(b.owner!==null){
+    const owner=s.players[b.owner];
+    add("ring",OX+owner.x,OY+owner.y+3,12,0,owner.team===0?0xa2d9ff:0xffaa95,.85,2);
+  }
+  if(s.tick-s.eventTick<12&&(s.event==="Great tackle!"||s.event.includes("shot"))){
+    for(let j=0;j<7;j++){
+      const a=j*Math.PI*2/7,d=5+(s.tick-s.eventTick)*1.4;
+      add("dot",OX+b.x+Math.cos(a)*d,OY+b.y+Math.sin(a)*d,2,0,0xffe9a0,.8);
+    }
+  }
   add("ellipse",OX+b.x+2,OY+b.y+4,13,6,0x12332a,.5);
   if(speed>220)for(let j=1;j<=5;j++)add("dot",OX+b.x-b.vx*.017*j,OY+b.y-b.vy*.017*j,4-j*.52,0,0xfff1ba,.8-j*.12);
   if(tip?.target){
@@ -161,29 +182,33 @@ export function marks(s:State,tip:Tip|null,paused:boolean):Mark[]{
   }
   return out;
 }
+function foreground(m:Mark){return m.kind==="line"||m.kind==="ring"&&m.color===0xffe078||m.kind==="dot"&&m.color!==0xe6ce9d;}
 function caption(s:State,tip:Tip|null,paused:boolean){
-  return s.restart>0?"GOAL!":paused&&tip?"COACH • THINK": "";
+  return s.restart>0?(s.kickoff===1?"BLUE SCORES!":"RED SCORES!"):paused&&tip?"COACH • THINK": "";
 }
 function canvasVisual(canvas:HTMLCanvasElement,field:HTMLCanvasElement,players:HTMLCanvasElement,ball:HTMLCanvasElement):Visual {
   const c=canvas.getContext("2d")!;c.imageSmoothingEnabled=false;
   return {name:"Canvas fallback",draw(s,tip,paused){
     c.clearRect(0,0,WIDTH,HEIGHT);c.drawImage(field,0,0);
-    for(const m of marks(s,tip,paused)){
+    const all=marks(s,tip,paused);
+    const drawMark=(m:Mark)=>{
       c.globalAlpha=m.alpha;const col=color(m.color);
       if(m.kind==="ellipse")ellipse(c,m.x,m.y,m.a/2,m.b/2,col);
       else if(m.kind==="dot")ellipse(c,m.x,m.y,m.a,m.a,col);
       else if(m.kind==="line")line(c,m.x,m.y,m.a,m.b,col,m.width);
       else {c.strokeStyle=col;c.lineWidth=m.width;c.beginPath();c.arc(m.x,m.y,m.a,0,Math.PI*2);c.stroke();}
-    }
+    };
+    all.filter(m=>!foreground(m)).forEach(drawMark);
     c.globalAlpha=1;
     for(const p of [...s.players].sort((a,b)=>a.y-b.y)){
-      const f=spriteIndex(p,s.tick);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-FOOT),CW,CH);
+      const f=spriteIndex(p,s.tick,s);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-FOOT),CW,CH);
     }
     c.drawImage(ball,Math.round(OX+s.ball.x-6),Math.round(OY+s.ball.y-6),12,12);
+    all.filter(foreground).forEach(drawMark);c.globalAlpha=1;
     const u=s.players[s.user];c.textAlign="center";c.font="bold 11px monospace";c.lineWidth=3;c.strokeStyle="#192e38";c.fillStyle="#ffe078";
     c.strokeText("YOU",OX+u.x,OY+u.y-44);c.fillText("YOU",OX+u.x,OY+u.y-44);
     const text=caption(s,tip,paused);
-    if(text){c.font="bold 28px monospace";c.lineWidth=6;c.strokeText(text,WIDTH/2,HEIGHT/2);c.fillText(text,WIDTH/2,HEIGHT/2);}
+    if(text){c.font="bold 28px monospace";c.lineWidth=6;c.strokeText(text,WIDTH/2,30);c.fillText(text,WIDTH/2,30);}
   }};
 }
 function loadPhaser():Promise<PhaserAPI|null>{
@@ -212,24 +237,26 @@ export async function createVisual(canvas:HTMLCanvasElement):Promise<Visual>{
             this.textures.addCanvas("stadium",field);this.textures.addCanvas("football",ball);
             const texture=this.textures.addCanvas("players",players);
             if(!texture)throw new Error("Sprite atlas unavailable");
-            for(let row=0;row<10;row++)for(let col=0;col<8*FRAMES;col++)texture.add(col+":"+row,0,col*CW,row*CH,CW,CH);
+            for(let row=0;row<ROWS;row++)for(let col=0;col<COLS;col++)texture.add(col+":"+row,0,col*CW,row*CH,CW,CH);
             this.add.image(0,0,"stadium").setOrigin(0,0).setDepth(0);
             const gfx=this.add.graphics(); gfx.setDepth(1);
-            const sprites=Array.from({length:10},(_,id)=>this.add.sprite(0,0,"players","0:"+id).setOrigin(.5,FOOT/CH).setDepth(10));
+            const overlay=this.add.graphics();overlay.setDepth(1000);
+            const sprites=Array.from({length:10},(_,id)=>this.add.sprite(0,0,"players","0:"+(id*2)).setOrigin(.5,FOOT/CH).setDepth(10));
             const football=this.add.image(0,0,"football").setOrigin(.5).setDepth(1000).setScale(.75);
             const style={fontFamily:"monospace",fontSize:"11px",fontStyle:"bold",color:"#ffe078",stroke:"#192e38",strokeThickness:3};
             const label=this.add.text(0,0,"YOU",style).setOrigin(.5).setDepth(1001);
-            const banner=this.add.text(WIDTH/2,HEIGHT/2,"",{...style,fontSize:"28px",strokeThickness:6}).setOrigin(.5).setDepth(1002);
+            const banner=this.add.text(WIDTH/2,20,"",{...style,fontSize:"28px",strokeThickness:6}).setOrigin(.5).setDepth(1002);
             window.clearTimeout(timeout);
             resolve({name:"Phaser 3.90",draw(s,tip,paused){
-              gfx.clear();
+              gfx.clear();overlay.clear();
               for(const m of marks(s,tip,paused)){
-                if(m.kind==="ellipse")gfx.fillStyle(m.color,m.alpha).fillEllipse(m.x,m.y,m.a,m.b);
-                else if(m.kind==="dot")gfx.fillStyle(m.color,m.alpha).fillCircle(m.x,m.y,m.a);
-                else if(m.kind==="ring")gfx.lineStyle(m.width,m.color,m.alpha).strokeCircle(m.x,m.y,m.a);
-                else gfx.lineStyle(m.width,m.color,m.alpha).lineBetween(m.x,m.y,m.a,m.b);
+                const layer=foreground(m)?overlay:gfx;
+                if(m.kind==="ellipse")layer.fillStyle(m.color,m.alpha).fillEllipse(m.x,m.y,m.a,m.b);
+                else if(m.kind==="dot")layer.fillStyle(m.color,m.alpha).fillCircle(m.x,m.y,m.a);
+                else if(m.kind==="ring")layer.lineStyle(m.width,m.color,m.alpha).strokeCircle(m.x,m.y,m.a);
+                else layer.lineStyle(m.width,m.color,m.alpha).lineBetween(m.x,m.y,m.a,m.b);
               }
-              for(const p of s.players)sprites[p.id].setFrame(frameName(spriteIndex(p,s.tick))).setPosition(Math.round(OX+p.x),Math.round(OY+p.y)).setDepth(10+p.y);
+              for(const p of s.players)sprites[p.id].setFrame(frameName(spriteIndex(p,s.tick,s))).setPosition(Math.round(OX+p.x),Math.round(OY+p.y)).setDepth(10+p.y);
               football.setPosition(OX+s.ball.x,OY+s.ball.y);
               const u=s.players[s.user];label.setPosition(OX+u.x,OY+u.y-44);
               const text=caption(s,tip,paused);banner.setText(text).setVisible(Boolean(text));
