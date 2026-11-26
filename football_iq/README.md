@@ -118,6 +118,24 @@ J releases a pass, K releases a shot, L increases running speed, and Z/X/C
 are inactive. Browser tests additionally observe inputs at the simulation
 boundary, not only the button highlighting.
 
+## Match sound
+Original procedural Web Audio effects cover both teams: pass, shot, trap,
+interception, keeper save, tackle, missed user tackle, boundary rebound,
+goal cheers, kickoff/restart and full-time whistles. Quiet footsteps and
+dribbling cues follow the controlled player's movement; coach and retry
+have distinct signals. Ball-contact sounds are emitted by the fixed-step
+engine, not by button presses or UI text. The app consumes one tick's
+events and does not replay old snapshot cues on rewind.
+
+The stadium crowd loop stops on pause, mute and full time; new matches
+and rewinds stop old effects. Audio unlocks after a user gesture and shares
+one master volume, with a 24-voice cap and light stereo positioning where
+available. The Sound button controls all audio. No external audio files,
+music or dependencies. Sounds are synthesized approximations, not recorded
+stadium samples; listening and iPhone volume/balance checks remain needed.
+The sound regression test verifies contact timing, both teams, receiving,
+saving, goals, ambience lifecycle and mute behavior with a Web Audio mock.
+
 ## Optional browser verification
 ```sh
 npm install --no-save --package-lock=false playwright@1.56.1 phaser@3.90.0
