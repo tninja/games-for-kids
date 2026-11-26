@@ -10,11 +10,11 @@ let state=createMatch(), running=false, paused=false, finished=false;
 let tip=null, tipUntil=0, lastTip=-9999, freezes=0, retryUsed=false;
 let retry=null, history=[];
 const seen={};
-const keys=new Set(), actions=new Set();
+const keys=new Set(), actions=new Set(), queuedActions=new Set();
 let joy={x:0,y:0}, joyId=null, accumulator=0, previous=0;
 const pad=get("pad"), knob=get("knob");
 function clearInput(){
-  keys.clear();actions.clear();document.querySelectorAll(".pressed").forEach(b=>b.classList.remove("pressed"));joy={x:0,y:0};joyId=null;knob.style.transform="translate(-50%,-50%)";
+  keys.clear();actions.clear();queuedActions.clear();document.querySelectorAll(".pressed").forEach(b=>b.classList.remove("pressed"));joy={x:0,y:0};joyId=null;knob.style.transform="translate(-50%,-50%)";
 }
 function hideTip(){
   tip=null; get("hint").hidden=true; get("continue").hidden=true;
@@ -46,12 +46,12 @@ function restore(){
 function input(){
   const x=joy.x+Number(keys.has("arrowright")||keys.has("d"))-Number(keys.has("arrowleft")||keys.has("a"));
   const y=joy.y+Number(keys.has("arrowdown")||keys.has("s"))-Number(keys.has("arrowup")||keys.has("w"));
-  return {x,y,pass:keys.has("z")||actions.has("pass"),shoot:keys.has("x")||actions.has("shoot"),sprint:keys.has("shift")||actions.has("sprint")};
+  return {x,y,pass:keys.has("z")||actions.has("pass")||queuedActions.has("pass"),shoot:keys.has("x")||actions.has("shoot")||queuedActions.has("shoot"),sprint:keys.has("shift")||actions.has("sprint")};
 }
 function tick(){
   const oldBlue=state.score[0],oldRed=state.score[1],oldEvent=state.eventTick;
   if(state.tick%15===0){history.push(copyState(state));if(history.length>25)history.shift();}
-  step(state,input());
+  step(state,input());queuedActions.clear();
   if(state.score[0]!==oldBlue||state.score[1]!==oldRed)playSound("goal");
   else if(state.eventTick!==oldEvent){if(state.event.includes("shot"))playSound("shot");else if(state.event.startsWith("Great"))playSound("win");else if(state.event==="Pass!")playSound("pass");}
   if(tip&&state.tick>=tipUntil)hideTip();
@@ -101,6 +101,9 @@ function render(){
   get("score").textContent=state.score.join(" : ");
   const remaining=Math.ceil(state.duration-state.time);
   get("clock").textContent=Math.floor(remaining/60)+":"+String(remaining%60).padStart(2,"0");
+  const own=state.ball.owner===state.user, friendly=state.ball.owner!==null&&state.players[state.ball.owner].team===0;
+  get("passLabel").textContent=own?"PASS":friendly?"CALL":"PASS";
+  get("shootLabel").textContent=own?"SHOOT":"TACKLE";
   get("status").textContent=paused?"Paused":state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.";
 }
 function frame(now){
@@ -115,12 +118,12 @@ get("settings").addEventListener("click",()=>{running=false;paused=false;clearIn
 get("pause").addEventListener("click",togglePause);
 get("continue").addEventListener("click",resume);
 get("retry").addEventListener("click",restore);
-coach.addEventListener("change",()=>{if(coach.value==="off"){if(paused&&tip)resume();hideTip();retry=null;get("retry").hidden=true;}});
+coach.addEventListener("change",()=>{if(coach.value!=="balanced"){if(paused&&tip&&tip.freeze)resume();hideTip();retry=null;get("retry").hidden=true;}coach.blur();});
 window.addEventListener("keydown",e=>{
   if(e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&e.key===" "))return;
   const k=e.key.toLowerCase();
   if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","z","x","shift"," "].includes(k)){
-    e.preventDefault();if(k===" "){if(!e.repeat)togglePause();}else keys.add(k);
+    e.preventDefault();if(k===" "){if(!e.repeat)togglePause();}else {keys.add(k);if(!e.repeat&&running&&!paused){if(k==="z")queuedActions.add("pass");if(k==="x")queuedActions.add("shoot");}}
   }
 });
 window.addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
@@ -128,7 +131,7 @@ window.addEventListener("blur",()=>{clearInput();if(running&&!paused)togglePause
 document.addEventListener("visibilitychange",()=>{if(document.hidden){clearInput();if(running&&!paused)togglePause();}});
 function updateJoy(e){
   const r=pad.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)/(r.width*.34),y=(e.clientY-r.top-r.height/2)/(r.height*.34),n=Math.max(1,Math.hypot(x,y));
-  joy={x:x/n,y:y/n};knob.style.transform="translate(calc(-50% + "+(joy.x*r.width*.29)+"px),calc(-50% + "+(joy.y*r.height*.29)+"px))";
+  const magnitude=Math.hypot(x,y);joy=magnitude<.12?{x:0,y:0}:{x:x/n,y:y/n};knob.style.transform="translate(calc(-50% + "+(joy.x*r.width*.29)+"px),calc(-50% + "+(joy.y*r.height*.29)+"px))";
 }
 pad.addEventListener("pointerdown",e=>{if(joyId!==null)return;e.preventDefault();joyId=e.pointerId;pad.setPointerCapture(e.pointerId);updateJoy(e);});
 pad.addEventListener("pointermove",e=>{if(e.pointerId===joyId)updateJoy(e);});
@@ -137,7 +140,7 @@ for(const name of ["pointerup","pointercancel","lostpointercapture"])pad.addEven
 });
 for(const button of Array.from(document.querySelectorAll("[data-action]"))){
   const action=button.dataset.action;
-  button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture(e.pointerId);actions.add(action);button.classList.add("pressed");});
+  button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture(e.pointerId);actions.add(action);if(running&&!paused&&action!=="sprint")queuedActions.add(action);button.classList.add("pressed");});
   for(const name of ["pointerup","pointercancel","lostpointercapture"])button.addEventListener(name,()=>{actions.delete(action);button.classList.remove("pressed");});
 }
 void createVisual(canvas).then(v=>{
