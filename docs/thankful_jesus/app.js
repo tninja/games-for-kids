@@ -34,6 +34,7 @@ var __ThankfulJesusBundle = (() => {
     CHURCH_PROMPTS: () => CHURCH_PROMPTS,
     EMPTY_INPUT: () => EMPTY_INPUT,
     FRIEND_EASTER_LINES: () => FRIEND_EASTER_LINES,
+    HARP_STRING_SPECS: () => HARP_STRING_SPECS,
     JESUS_EASTER_LINES: () => JESUS_EASTER_LINES,
     JourneyAudio: () => JourneyAudio,
     JourneySpeech: () => JourneySpeech,
@@ -102,7 +103,14 @@ var __ThankfulJesusBundle = (() => {
   var STAGE_SEQUENCE = [
     "loaves_and_fish",
     "run_back_to_jesus",
+    "david_harp",
     "verse_builder"
+  ];
+  var HARP_STRING_SPECS = [
+    { index: 0, noteLabel: "Do", keyHint: "1", color: "#D46A43" },
+    { index: 1, noteLabel: "Re", keyHint: "2", color: "#E5A93B" },
+    { index: 2, noteLabel: "Mi", keyHint: "3", color: "#6F9463" },
+    { index: 3, noteLabel: "Sol", keyHint: "4", color: "#5A95B8" }
   ];
   var STAGE_SPECS = {
     loaves_and_fish: {
@@ -117,6 +125,13 @@ var __ThankfulJesusBundle = (() => {
       verseId: "luke_17_15_16",
       explorerTarget: 8,
       adventurerTarget: 12,
+      adventurerTimeSec: 34
+    },
+    david_harp: {
+      id: "david_harp",
+      verseId: "psalm_100_4",
+      explorerTarget: 10,
+      adventurerTarget: 16,
       adventurerTimeSec: 34
     },
     verse_builder: {
@@ -829,6 +844,106 @@ var __ThankfulJesusBundle = (() => {
     ctx.fill();
     ctx.restore();
   }
+  function drawGoldenHarp(ctx, cx, cy, scale = 1, timeSec = 0) {
+    const s = safeR(scale);
+    const shimmer = Math.sin(timeSec * 4) * 1.2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    ctx.strokeStyle = "#F6C453";
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < 4; i++) {
+      const sx = -9 + i * 6;
+      ctx.beginPath();
+      ctx.moveTo(sx, -16 + i * 1.4);
+      ctx.lineTo(sx, 14);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.fillStyle = "#D99B38";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(-16, 16);
+    ctx.quadraticCurveTo(-20, -14, -10, -22);
+    ctx.quadraticCurveTo(4, -26 + shimmer * 0.3, 18, -12);
+    ctx.lineTo(14, 16);
+    ctx.closePath();
+    ctx.stroke();
+    drawRoundedRect(ctx, -18, 12, 36, 9, 4);
+    ctx.fillStyle = "#B87A4B";
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawMusicNote(ctx, cx, cy, scale = 1, color = "#D46A43", golden = false) {
+    const s = safeR(scale);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(s, s);
+    if (golden) {
+      ctx.beginPath();
+      safeArc(ctx, 0, 0, 19, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(246, 196, 83, 0.45)";
+      ctx.fill();
+    }
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 14, 0, Math.PI * 2);
+    ctx.fillStyle = golden ? PALETTE.sunGold : color;
+    ctx.fill();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    ctx.fillStyle = "#FFFDF8";
+    ctx.strokeStyle = "#FFFDF8";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    safeEllipse(ctx, -2.5, 4, 4.2, 3.2, -0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1.5, 3);
+    ctx.lineTo(1.5, -7);
+    ctx.quadraticCurveTo(7.5, -6, 7.5, -1);
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawLittleSheep(ctx, cx, baseY, scale = 1, timeSec = 0) {
+    const s = safeR(scale);
+    const bob = Math.abs(Math.sin(timeSec * 3.2)) * 2 * s;
+    ctx.save();
+    ctx.translate(cx, baseY - bob);
+    ctx.scale(s, s);
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.lineTo(-8, 4);
+    ctx.moveTo(6, -4);
+    ctx.lineTo(6, 4);
+    ctx.stroke();
+    ctx.fillStyle = "#FFFDF8";
+    ctx.lineWidth = 2;
+    const puffs = [
+      { x: -8, y: -12, r: 8 },
+      { x: 0, y: -15, r: 9 },
+      { x: 8, y: -12, r: 8 },
+      { x: 0, y: -9, r: 8 }
+    ];
+    for (let i = 0; i < puffs.length; i++) {
+      ctx.beginPath();
+      safeArc(ctx, puffs[i].x, puffs[i].y, puffs[i].r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#4A3A31";
+    ctx.beginPath();
+    safeArc(ctx, -14, -14, 5.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFFDF8";
+    ctx.beginPath();
+    safeArc(ctx, -15.5, -15, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
   function drawGratitudeOliveTree(ctx, cx, baseY, width, height, prayers, timeSec, rustleTimer = 0) {
     const w = safeR(width);
     const h = safeR(height);
@@ -1075,6 +1190,22 @@ var __ThankfulJesusBundle = (() => {
         case "tree_rustle":
           this.tone(698.46, 880, 0.1, "sine", 0.1, now);
           this.tone(880, 1046.5, 0.12, "sine", 0.09, now + 0.07);
+          break;
+        case "harp_0":
+          this.tone(523.25, 523.25, 0.24, "triangle", 0.16, now);
+          this.tone(1046.5, 1046.5, 0.14, "sine", 0.06, now);
+          break;
+        case "harp_1":
+          this.tone(587.33, 587.33, 0.24, "triangle", 0.16, now);
+          this.tone(1174.66, 1174.66, 0.14, "sine", 0.06, now);
+          break;
+        case "harp_2":
+          this.tone(659.25, 659.25, 0.24, "triangle", 0.16, now);
+          this.tone(1318.51, 1318.51, 0.14, "sine", 0.06, now);
+          break;
+        case "harp_3":
+          this.tone(783.99, 783.99, 0.26, "triangle", 0.16, now);
+          this.tone(1567.98, 1567.98, 0.14, "sine", 0.06, now);
           break;
       }
     }
@@ -1371,6 +1502,22 @@ var __ThankfulJesusBundle = (() => {
     readTreeBtn: {
       en: "Read All Tree Prayers",
       zh: "\u6717\u8BFB\u611F\u6069\u6811\u4E0A\u7684\u7977\u544A"
+    },
+    sHarpHint: {
+      en: "Tap each harp string when notes enter the golden glow!",
+      zh: "\u97F3\u7B26\u843D\u8FDB\u53D1\u5149\u533A\u65F6\u8F7B\u70B9\u5BF9\u5E94\u7434\u5F26\uFF08\u7434\u5F26\u53EF\u81EA\u7531\u5F39\u54CD\u54E6\uFF01\uFF09"
+    },
+    sHarpHudUnit: {
+      en: "Praise Notes",
+      zh: "\u4E32\u97F3\u7B26"
+    },
+    popPraise: {
+      en: "+1 Praise Song!",
+      zh: "+1 \u8D5E\u7F8E\u4E4B\u6B4C\uFF01"
+    },
+    popHarmony: {
+      en: "+1 Joyful Harmony!",
+      zh: "+1 \u548C\u8C10\u611F\u6069\uFF01"
     }
   };
   var JESUS_EASTER_LINES = [
@@ -1454,6 +1601,20 @@ var __ThankfulJesusBundle = (() => {
       story: {
         en: "Jesus healed ten men, and one paused to run back and thank Him! Dodge busy distractions, then turn back at the crossroads to praise Jesus!",
         zh: "\u8036\u7A23\u533B\u6CBB\u4E86\u5341\u4E2A\u4EBA\uFF0C\u53EA\u6709\u4E00\u4E2A\u4EBA\u505C\u4E0B\u811A\u6B65\u8DD1\u56DE\u8036\u7A23\u811A\u524D\u8BF4\u8C22\u8C22\uFF01\u907F\u5F00\u5206\u5FC3\u6742\u7269\uFF0C\u5230\u5C94\u8DEF\u53E3\u5FEB\u8F6C\u8EAB\u8C22\u8C22\u8036\u7A23\uFF01"
+      }
+    },
+    david_harp: {
+      title: {
+        en: "David's Thankful Harp",
+        zh: "\u5927\u536B\u7684\u611F\u6069\u7AD6\u7434"
+      },
+      shortTitle: {
+        en: "Thankful Harp",
+        zh: "\u611F\u6069\u7AD6\u7434"
+      },
+      story: {
+        en: "David loved playing his harp to thank and praise God! Tap the glowing harp strings as golden notes float down to play a joyful song for Jesus!",
+        zh: "\u5927\u536B\u7231\u5F39\u594F\u7AD6\u7434\u5411\u795E\u732E\u4E0A\u611F\u6069\u548C\u8D5E\u7F8E\uFF01\u5F53\u91D1\u8272\u97F3\u7B26\u98D8\u8FDB\u53D1\u5149\u533A\u65F6\uFF0C\u8F7B\u70B9\u5BF9\u5E94\u7684\u7434\u5F26\uFF0C\u594F\u54CD\u7ED9\u8036\u7A23\u7684\u611F\u6069\u4E4B\u6B4C\uFF01"
       }
     },
     verse_builder: {
@@ -1637,6 +1798,7 @@ var __ThankfulJesusBundle = (() => {
   var VERSE_ORDER = [
     "john_6_11",
     "luke_17_15_16",
+    "psalm_100_4",
     "psalm_107_1",
     "thess_5_18"
   ];
@@ -1685,6 +1847,29 @@ var __ThankfulJesusBundle = (() => {
         { id: "l2", icon: "sun", text: { en: "came back praising God,", zh: "\u5C31\u56DE\u6765\u5927\u58F0\u5F52\u8363\u8000\u4E0E\u795E\uFF0C" } },
         { id: "l3", icon: "cross", text: { en: "fell at Jesus' feet", zh: "\u53C8\u4FEF\u4F0F\u5728\u8036\u7A23\u811A\u524D" } },
         { id: "l4", icon: "hands", text: { en: "and thanked him.", zh: "\u611F\u8C22\u4ED6\u3002" } }
+      ]
+    },
+    psalm_100_4: {
+      id: "psalm_100_4",
+      reference: {
+        en: "Psalm 100:4 (NIV)",
+        zh: "\u8BD7\u7BC7 100:4"
+      },
+      text: {
+        en: "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name.",
+        zh: "\u5F53\u79F0\u8C22\u8FDB\u5165\u4ED6\u7684\u95E8\uFF0C\u5F53\u8D5E\u7F8E\u8FDB\u5165\u4ED6\u7684\u9662\uFF1B\u5F53\u611F\u8C22\u4ED6\uFF0C\u79F0\u9882\u4ED6\u7684\u540D\uFF01"
+      },
+      explorerTiles: [
+        { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5F53\u79F0\u8C22\u8FDB\u5165\u4ED6\u7684\u95E8\uFF0C" } },
+        { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5F53\u8D5E\u7F8E\u8FDB\u5165\u4ED6\u7684\u9662\uFF1B" } },
+        { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5F53\u611F\u8C22\u4ED6\uFF0C" } },
+        { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79F0\u9882\u4ED6\u7684\u540D\uFF01" } }
+      ],
+      adventurerTiles: [
+        { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5F53\u79F0\u8C22\u8FDB\u5165\u4ED6\u7684\u95E8\uFF0C" } },
+        { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5F53\u8D5E\u7F8E\u8FDB\u5165\u4ED6\u7684\u9662\uFF1B" } },
+        { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5F53\u611F\u8C22\u4ED6\uFF0C" } },
+        { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79F0\u9882\u4ED6\u7684\u540D\uFF01" } }
       ]
     },
     psalm_107_1: {
@@ -1739,7 +1924,7 @@ var __ThankfulJesusBundle = (() => {
     }
   };
   var BUILDER_VERSE_QUEUE = ["psalm_107_1", "thess_5_18"];
-  var ADVENTURER_QUIZ_ORDER = ["q_loaves", "q_leper"];
+  var ADVENTURER_QUIZ_ORDER = ["q_loaves", "q_leper", "q_harp"];
   var QUIZ_QUESTIONS = {
     q_loaves: {
       id: "q_loaves",
@@ -1793,6 +1978,33 @@ var __ThankfulJesusBundle = (() => {
       encouragement: {
         en: "Wonderful! He turned right around and thanked Jesus with a joyful heart!",
         zh: "\u771F\u68D2\uFF01\u4ED6\u7ACB\u523B\u8F6C\u8EAB\u56DE\u6765\u4FEF\u4F0F\u5728\u8036\u7A23\u811A\u524D\u732E\u4E0A\u611F\u8C22\uFF01"
+      }
+    },
+    q_harp: {
+      id: "q_harp",
+      verseId: "psalm_100_4",
+      question: {
+        en: "In Psalm 100:4, how should we enter God's gates and courts?",
+        zh: "\u8BD7\u7BC7100\u7BC74\u8282\u63D0\u9192\u6211\u4EEC\uFF0C\u8FDB\u5165\u795E\u7684\u95E8\u548C\u9662\u65F6\u8981\u5E26\u7740\u4EC0\u4E48\u5FC3\uFF1F"
+      },
+      choices: [
+        {
+          en: "With thanksgiving and joyful praise to God",
+          zh: "\u5E26\u7740\u79F0\u8C22\u548C\u8D5E\u7F8E\u7684\u5FC3\u611F\u8C22\u795E"
+        },
+        {
+          en: "With a grumpy face and no words",
+          zh: "\u6101\u7709\u82E6\u8138\u4E00\u53E5\u8BDD\u4E5F\u4E0D\u8BF4"
+        },
+        {
+          en: "Pretending we never noticed His blessings",
+          zh: "\u5047\u88C5\u4EC0\u4E48\u90FD\u6CA1\u770B\u89C1"
+        }
+      ],
+      correctIndex: 0,
+      encouragement: {
+        en: "Yes! God loves when we come to Him and Jesus with thanksgiving and praise!",
+        zh: "\u7B54\u5BF9\u5566\uFF01\u5E26\u7740\u79F0\u8C22\u548C\u8D5E\u7F8E\u6765\u5230\u795E\u548C\u8036\u7A23\u9762\u524D\uFF0C\u5929\u7236\u6700\u559C\u60A6\uFF01"
       }
     }
   };
@@ -1869,6 +2081,24 @@ var __ThankfulJesusBundle = (() => {
         spawnTimer: 0.3,
         nextItemId: 1,
         items: [],
+        lastPopKey: "",
+        lastPopTimer: 0
+      };
+    }
+    if (stageId === "david_harp") {
+      return {
+        kind: "david_harp",
+        notesPlayed: 0,
+        targetNotes: isExplorer ? spec.explorerTarget : spec.adventurerTarget,
+        streak: 0,
+        score: 0,
+        timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
+        spawnTimer: 0.35,
+        melodyStep: 0,
+        missedCounter: 0,
+        nextNoteId: 1,
+        notes: [],
+        stringGlow: [0, 0, 0, 0],
         lastPopKey: "",
         lastPopTimer: 0
       };
@@ -2067,6 +2297,96 @@ var __ThankfulJesusBundle = (() => {
     }
     return false;
   }
+  var HARP_MELODY_PATTERN = [0, 1, 2, 3, 2, 1, 2, 3, 1, 2, 0, 3];
+  var HARP_SOUND_BY_STRING = ["harp_0", "harp_1", "harp_2", "harp_3"];
+  function stepDavidHarpStage(stage, ageMode, dt, input, rng, sounds) {
+    const isExplorer = ageMode === "explorer";
+    if (stage.lastPopTimer > 0) {
+      stage.lastPopTimer = Math.max(0, stage.lastPopTimer - dt);
+    }
+    for (let i = 0; i < 4; i++) {
+      if (stage.stringGlow[i] > 0) {
+        stage.stringGlow[i] = Math.max(0, stage.stringGlow[i] - dt);
+      }
+    }
+    if (!isExplorer) {
+      stage.timeLeftSec = Math.max(0, stage.timeLeftSec - dt);
+    }
+    stage.spawnTimer -= dt;
+    if (stage.spawnTimer <= 0) {
+      const baseStr = HARP_MELODY_PATTERN[stage.melodyStep % HARP_MELODY_PATTERN.length];
+      stage.melodyStep += 1;
+      const stringIndex = rng() < 0.72 ? baseStr : Math.floor(rng() * 4) % 4;
+      stage.notes.push({
+        id: stage.nextNoteId++,
+        stringIndex,
+        y: 0.12,
+        golden: stage.melodyStep % 4 === 0
+      });
+      stage.spawnTimer = isExplorer ? 0.92 : 0.64;
+    }
+    const fallSpeed = isExplorer ? 0.34 : 0.48;
+    const zoneMin = isExplorer ? 0.56 : 0.65;
+    const zoneMax = isExplorer ? 0.96 : 0.92;
+    if (input.harpString !== null) {
+      const s = input.harpString;
+      stage.stringGlow[s] = 0.45;
+      sounds.push(HARP_SOUND_BY_STRING[s]);
+      let bestIdx = -1;
+      let bestDist = 999;
+      for (let i = 0; i < stage.notes.length; i++) {
+        const n = stage.notes[i];
+        if (n.stringIndex === s && n.y >= zoneMin && n.y <= zoneMax) {
+          const dist = Math.abs(n.y - 0.79);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = i;
+          }
+        }
+      }
+      if (bestIdx >= 0) {
+        const hit = stage.notes[bestIdx];
+        stage.notes.splice(bestIdx, 1);
+        stage.notesPlayed += 1;
+        stage.streak += 1;
+        stage.score += (hit.golden ? 120 : 75) + stage.streak * 12;
+        stage.lastPopKey = hit.golden || stage.streak >= 3 ? "popHarmony" : "popPraise";
+        stage.lastPopTimer = 0.72;
+        if (hit.golden) {
+          sounds.push("blessing_token");
+        }
+      } else if (!isExplorer) {
+        stage.streak = 0;
+      }
+    }
+    const remaining = [];
+    for (let i = 0; i < stage.notes.length; i++) {
+      const n = stage.notes[i];
+      n.y += fallSpeed * dt;
+      if (n.y > 0.98) {
+        stage.missedCounter += 1;
+        stage.streak = 0;
+        if (isExplorer && stage.missedCounter % 3 === 0) {
+          stage.notesPlayed += 1;
+          stage.score += 50;
+          stage.stringGlow[n.stringIndex] = 0.35;
+          stage.lastPopKey = "popPraise";
+          stage.lastPopTimer = 0.6;
+          sounds.push(HARP_SOUND_BY_STRING[n.stringIndex]);
+        }
+        continue;
+      }
+      remaining.push(n);
+    }
+    stage.notes = remaining;
+    if (stage.notesPlayed >= stage.targetNotes) {
+      return true;
+    }
+    if (!isExplorer && stage.timeLeftSec <= 0) {
+      return true;
+    }
+    return false;
+  }
   function stepVerseBuilderStage(stage, dt) {
     if (stage.wrongShakeTimer > 0) {
       stage.wrongShakeTimer = Math.max(0, stage.wrongShakeTimer - dt);
@@ -2181,6 +2501,18 @@ var __ThankfulJesusBundle = (() => {
         verseUnlocked: spec.verseId
       };
     }
+    if (stage.kind === "david_harp") {
+      const ratio = stage.targetNotes > 0 ? stage.notesPlayed / stage.targetNotes : 1;
+      const stars2 = ratio >= 1 ? 3 : ratio >= 0.65 ? 2 : 1;
+      return {
+        stageId: stage.kind,
+        playerIndex,
+        stars: stars2,
+        score: stage.score,
+        tokensCollected: stage.notesPlayed,
+        verseUnlocked: spec.verseId
+      };
+    }
     const stars = stage.mistakes <= 2 ? 3 : stage.mistakes <= 5 ? 2 : 1;
     return {
       stageId: stage.kind,
@@ -2197,7 +2529,8 @@ var __ThankfulJesusBundle = (() => {
     primaryTap: false,
     moveDir: 0,
     pointerXNorm: null,
-    lanePick: null
+    lanePick: null,
+    harpString: null
   };
   function nextRng(state) {
     state.rngState = Math.imul(state.rngState, 1664525) + 1013904223 >>> 0;
@@ -2293,6 +2626,15 @@ var __ThankfulJesusBundle = (() => {
       );
     } else if (state.stageState.kind === "run_back_to_jesus") {
       finished = stepRunBackStage(
+        state.stageState,
+        state.ageMode,
+        dt,
+        input,
+        () => nextRng(state),
+        state.pendingSounds
+      );
+    } else if (state.stageState.kind === "david_harp") {
+      finished = stepDavidHarpStage(
         state.stageState,
         state.ageMode,
         dt,
@@ -2904,6 +3246,76 @@ var __ThankfulJesusBundle = (() => {
       );
     }
   }
+  function renderDavidHarpPlay(ctx, state, stage, w, h, timeSec) {
+    drawGalileeBackdrop(ctx, w, h, timeSec);
+    drawSunRays(ctx, w * 0.5, 92, 130, timeSec, 0.24);
+    drawJesus(ctx, w * 0.19, 136, 0.86, "welcome", timeSec);
+    drawChildFriend(ctx, w * 0.5, 136, 0.82, "#6BA8C9", true, timeSec);
+    drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
+    drawLittleSheep(ctx, w * 0.84, 134, 1, timeSec);
+    const boardX = 28;
+    const boardY = 146;
+    const boardW = w - 56;
+    const boardH = h - 162;
+    drawRoundedRect(ctx, boardX, boardY, boardW, boardH, 20);
+    ctx.fillStyle = "rgba(255, 249, 236, 0.94)";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    const zoneCenterY = boardY + boardH * 0.78;
+    const zoneH = state.ageMode === "explorer" ? 54 : 42;
+    drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
+    ctx.fillStyle = "rgba(246, 196, 83, 0.34)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = PALETTE.warmGold;
+    ctx.stroke();
+    const colW = boardW / 4;
+    for (let i = 0; i < 4; i++) {
+      const spec = HARP_STRING_SPECS[i];
+      const sx = boardX + colW * (i + 0.5);
+      const glow = stage.stringGlow[i];
+      const vibrate = glow > 0 ? Math.sin(timeSec * 55) * 4 * (glow / 0.45) : 0;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(sx, boardY + 14);
+      ctx.quadraticCurveTo(sx + vibrate, boardY + boardH * 0.5, sx, boardY + boardH - 26);
+      ctx.strokeStyle = glow > 0 ? PALETTE.sunGold : spec.color;
+      ctx.lineWidth = glow > 0 ? 5.5 : 3;
+      ctx.stroke();
+      ctx.beginPath();
+      safeArc(ctx, sx, zoneCenterY, glow > 0 ? 18 : 13, 0, Math.PI * 2);
+      ctx.fillStyle = glow > 0 ? "rgba(246, 196, 83, 0.75)" : "rgba(255, 253, 247, 0.9)";
+      ctx.fill();
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = spec.color;
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillStyle = PALETTE.ink;
+      ctx.font = "800 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(spec.noteLabel, sx, boardY + boardH - 8);
+      ctx.restore();
+    }
+    for (let i = 0; i < stage.notes.length; i++) {
+      const n = stage.notes[i];
+      const spec = HARP_STRING_SPECS[n.stringIndex];
+      const nx = boardX + colW * (n.stringIndex + 0.5);
+      const ny = boardY + 14 + n.y * (boardH - 40);
+      drawMusicNote(ctx, nx, ny, 1, spec.color, n.golden);
+    }
+    if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+      const pop = UI_TEXT[stage.lastPopKey];
+      drawSpeechBubble(
+        ctx,
+        w * 0.5,
+        154,
+        formatPrimary(pop, state.langMode),
+        formatSecondary(pop, state.langMode),
+        w
+      );
+    }
+  }
   function renderVerseBuilderPlay(ctx, state, stage, w, h, timeSec) {
     drawGalileeBackdrop(ctx, w, h, timeSec);
     drawJesus(ctx, w * 0.2, 178, 0.88, "welcome", timeSec);
@@ -3057,6 +3469,13 @@ var __ThankfulJesusBundle = (() => {
         drawJesus(ctx, w * 0.34, 286, 1.28, "welcome", t);
         drawChildFriend(ctx, w * 0.68, 294, 1.05, "#D46A43", true, t);
         drawBlessingToken(ctx, w * 0.52, 192, 1.15, t);
+      } else if (stageId === "david_harp") {
+        drawJesus(ctx, w * 0.25, 288, 1.22, "welcome", t);
+        drawChildFriend(ctx, w * 0.55, 292, 1.02, "#6BA8C9", true, t);
+        drawGoldenHarp(ctx, w * 0.68, 266, 1.15, t);
+        drawLittleSheep(ctx, w * 0.84, 300, 1.1, t);
+        drawMusicNote(ctx, w * 0.56, 178, 1, "#D46A43", true);
+        drawMusicNote(ctx, w * 0.72, 162, 0.9, "#6F9463", false);
       } else {
         drawJesus(ctx, w * 0.3, 288, 1.2, "celebrate", t);
         drawGratitudeOliveTree(ctx, w * 0.72, 298, 155, 155, [], t);
@@ -3085,6 +3504,8 @@ var __ThankfulJesusBundle = (() => {
         renderLoavesPlay(ctx, state, state.stageState, w, h, t);
       } else if (state.stageState.kind === "run_back_to_jesus") {
         renderRunBackPlay(ctx, state, state.stageState, w, h, t);
+      } else if (state.stageState.kind === "david_harp") {
+        renderDavidHarpPlay(ctx, state, state.stageState, w, h, t);
       } else {
         renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
       }
@@ -3471,6 +3892,7 @@ var __ThankfulJesusBundle = (() => {
     const keysHeld = /* @__PURE__ */ new Set();
     let pendingPrimaryTap = false;
     let pendingLanePick = null;
+    let pendingHarpString = null;
     let activePointerXNorm = null;
     function unlockAudio() {
       audio.unlock();
@@ -3506,6 +3928,10 @@ var __ThankfulJesusBundle = (() => {
         }
         if (state.stageState.kind === "run_back_to_jesus") {
           const v = getVerseById("luke_17_15_16");
+          return v.text;
+        }
+        if (state.stageState.kind === "david_harp") {
+          const v = getVerseById("psalm_100_4");
           return v.text;
         }
         if (state.stageState.subPhase === "quiz") {
@@ -3616,7 +4042,7 @@ var __ThankfulJesusBundle = (() => {
       }
       if (state.phase === "pass_banner" || state.phase === "stage_intro") {
         const stageId = STAGE_SEQUENCE[state.stageIndex];
-        hudTitle.textContent = String(state.stageIndex + 1) + "/3 " + formatPrimary(STAGE_TEXT[stageId].shortTitle, state.langMode);
+        hudTitle.textContent = String(state.stageIndex + 1) + "/" + String(STAGE_SEQUENCE.length) + " " + formatPrimary(STAGE_TEXT[stageId].shortTitle, state.langMode);
         hudMeter.textContent = formatPrimary(UI_TEXT.friendPrefix, state.langMode) + " " + String(state.activePlayerIndex + 1);
         return;
       }
@@ -3632,6 +4058,9 @@ var __ThankfulJesusBundle = (() => {
           } else {
             hudMeter.textContent = formatPrimary(UI_TEXT.s2HudRoad, state.langMode) + " " + String(state.stageState.sparklesCollected) + "/" + String(state.stageState.targetSparkles);
           }
+        } else if (state.stageState.kind === "david_harp") {
+          const timerStr = state.ageMode === "adventurer" ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s" : "";
+          hudMeter.textContent = formatPrimary(UI_TEXT.sHarpHudUnit, state.langMode) + " " + String(state.stageState.notesPlayed) + "/" + String(state.stageState.targetNotes) + timerStr;
         } else {
           if (state.stageState.subPhase === "quiz") {
             hudMeter.textContent = formatPrimary(UI_TEXT.s3QuizKicker, state.langMode) + " " + String(state.stageState.quizCursor + 1) + "/" + String(state.stageState.quizQueue.length);
@@ -3653,7 +4082,7 @@ var __ThankfulJesusBundle = (() => {
         return;
       }
       hudTitle.textContent = formatPrimary(UI_TEXT.pcTitle, state.langMode);
-      hudMeter.textContent = formatPrimary(UI_TEXT.starsEarned, state.langMode) + ": " + String(state.totalStars) + "/9";
+      hudMeter.textContent = formatPrimary(UI_TEXT.starsEarned, state.langMode) + ": " + String(state.totalStars) + "/" + String(STAGE_SEQUENCE.length * 3);
     }
     function computeDeckKey() {
       let extra = "";
@@ -3662,6 +4091,8 @@ var __ThankfulJesusBundle = (() => {
           extra = state.stageState.prayedWithJesus ? "prayed" : "wait_pray";
         } else if (state.stageState.kind === "run_back_to_jesus") {
           extra = state.stageState.subPhase;
+        } else if (state.stageState.kind === "david_harp") {
+          extra = "harp";
         } else {
           extra = state.stageState.subPhase + ":" + String(state.stageState.verseCursor) + ":" + String(state.stageState.placedTileIds.length) + ":" + String(state.stageState.wrongShakeTileId || "") + ":" + String(state.stageState.quizCursor) + ":" + state.stageState.quizFeedback;
         }
@@ -3936,6 +4367,37 @@ var __ThankfulJesusBundle = (() => {
             }
             stack.appendChild(laneRow);
           }
+          controlDeck.appendChild(stack);
+          return;
+        }
+        if (state.stageState.kind === "david_harp") {
+          const hint2 = document.createElement("div");
+          hint2.className = "deck-note";
+          hint2.textContent = formatLocalized(UI_TEXT.sHarpHint, state.langMode, " / ");
+          stack.appendChild(hint2);
+          const harpRow = document.createElement("div");
+          harpRow.className = "harp-grid";
+          for (let i = 0; i < HARP_STRING_SPECS.length; i++) {
+            const spec = HARP_STRING_SPECS[i];
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "harp-btn";
+            btn.style.background = spec.color;
+            const noteSpan = document.createElement("span");
+            noteSpan.className = "harp-note";
+            noteSpan.textContent = spec.noteLabel;
+            const keySpan = document.createElement("span");
+            keySpan.className = "harp-key";
+            keySpan.textContent = spec.keyHint;
+            btn.appendChild(noteSpan);
+            btn.appendChild(keySpan);
+            btn.addEventListener("pointerdown", () => {
+              unlockAudio();
+              pendingHarpString = spec.index;
+            });
+            harpRow.appendChild(btn);
+          }
+          stack.appendChild(harpRow);
           controlDeck.appendChild(stack);
           return;
         }
@@ -4331,6 +4793,9 @@ var __ThankfulJesusBundle = (() => {
           } else {
             pendingLanePick = xNorm < 0.36 ? 0 : xNorm > 0.64 ? 2 : 1;
           }
+        } else if (state.stageState.kind === "david_harp") {
+          const idx = Math.min(3, Math.max(0, Math.floor(xNorm * 4)));
+          pendingHarpString = idx;
         }
       }
     });
@@ -4368,6 +4833,11 @@ var __ThankfulJesusBundle = (() => {
         pendingPrimaryTap = true;
       } else if (ev.key === "l" || ev.key === "L") {
         speakCurrentScreen();
+      } else if (ev.key === "1" || ev.key === "2" || ev.key === "3" || ev.key === "4") {
+        if (state.phase === "stage_play" && state.stageState && state.stageState.kind === "david_harp") {
+          unlockAudio();
+          pendingHarpString = Number(ev.key) - 1;
+        }
       }
     });
     window.addEventListener("keyup", (ev) => {
@@ -4392,10 +4862,12 @@ var __ThankfulJesusBundle = (() => {
         primaryTap: pendingPrimaryTap,
         moveDir,
         pointerXNorm: activePointerXNorm,
-        lanePick: pendingLanePick
+        lanePick: pendingLanePick,
+        harpString: pendingHarpString
       };
       pendingPrimaryTap = false;
       pendingLanePick = null;
+      pendingHarpString = null;
       const prevPhase = state.phase;
       stepGame(state, dt, frameInput);
       flushSounds();

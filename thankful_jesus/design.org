@@ -83,10 +83,13 @@ Each verse stores its reference, NIV/NIrV English text, CUV Chinese text (=\uXXX
 2. *Luke 17:15-16* (Stage 2 -- The One Thankful Leper, Luke 17:11-19):
    - EN (NIV): "One of them, when he saw he was healed, came back, praising God in a loud voice. He threw himself at Jesus' feet and thanked him."
    - ZH: CUV Luke 17:15-16.
-3. *1 Thessalonians 5:18* (Stage 3 -- Core Thanksgiving Memory Verse):
+3. *Psalm 100:4* (Stage 3 -- David's Thankful Harp):
+   - EN (NIV): "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name."
+   - ZH: CUV Psalm 100:4.
+4. *1 Thessalonians 5:18* (Stage 4 -- Core Thanksgiving Memory Verse):
    - EN (NIV): "Give thanks in all circumstances; for this is God's will for you in Christ Jesus."
    - ZH: CUV 1 Thessalonians 5:18.
-4. *Psalm 107:1* (Stage 3 -- Joyful Praise Memory Verse):
+5. *Psalm 107:1* (Stage 4 -- Joyful Praise Memory Verse):
    - EN (NIV): "Give thanks to the LORD, for he is good; his love endures forever."
    - ZH: CUV Psalm 107:1.
 

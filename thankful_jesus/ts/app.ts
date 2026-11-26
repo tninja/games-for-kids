@@ -1,6 +1,7 @@
 import { drawStickerIcon, drawTileIcon } from "./artwork";
 import { JourneyAudio } from "./audio";
 import {
+  HARP_STRING_SPECS,
   LEAF_COLORS,
   LEAF_COLOR_ORDER,
   MAX_CUSTOM_NOTE_LEN,
@@ -53,6 +54,7 @@ export {
   CHURCH_PROMPTS,
   EMPTY_INPUT,
   FRIEND_EASTER_LINES,
+  HARP_STRING_SPECS,
   JESUS_EASTER_LINES,
   JourneyAudio,
   JourneySpeech,
@@ -181,6 +183,7 @@ export function mountThankfulJesusApp(): void {
   const keysHeld = new Set<string>();
   let pendingPrimaryTap = false;
   let pendingLanePick: 0 | 1 | 2 | null = null;
+  let pendingHarpString: 0 | 1 | 2 | 3 | null = null;
   let activePointerXNorm: number | null = null;
 
   function unlockAudio(): void {
@@ -219,6 +222,10 @@ export function mountThankfulJesusApp(): void {
       }
       if (state.stageState.kind === "run_back_to_jesus") {
         const v = getVerseById("luke_17_15_16");
+        return v.text;
+      }
+      if (state.stageState.kind === "david_harp") {
+        const v = getVerseById("psalm_100_4");
         return v.text;
       }
       if (state.stageState.subPhase === "quiz") {
@@ -348,7 +355,9 @@ export function mountThankfulJesusApp(): void {
       const stageId = STAGE_SEQUENCE[state.stageIndex];
       hudTitle.textContent =
         String(state.stageIndex + 1) +
-        "/3 " +
+        "/" +
+        String(STAGE_SEQUENCE.length) +
+        " " +
         formatPrimary(STAGE_TEXT[stageId].shortTitle, state.langMode);
       hudMeter.textContent =
         formatPrimary(UI_TEXT.friendPrefix, state.langMode) +
@@ -386,6 +395,18 @@ export function mountThankfulJesusApp(): void {
             "/" +
             String(state.stageState.targetSparkles);
         }
+      } else if (state.stageState.kind === "david_harp") {
+        const timerStr =
+          state.ageMode === "adventurer"
+            ? " | " + String(Math.ceil(state.stageState.timeLeftSec)) + "s"
+            : "";
+        hudMeter.textContent =
+          formatPrimary(UI_TEXT.sHarpHudUnit, state.langMode) +
+          " " +
+          String(state.stageState.notesPlayed) +
+          "/" +
+          String(state.stageState.targetNotes) +
+          timerStr;
       } else {
         if (state.stageState.subPhase === "quiz") {
           hudMeter.textContent =
@@ -416,7 +437,11 @@ export function mountThankfulJesusApp(): void {
     }
     hudTitle.textContent = formatPrimary(UI_TEXT.pcTitle, state.langMode);
     hudMeter.textContent =
-      formatPrimary(UI_TEXT.starsEarned, state.langMode) + ": " + String(state.totalStars) + "/9";
+      formatPrimary(UI_TEXT.starsEarned, state.langMode) +
+      ": " +
+      String(state.totalStars) +
+      "/" +
+      String(STAGE_SEQUENCE.length * 3);
   }
 
   function computeDeckKey(): string {
@@ -426,6 +451,8 @@ export function mountThankfulJesusApp(): void {
         extra = state.stageState.prayedWithJesus ? "prayed" : "wait_pray";
       } else if (state.stageState.kind === "run_back_to_jesus") {
         extra = state.stageState.subPhase;
+      } else if (state.stageState.kind === "david_harp") {
+        extra = "harp";
       } else {
         extra =
           state.stageState.subPhase +
@@ -746,7 +773,40 @@ export function mountThankfulJesusApp(): void {
         return;
       }
 
-      // Stage 3: Verse Builder (tiles or adventurer quiz)
+      if (state.stageState.kind === "david_harp") {
+        const hint = document.createElement("div");
+        hint.className = "deck-note";
+        hint.textContent = formatLocalized(UI_TEXT.sHarpHint, state.langMode, " / ");
+        stack.appendChild(hint);
+
+        const harpRow = document.createElement("div");
+        harpRow.className = "harp-grid";
+        for (let i = 0; i < HARP_STRING_SPECS.length; i++) {
+          const spec = HARP_STRING_SPECS[i];
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "harp-btn";
+          btn.style.background = spec.color;
+          const noteSpan = document.createElement("span");
+          noteSpan.className = "harp-note";
+          noteSpan.textContent = spec.noteLabel;
+          const keySpan = document.createElement("span");
+          keySpan.className = "harp-key";
+          keySpan.textContent = spec.keyHint;
+          btn.appendChild(noteSpan);
+          btn.appendChild(keySpan);
+          btn.addEventListener("pointerdown", () => {
+            unlockAudio();
+            pendingHarpString = spec.index;
+          });
+          harpRow.appendChild(btn);
+        }
+        stack.appendChild(harpRow);
+        controlDeck.appendChild(stack);
+        return;
+      }
+
+      // Stage 4: Verse Builder (tiles or adventurer quiz)
       const vb = state.stageState;
       if (vb.subPhase === "quiz") {
         const qId = vb.quizQueue[vb.quizCursor];
@@ -1192,6 +1252,9 @@ export function mountThankfulJesusApp(): void {
         } else {
           pendingLanePick = xNorm < 0.36 ? 0 : xNorm > 0.64 ? 2 : 1;
         }
+      } else if (state.stageState.kind === "david_harp") {
+        const idx = Math.min(3, Math.max(0, Math.floor(xNorm * 4))) as 0 | 1 | 2 | 3;
+        pendingHarpString = idx;
       }
     }
   });
@@ -1247,6 +1310,15 @@ export function mountThankfulJesusApp(): void {
       pendingPrimaryTap = true;
     } else if (ev.key === "l" || ev.key === "L") {
       speakCurrentScreen();
+    } else if (ev.key === "1" || ev.key === "2" || ev.key === "3" || ev.key === "4") {
+      if (
+        state.phase === "stage_play" &&
+        state.stageState &&
+        state.stageState.kind === "david_harp"
+      ) {
+        unlockAudio();
+        pendingHarpString = (Number(ev.key) - 1) as 0 | 1 | 2 | 3;
+      }
     }
   });
   window.addEventListener("keyup", (ev) => {
@@ -1276,10 +1348,12 @@ export function mountThankfulJesusApp(): void {
       primaryTap: pendingPrimaryTap,
       moveDir,
       pointerXNorm: activePointerXNorm,
-      lanePick: pendingLanePick
+      lanePick: pendingLanePick,
+      harpString: pendingHarpString
     };
     pendingPrimaryTap = false;
     pendingLanePick = null;
+    pendingHarpString = null;
 
     const prevPhase = state.phase;
     stepGame(state, dt, frameInput);

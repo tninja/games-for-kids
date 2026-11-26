@@ -932,6 +932,145 @@ export function drawToyBlock(
   ctx.restore();
 }
 
+export function drawGoldenHarp(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  scale = 1,
+  timeSec = 0
+): void {
+  const s = safeR(scale);
+  const shimmer = Math.sin(timeSec * 4) * 1.2;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+
+  // Golden strings
+  ctx.strokeStyle = "#F6C453";
+  ctx.lineWidth = 1.6;
+  for (let i = 0; i < 4; i++) {
+    const sx = -9 + i * 6;
+    ctx.beginPath();
+    ctx.moveTo(sx, -16 + i * 1.4);
+    ctx.lineTo(sx, 14);
+    ctx.stroke();
+  }
+
+  // Arched wooden & gold lyre frame
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.fillStyle = "#D99B38";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(-16, 16);
+  ctx.quadraticCurveTo(-20, -14, -10, -22);
+  ctx.quadraticCurveTo(4, -26 + shimmer * 0.3, 18, -12);
+  ctx.lineTo(14, 16);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Base soundbox
+  drawRoundedRect(ctx, -18, 12, 36, 9, 4);
+  ctx.fillStyle = "#B87A4B";
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawMusicNote(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  scale = 1,
+  color = "#D46A43",
+  golden = false
+): void {
+  const s = safeR(scale);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+
+  if (golden) {
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 19, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(246, 196, 83, 0.45)";
+    ctx.fill();
+  }
+
+  // Note circle badge
+  ctx.beginPath();
+  safeArc(ctx, 0, 0, 14, 0, Math.PI * 2);
+  ctx.fillStyle = golden ? PALETTE.sunGold : color;
+  ctx.fill();
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Eighth-note glyph inside
+  ctx.fillStyle = "#FFFDF8";
+  ctx.strokeStyle = "#FFFDF8";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  safeEllipse(ctx, -2.5, 4, 4.2, 3.2, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(1.5, 3);
+  ctx.lineTo(1.5, -7);
+  ctx.quadraticCurveTo(7.5, -6, 7.5, -1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawLittleSheep(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  baseY: number,
+  scale = 1,
+  timeSec = 0
+): void {
+  const s = safeR(scale);
+  const bob = Math.abs(Math.sin(timeSec * 3.2)) * 2 * s;
+  ctx.save();
+  ctx.translate(cx, baseY - bob);
+  ctx.scale(s, s);
+
+  // Tiny legs
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(-8, -4);
+  ctx.lineTo(-8, 4);
+  ctx.moveTo(6, -4);
+  ctx.lineTo(6, 4);
+  ctx.stroke();
+
+  // Fluffy wool puffs
+  ctx.fillStyle = "#FFFDF8";
+  ctx.lineWidth = 2;
+  const puffs = [
+    { x: -8, y: -12, r: 8 },
+    { x: 0, y: -15, r: 9 },
+    { x: 8, y: -12, r: 8 },
+    { x: 0, y: -9, r: 8 }
+  ];
+  for (let i = 0; i < puffs.length; i++) {
+    ctx.beginPath();
+    safeArc(ctx, puffs[i].x, puffs[i].y, puffs[i].r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Gentle head
+  ctx.fillStyle = "#4A3A31";
+  ctx.beginPath();
+  safeArc(ctx, -14, -14, 5.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#FFFDF8";
+  ctx.beginPath();
+  safeArc(ctx, -15.5, -15, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 export function drawGratitudeOliveTree(
   ctx: CanvasRenderingContext2D,
   cx: number,

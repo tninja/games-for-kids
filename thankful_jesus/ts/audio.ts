@@ -84,6 +84,22 @@ export class JourneyAudio {
         this.tone(698.46, 880.0, 0.10, "sine", 0.10, now);
         this.tone(880.0, 1046.5, 0.12, "sine", 0.09, now + 0.07);
         break;
+      case "harp_0":
+        this.tone(523.25, 523.25, 0.24, "triangle", 0.16, now);
+        this.tone(1046.5, 1046.5, 0.14, "sine", 0.06, now);
+        break;
+      case "harp_1":
+        this.tone(587.33, 587.33, 0.24, "triangle", 0.16, now);
+        this.tone(1174.66, 1174.66, 0.14, "sine", 0.06, now);
+        break;
+      case "harp_2":
+        this.tone(659.25, 659.25, 0.24, "triangle", 0.16, now);
+        this.tone(1318.51, 1318.51, 0.14, "sine", 0.06, now);
+        break;
+      case "harp_3":
+        this.tone(783.99, 783.99, 0.26, "triangle", 0.16, now);
+        this.tone(1567.98, 1567.98, 0.14, "sine", 0.06, now);
+        break;
     }
   }
 

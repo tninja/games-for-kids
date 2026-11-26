@@ -273,6 +273,22 @@ export const UI_TEXT = {
   readTreeBtn: {
     en: "Read All Tree Prayers",
     zh: "\u6717\u8bfb\u611f\u6069\u6811\u4e0a\u7684\u7977\u544a"
+  },
+  sHarpHint: {
+    en: "Tap each harp string when notes enter the golden glow!",
+    zh: "\u97f3\u7b26\u843d\u8fdb\u53d1\u5149\u533a\u65f6\u8f7b\u70b9\u5bf9\u5e94\u7434\u5f26\uff08\u7434\u5f26\u53ef\u81ea\u7531\u5f39\u54cd\u54e6\uff01\uff09"
+  },
+  sHarpHudUnit: {
+    en: "Praise Notes",
+    zh: "\u4e32\u97f3\u7b26"
+  },
+  popPraise: {
+    en: "+1 Praise Song!",
+    zh: "+1 \u8d5e\u7f8e\u4e4b\u6b4c\uff01"
+  },
+  popHarmony: {
+    en: "+1 Joyful Harmony!",
+    zh: "+1 \u548c\u8c10\u611f\u6069\uff01"
   }
 } as const;
 
@@ -366,6 +382,20 @@ export const STAGE_TEXT: Record<
     story: {
       en: "Jesus healed ten men, and one paused to run back and thank Him! Dodge busy distractions, then turn back at the crossroads to praise Jesus!",
       zh: "\u8036\u7a23\u533b\u6cbb\u4e86\u5341\u4e2a\u4eba\uff0c\u53ea\u6709\u4e00\u4e2a\u4eba\u505c\u4e0b\u811a\u6b65\u8dd1\u56de\u8036\u7a23\u811a\u524d\u8bf4\u8c22\u8c22\uff01\u907f\u5f00\u5206\u5fc3\u6742\u7269\uff0c\u5230\u5c94\u8def\u53e3\u5feb\u8f6c\u8eab\u8c22\u8c22\u8036\u7a23\uff01"
+    }
+  },
+  david_harp: {
+    title: {
+      en: "David's Thankful Harp",
+      zh: "\u5927\u536b\u7684\u611f\u6069\u7ad6\u7434"
+    },
+    shortTitle: {
+      en: "Thankful Harp",
+      zh: "\u611f\u6069\u7ad6\u7434"
+    },
+    story: {
+      en: "David loved playing his harp to thank and praise God! Tap the glowing harp strings as golden notes float down to play a joyful song for Jesus!",
+      zh: "\u5927\u536b\u7231\u5f39\u594f\u7ad6\u7434\u5411\u795e\u732e\u4e0a\u611f\u6069\u548c\u8d5e\u7f8e\uff01\u5f53\u91d1\u8272\u97f3\u7b26\u98d8\u8fdb\u53d1\u5149\u533a\u65f6\uff0c\u8f7b\u70b9\u5bf9\u5e94\u7684\u7434\u5f26\uff0c\u594f\u54cd\u7ed9\u8036\u7a23\u7684\u611f\u6069\u4e4b\u6b4c\uff01"
     }
   },
   verse_builder: {

@@ -5,6 +5,7 @@ import { AgeMode, QuizQuestionDef, VerseDef, VerseId, VerseTileDef } from "./typ
 export const VERSE_ORDER: VerseId[] = [
   "john_6_11",
   "luke_17_15_16",
+  "psalm_100_4",
   "psalm_107_1",
   "thess_5_18"
 ];
@@ -54,6 +55,29 @@ export const VERSES: Record<VerseId, VerseDef> = {
       { id: "l2", icon: "sun", text: { en: "came back praising God,", zh: "\u5c31\u56de\u6765\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c" } },
       { id: "l3", icon: "cross", text: { en: "fell at Jesus' feet", zh: "\u53c8\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d" } },
       { id: "l4", icon: "hands", text: { en: "and thanked him.", zh: "\u611f\u8c22\u4ed6\u3002" } }
+    ]
+  },
+  psalm_100_4: {
+    id: "psalm_100_4",
+    reference: {
+      en: "Psalm 100:4 (NIV)",
+      zh: "\u8bd7\u7bc7 100:4"
+    },
+    text: {
+      en: "Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name.",
+      zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b\u5f53\u611f\u8c22\u4ed6\uff0c\u79f0\u9882\u4ed6\u7684\u540d\uff01"
+    },
+    explorerTiles: [
+      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c" } },
+      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b" } },
+      { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
+      { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
+    ],
+    adventurerTiles: [
+      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff0c" } },
+      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\uff1b" } },
+      { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
+      { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
     ]
   },
   psalm_107_1: {
@@ -110,7 +134,7 @@ export const VERSES: Record<VerseId, VerseDef> = {
 
 export const BUILDER_VERSE_QUEUE: VerseId[] = ["psalm_107_1", "thess_5_18"];
 
-export const ADVENTURER_QUIZ_ORDER: string[] = ["q_loaves", "q_leper"];
+export const ADVENTURER_QUIZ_ORDER: string[] = ["q_loaves", "q_leper", "q_harp"];
 
 export const QUIZ_QUESTIONS: Record<string, QuizQuestionDef> = {
   q_loaves: {
@@ -165,6 +189,33 @@ export const QUIZ_QUESTIONS: Record<string, QuizQuestionDef> = {
     encouragement: {
       en: "Wonderful! He turned right around and thanked Jesus with a joyful heart!",
       zh: "\u771f\u68d2\uff01\u4ed6\u7acb\u523b\u8f6c\u8eab\u56de\u6765\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u732e\u4e0a\u611f\u8c22\uff01"
+    }
+  },
+  q_harp: {
+    id: "q_harp",
+    verseId: "psalm_100_4",
+    question: {
+      en: "In Psalm 100:4, how should we enter God's gates and courts?",
+      zh: "\u8bd7\u7bc7100\u7bc74\u8282\u63d0\u9192\u6211\u4eec\uff0c\u8fdb\u5165\u795e\u7684\u95e8\u548c\u9662\u65f6\u8981\u5e26\u7740\u4ec0\u4e48\u5fc3\uff1f"
+    },
+    choices: [
+      {
+        en: "With thanksgiving and joyful praise to God",
+        zh: "\u5e26\u7740\u79f0\u8c22\u548c\u8d5e\u7f8e\u7684\u5fc3\u611f\u8c22\u795e"
+      },
+      {
+        en: "With a grumpy face and no words",
+        zh: "\u6101\u7709\u82e6\u8138\u4e00\u53e5\u8bdd\u4e5f\u4e0d\u8bf4"
+      },
+      {
+        en: "Pretending we never noticed His blessings",
+        zh: "\u5047\u88c5\u4ec0\u4e48\u90fd\u6ca1\u770b\u89c1"
+      }
+    ],
+    correctIndex: 0,
+    encouragement: {
+      en: "Yes! God loves when we come to Him and Jesus with thanksgiving and praise!",
+      zh: "\u7b54\u5bf9\u5566\uff01\u5e26\u7740\u79f0\u8c22\u548c\u8d5e\u7f8e\u6765\u5230\u795e\u548c\u8036\u7a23\u9762\u524d\uff0c\u5929\u7236\u6700\u559c\u60a6\uff01"
     }
   }
 };

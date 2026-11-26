@@ -14,11 +14,13 @@ export type GamePhase =
 export type StageId =
   | "loaves_and_fish"
   | "run_back_to_jesus"
+  | "david_harp"
   | "verse_builder";
 
 export type VerseId =
   | "john_6_11"
   | "luke_17_15_16"
+  | "psalm_100_4"
   | "psalm_107_1"
   | "thess_5_18";
 
@@ -56,7 +58,11 @@ export type SoundEvent =
   | "prayer_hang"
   | "journey_fanfare"
   | "jesus_chime"
-  | "tree_rustle";
+  | "tree_rustle"
+  | "harp_0"
+  | "harp_1"
+  | "harp_2"
+  | "harp_3";
 
 export interface LocalizedText {
   en: string;
@@ -135,7 +141,9 @@ export type PopKey =
   | "popGrace"
   | "popOops"
   | "popTurnBack"
-  | "popThankJesus";
+  | "popThankJesus"
+  | "popPraise"
+  | "popHarmony";
 
 export interface LoavesStageState {
   kind: "loaves_and_fish";
@@ -198,9 +206,34 @@ export interface VerseBuilderStageState {
   score: number;
 }
 
+export interface HarpNoteItem {
+  id: number;
+  stringIndex: 0 | 1 | 2 | 3;
+  y: number; // 0..1
+  golden: boolean;
+}
+
+export interface DavidHarpStageState {
+  kind: "david_harp";
+  notesPlayed: number;
+  targetNotes: number;
+  streak: number;
+  score: number;
+  timeLeftSec: number;
+  spawnTimer: number;
+  melodyStep: number;
+  missedCounter: number;
+  nextNoteId: number;
+  notes: HarpNoteItem[];
+  stringGlow: [number, number, number, number];
+  lastPopKey: PopKey;
+  lastPopTimer: number;
+}
+
 export type ActiveStageState =
   | LoavesStageState
   | RunBackStageState
+  | DavidHarpStageState
   | VerseBuilderStageState;
 
 export interface FrameInput {
@@ -208,6 +241,7 @@ export interface FrameInput {
   moveDir: number; // -1 | 0 | 1
   pointerXNorm: number | null; // 0..1
   lanePick: 0 | 1 | 2 | null;
+  harpString: 0 | 1 | 2 | 3 | null;
 }
 
 export type GameAction =

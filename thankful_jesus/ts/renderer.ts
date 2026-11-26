@@ -6,11 +6,14 @@ import {
   drawFish,
   drawGalileeBackdrop,
   drawGoldenFootprint,
+  drawGoldenHarp,
   drawGratitudeOliveTree,
   drawHeartBurst,
   drawJesus,
   drawLeaf,
+  drawLittleSheep,
   drawMarketCart,
+  drawMusicNote,
   drawRoundedRect,
   drawSpeechBubble,
   drawStar,
@@ -19,9 +22,21 @@ import {
   drawWovenBasket,
   safeArc
 } from "./artwork";
-import { PALETTE, STAGE_LOGICAL_H, STAGE_LOGICAL_W, STAGE_SEQUENCE } from "./constants";
+import {
+  HARP_STRING_SPECS,
+  PALETTE,
+  STAGE_LOGICAL_H,
+  STAGE_LOGICAL_W,
+  STAGE_SEQUENCE
+} from "./constants";
 import { STAGE_TEXT, UI_TEXT, formatPrimary, formatSecondary, getEasterLine } from "./i18n";
-import { GameState, LoavesStageState, RunBackStageState, VerseBuilderStageState } from "./types";
+import {
+  DavidHarpStageState,
+  GameState,
+  LoavesStageState,
+  RunBackStageState,
+  VerseBuilderStageState
+} from "./types";
 import { getVerseById, getVerseTiles } from "./verses";
 
 function drawFloatingLeaves(
@@ -310,6 +325,99 @@ function renderRunBackPlay(
   }
 }
 
+function renderDavidHarpPlay(
+  ctx: CanvasRenderingContext2D,
+  state: GameState,
+  stage: DavidHarpStageState,
+  w: number,
+  h: number,
+  timeSec: number
+): void {
+  drawGalileeBackdrop(ctx, w, h, timeSec);
+  drawSunRays(ctx, w * 0.5, 92, 130, timeSec, 0.24);
+
+  // Smiling Jesus, young David with golden harp, and joyful listening sheep
+  drawJesus(ctx, w * 0.19, 136, 0.86, "welcome", timeSec);
+  drawChildFriend(ctx, w * 0.50, 136, 0.82, "#6BA8C9", true, timeSec);
+  drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
+  drawLittleSheep(ctx, w * 0.84, 134, 1.0, timeSec);
+
+  // Warm parchment harp stage frame
+  const boardX = 28;
+  const boardY = 146;
+  const boardW = w - 56;
+  const boardH = h - 162;
+  drawRoundedRect(ctx, boardX, boardY, boardW, boardH, 20);
+  ctx.fillStyle = "rgba(255, 249, 236, 0.94)";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Golden Praise Zone band near the bottom of the harp frame
+  const zoneCenterY = boardY + boardH * 0.78;
+  const zoneH = state.ageMode === "explorer" ? 54 : 42;
+  drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
+  ctx.fillStyle = "rgba(246, 196, 83, 0.34)";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = PALETTE.warmGold;
+  ctx.stroke();
+
+  // 4 shimmering vertical harp strings
+  const colW = boardW / 4;
+  for (let i = 0; i < 4; i++) {
+    const spec = HARP_STRING_SPECS[i];
+    const sx = boardX + colW * (i + 0.5);
+    const glow = stage.stringGlow[i];
+    const vibrate = glow > 0 ? Math.sin(timeSec * 55) * 4 * (glow / 0.45) : 0;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(sx, boardY + 14);
+    ctx.quadraticCurveTo(sx + vibrate, boardY + boardH * 0.5, sx, boardY + boardH - 26);
+    ctx.strokeStyle = glow > 0 ? PALETTE.sunGold : spec.color;
+    ctx.lineWidth = glow > 0 ? 5.5 : 3;
+    ctx.stroke();
+
+    // Glowing anchor circle in Praise Zone
+    ctx.beginPath();
+    safeArc(ctx, sx, zoneCenterY, glow > 0 ? 18 : 13, 0, Math.PI * 2);
+    ctx.fillStyle = glow > 0 ? "rgba(246, 196, 83, 0.75)" : "rgba(255, 253, 247, 0.9)";
+    ctx.fill();
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = spec.color;
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = PALETTE.ink;
+    ctx.font = "800 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText(spec.noteLabel, sx, boardY + boardH - 8);
+    ctx.restore();
+  }
+
+  // Falling golden praise notes along the 4 strings
+  for (let i = 0; i < stage.notes.length; i++) {
+    const n = stage.notes[i];
+    const spec = HARP_STRING_SPECS[n.stringIndex];
+    const nx = boardX + colW * (n.stringIndex + 0.5);
+    const ny = boardY + 14 + n.y * (boardH - 40);
+    drawMusicNote(ctx, nx, ny, 1.0, spec.color, n.golden);
+  }
+
+  if (stage.lastPopTimer > 0 && stage.lastPopKey) {
+    const pop = UI_TEXT[stage.lastPopKey];
+    drawSpeechBubble(
+      ctx,
+      w * 0.5,
+      154,
+      formatPrimary(pop, state.langMode),
+      formatSecondary(pop, state.langMode),
+      w
+    );
+  }
+}
+
 function renderVerseBuilderPlay(
   ctx: CanvasRenderingContext2D,
   state: GameState,
@@ -485,6 +593,13 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
       drawJesus(ctx, w * 0.34, 286, 1.28, "welcome", t);
       drawChildFriend(ctx, w * 0.68, 294, 1.05, "#D46A43", true, t);
       drawBlessingToken(ctx, w * 0.52, 192, 1.15, t);
+    } else if (stageId === "david_harp") {
+      drawJesus(ctx, w * 0.25, 288, 1.22, "welcome", t);
+      drawChildFriend(ctx, w * 0.55, 292, 1.02, "#6BA8C9", true, t);
+      drawGoldenHarp(ctx, w * 0.68, 266, 1.15, t);
+      drawLittleSheep(ctx, w * 0.84, 300, 1.1, t);
+      drawMusicNote(ctx, w * 0.56, 178, 1.0, "#D46A43", true);
+      drawMusicNote(ctx, w * 0.72, 162, 0.9, "#6F9463", false);
     } else {
       drawJesus(ctx, w * 0.30, 288, 1.2, "celebrate", t);
       drawGratitudeOliveTree(ctx, w * 0.72, 298, 155, 155, [], t);
@@ -514,6 +629,8 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
       renderLoavesPlay(ctx, state, state.stageState, w, h, t);
     } else if (state.stageState.kind === "run_back_to_jesus") {
       renderRunBackPlay(ctx, state, state.stageState, w, h, t);
+    } else if (state.stageState.kind === "david_harp") {
+      renderDavidHarpPlay(ctx, state, state.stageState, w, h, t);
     } else {
       renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
     }

@@ -30,7 +30,8 @@ function runLoavesToCompletion(state, trackBasket = true, expectUnprayed = true)
       primaryTap: false,
       moveDir: 0,
       pointerXNorm: pointerX,
-      lanePick: null
+      lanePick: null,
+      harpString: null
     });
     guard += 1;
   }
@@ -61,12 +62,41 @@ function runRunBackToCompletion(state, collectSparkles = true) {
       primaryTap,
       moveDir: 0,
       pointerXNorm: null,
-      lanePick
+      lanePick,
+      harpString: null
     });
     guard += 1;
   }
   assert.ok(sawTurnBack, "Stage 2 must reach turn_back climax");
   assert.equal(state.phase, "stage_complete", "Stage 2 should reach stage_complete");
+}
+
+function runDavidHarpToCompletion(state, playNotes = true) {
+  assert.equal(state.stageState.kind, "david_harp");
+  let sawHarpSound = false;
+  let guard = 0;
+  while (state.phase === "stage_play" && guard < 3200) {
+    let harpString = null;
+    if (playNotes && state.stageState.notes.length > 0) {
+      const ready = state.stageState.notes.find((n) => n.y >= 0.72 && n.y <= 0.86);
+      if (ready) {
+        harpString = ready.stringIndex;
+      }
+    }
+    api.stepGame(state, 1 / 30, {
+      primaryTap: false,
+      moveDir: 0,
+      pointerXNorm: null,
+      lanePick: null,
+      harpString
+    });
+    if (state.pendingSounds.some((s) => s.startsWith("harp_"))) {
+      sawHarpSound = true;
+    }
+    guard += 1;
+  }
+  assert.ok(sawHarpSound, "David's harp stage should emit pentatonic harp sounds");
+  assert.equal(state.phase, "stage_complete", "Stage 3 David's Harp should reach stage_complete");
 }
 
 function runVerseBuilderToCompletion(state, injectWrongTile = false, injectWrongQuiz = false) {
@@ -138,16 +168,25 @@ function testExplorer3PlayerPassAndPlayFlow() {
   runRunBackToCompletion(state, true);
   assert.ok(state.unlockedVerses.includes("luke_17_15_16"));
 
-  // Stage 3: Thankful Verse Builder (Explorer skips quiz)
+  // Stage 3: David's Thankful Harp (Psalm 100:4)
   api.applyAction(state, { type: "NEXT_STAGE" });
   assert.equal(state.phase, "pass_banner");
   assert.equal(state.activePlayerIndex, 2);
   api.applyAction(state, { type: "CONFIRM_PASS" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
+  runDavidHarpToCompletion(state, true);
+  assert.ok(state.unlockedVerses.includes("psalm_100_4"));
+
+  // Stage 4: Thankful Verse Builder (wraps back to Friend 1, Explorer skips quiz)
+  api.applyAction(state, { type: "NEXT_STAGE" });
+  assert.equal(state.phase, "pass_banner");
+  assert.equal(state.activePlayerIndex, 0);
+  api.applyAction(state, { type: "CONFIRM_PASS" });
+  api.applyAction(state, { type: "BEGIN_STAGE" });
   runVerseBuilderToCompletion(state, true, false);
   assert.ok(state.unlockedVerses.includes("psalm_107_1"));
   assert.ok(state.unlockedVerses.includes("thess_5_18"));
-  assert.equal(state.results.length, 3);
+  assert.equal(state.results.length, 4);
 
   // Prayer Card & Bilingual Sanitization
   api.applyAction(state, { type: "NEXT_STAGE" });
@@ -202,9 +241,13 @@ function testAdventurerSoloWithQuizAndFallbackPrayer() {
 
   api.applyAction(state, { type: "NEXT_STAGE" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
-  assert.equal(state.stageState.quizQueue.length, 2, "Adventurer mode includes 2 Gospel reflection quizzes");
+  runDavidHarpToCompletion(state, true);
+
+  api.applyAction(state, { type: "NEXT_STAGE" });
+  api.applyAction(state, { type: "BEGIN_STAGE" });
+  assert.equal(state.stageState.quizQueue.length, 3, "Adventurer mode includes 3 Gospel & Psalm reflection quizzes");
   runVerseBuilderToCompletion(state, false, true);
-  assert.equal(state.results.length, 3);
+  assert.equal(state.results.length, 4);
 
   api.applyAction(state, { type: "NEXT_STAGE" });
   assert.equal(state.phase, "prayer_card");
@@ -420,6 +463,12 @@ function testStrictCanvasRenderingAndPostcard() {
       state.stageState.lastPopTimer = 0.5;
       api.renderStageCanvas(ctx, state);
       runRunBackToCompletion(state, true);
+    } else if (state.stageState.kind === "david_harp") {
+      api.stepGame(state, 1 / 30, { ...api.EMPTY_INPUT, harpString: 1 });
+      state.stageState.lastPopKey = "popHarmony";
+      state.stageState.lastPopTimer = 0.5;
+      api.renderStageCanvas(ctx, state);
+      runDavidHarpToCompletion(state, true);
     } else {
       api.renderStageCanvas(ctx, state); // tiles
       runVerseBuilderToCompletion(state, false, false);

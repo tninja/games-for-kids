@@ -2,6 +2,7 @@ import { STAGE_SPECS } from "./constants";
 import {
   ActiveStageState,
   AgeMode,
+  DavidHarpStageState,
   FrameInput,
   LoavesStageState,
   RunBackStageState,
@@ -85,6 +86,25 @@ export function createStageState(
       spawnTimer: 0.3,
       nextItemId: 1,
       items: [],
+      lastPopKey: "",
+      lastPopTimer: 0
+    };
+  }
+
+  if (stageId === "david_harp") {
+    return {
+      kind: "david_harp",
+      notesPlayed: 0,
+      targetNotes: isExplorer ? spec.explorerTarget : spec.adventurerTarget,
+      streak: 0,
+      score: 0,
+      timeLeftSec: isExplorer ? 999 : spec.adventurerTimeSec,
+      spawnTimer: 0.35,
+      melodyStep: 0,
+      missedCounter: 0,
+      nextNoteId: 1,
+      notes: [],
+      stringGlow: [0, 0, 0, 0],
       lastPopKey: "",
       lastPopTimer: 0
     };
@@ -324,6 +344,116 @@ export function stepRunBackStage(
   return false;
 }
 
+const HARP_MELODY_PATTERN: (0 | 1 | 2 | 3)[] = [0, 1, 2, 3, 2, 1, 2, 3, 1, 2, 0, 3];
+const HARP_SOUND_BY_STRING: SoundEvent[] = ["harp_0", "harp_1", "harp_2", "harp_3"];
+
+export function stepDavidHarpStage(
+  stage: DavidHarpStageState,
+  ageMode: AgeMode,
+  dt: number,
+  input: FrameInput,
+  rng: () => number,
+  sounds: SoundEvent[]
+): boolean {
+  const isExplorer = ageMode === "explorer";
+  if (stage.lastPopTimer > 0) {
+    stage.lastPopTimer = Math.max(0, stage.lastPopTimer - dt);
+  }
+  for (let i = 0; i < 4; i++) {
+    if (stage.stringGlow[i] > 0) {
+      stage.stringGlow[i] = Math.max(0, stage.stringGlow[i] - dt);
+    }
+  }
+  if (!isExplorer) {
+    stage.timeLeftSec = Math.max(0, stage.timeLeftSec - dt);
+  }
+
+  // Spawn joyful musical praise notes along a pentatonic contour
+  stage.spawnTimer -= dt;
+  if (stage.spawnTimer <= 0) {
+    const baseStr = HARP_MELODY_PATTERN[stage.melodyStep % HARP_MELODY_PATTERN.length];
+    stage.melodyStep += 1;
+    const stringIndex: 0 | 1 | 2 | 3 =
+      rng() < 0.72 ? baseStr : ((Math.floor(rng() * 4) % 4) as 0 | 1 | 2 | 3);
+    stage.notes.push({
+      id: stage.nextNoteId++,
+      stringIndex,
+      y: 0.12,
+      golden: stage.melodyStep % 4 === 0
+    });
+    stage.spawnTimer = isExplorer ? 0.92 : 0.64;
+  }
+
+  const fallSpeed = isExplorer ? 0.34 : 0.48;
+  const zoneMin = isExplorer ? 0.56 : 0.65;
+  const zoneMax = isExplorer ? 0.96 : 0.92;
+
+  // Handle player plucking one of the 4 harp strings
+  if (input.harpString !== null) {
+    const s = input.harpString;
+    stage.stringGlow[s] = 0.45;
+    sounds.push(HARP_SOUND_BY_STRING[s]);
+
+    let bestIdx = -1;
+    let bestDist = 999;
+    for (let i = 0; i < stage.notes.length; i++) {
+      const n = stage.notes[i];
+      if (n.stringIndex === s && n.y >= zoneMin && n.y <= zoneMax) {
+        const dist = Math.abs(n.y - 0.79);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      }
+    }
+
+    if (bestIdx >= 0) {
+      const hit = stage.notes[bestIdx];
+      stage.notes.splice(bestIdx, 1);
+      stage.notesPlayed += 1;
+      stage.streak += 1;
+      stage.score += (hit.golden ? 120 : 75) + stage.streak * 12;
+      stage.lastPopKey = hit.golden || stage.streak >= 3 ? "popHarmony" : "popPraise";
+      stage.lastPopTimer = 0.72;
+      if (hit.golden) {
+        sounds.push("blessing_token");
+      }
+    } else if (!isExplorer) {
+      stage.streak = 0;
+    }
+  }
+
+  // Advance falling notes; in Explorer mode, a singing dove gently rescues every 3rd missed note
+  const remaining = [];
+  for (let i = 0; i < stage.notes.length; i++) {
+    const n = stage.notes[i];
+    n.y += fallSpeed * dt;
+    if (n.y > 0.98) {
+      stage.missedCounter += 1;
+      stage.streak = 0;
+      if (isExplorer && stage.missedCounter % 3 === 0) {
+        stage.notesPlayed += 1;
+        stage.score += 50;
+        stage.stringGlow[n.stringIndex] = 0.35;
+        stage.lastPopKey = "popPraise";
+        stage.lastPopTimer = 0.6;
+        sounds.push(HARP_SOUND_BY_STRING[n.stringIndex]);
+      }
+      continue;
+    }
+    remaining.push(n);
+  }
+  stage.notes = remaining;
+
+  if (stage.notesPlayed >= stage.targetNotes) {
+    return true;
+  }
+  if (!isExplorer && stage.timeLeftSec <= 0) {
+    return true;
+  }
+  return false;
+}
+
 export function stepVerseBuilderStage(stage: VerseBuilderStageState, dt: number): void {
   if (stage.wrongShakeTimer > 0) {
     stage.wrongShakeTimer = Math.max(0, stage.wrongShakeTimer - dt);
@@ -467,6 +597,19 @@ export function computeStageResult(
       stars,
       score: stage.score,
       tokensCollected: stage.sparklesCollected,
+      verseUnlocked: spec.verseId
+    };
+  }
+
+  if (stage.kind === "david_harp") {
+    const ratio = stage.targetNotes > 0 ? stage.notesPlayed / stage.targetNotes : 1;
+    const stars: 1 | 2 | 3 = ratio >= 1 ? 3 : ratio >= 0.65 ? 2 : 1;
+    return {
+      stageId: stage.kind,
+      playerIndex,
+      stars,
+      score: stage.score,
+      tokensCollected: stage.notesPlayed,
       verseUnlocked: spec.verseId
     };
   }

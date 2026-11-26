@@ -31,7 +31,22 @@ export const LEAF_COLOR_ORDER: LeafColor[] = ["gold", "olive", "crimson", "sky"]
 export const STAGE_SEQUENCE: StageId[] = [
   "loaves_and_fish",
   "run_back_to_jesus",
+  "david_harp",
   "verse_builder"
+];
+
+export interface HarpStringSpec {
+  index: 0 | 1 | 2 | 3;
+  noteLabel: string;
+  keyHint: string;
+  color: string;
+}
+
+export const HARP_STRING_SPECS: HarpStringSpec[] = [
+  { index: 0, noteLabel: "Do", keyHint: "1", color: "#D46A43" },
+  { index: 1, noteLabel: "Re", keyHint: "2", color: "#E5A93B" },
+  { index: 2, noteLabel: "Mi", keyHint: "3", color: "#6F9463" },
+  { index: 3, noteLabel: "Sol", keyHint: "4", color: "#5A95B8" }
 ];
 
 export const STAGE_SPECS: Record<StageId, StageSpec> = {
@@ -47,6 +62,13 @@ export const STAGE_SPECS: Record<StageId, StageSpec> = {
     verseId: "luke_17_15_16",
     explorerTarget: 8,
     adventurerTarget: 12,
+    adventurerTimeSec: 34
+  },
+  david_harp: {
+    id: "david_harp",
+    verseId: "psalm_100_4",
+    explorerTarget: 10,
+    adventurerTarget: 16,
     adventurerTimeSec: 34
   },
   verse_builder: {

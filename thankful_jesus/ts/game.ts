@@ -5,6 +5,7 @@ import {
   createStageState,
   handleQuizAnswer,
   handleVerseTileTap,
+  stepDavidHarpStage,
   stepLoavesStage,
   stepRunBackStage,
   stepVerseBuilderStage
@@ -23,7 +24,8 @@ export const EMPTY_INPUT: FrameInput = {
   primaryTap: false,
   moveDir: 0,
   pointerXNorm: null,
-  lanePick: null
+  lanePick: null,
+  harpString: null
 };
 
 function nextRng(state: GameState): number {
@@ -131,6 +133,15 @@ export function stepGame(
     );
   } else if (state.stageState.kind === "run_back_to_jesus") {
     finished = stepRunBackStage(
+      state.stageState,
+      state.ageMode,
+      dt,
+      input,
+      () => nextRng(state),
+      state.pendingSounds
+    );
+  } else if (state.stageState.kind === "david_harp") {
+    finished = stepDavidHarpStage(
       state.stageState,
       state.ageMode,
       dt,
