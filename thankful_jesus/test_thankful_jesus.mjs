@@ -240,6 +240,24 @@ function testExplorer67DoveHelperAndRelaxedFlow() {
   api.applyAction(state, { type: "PLAY_AGAIN" });
   assert.equal(state.phase, "title");
   assert.equal(state.langMode, "dual");
+  assert.equal(state.playCount, 1, "PLAY_AGAIN increments playCount for Stage 4 verse rotation");
+
+  // Replay rotates Stage 4 opener from Psalm 107:1 to Psalm 100:4!
+  api.applyAction(state, { type: "START_JOURNEY" });
+  for (let s = 0; s < 3; s++) {
+    api.applyAction(state, { type: "BEGIN_STAGE" });
+    if (state.stageState.kind === "loaves_and_fish") runLoavesToCompletion(state, true);
+    else if (state.stageState.kind === "run_back_to_jesus") runRunBackToCompletion(state, true);
+    else runDavidHarpToCompletion(state, true);
+    api.applyAction(state, { type: "NEXT_STAGE" });
+  }
+  api.applyAction(state, { type: "BEGIN_STAGE" });
+  assert.deepEqual(
+    state.stageState.verseQueue,
+    ["psalm_100_4", "thess_5_18"],
+    "Replay rotates Stage 4 to Psalm 100:4 + 1 Thess 5:18"
+  );
+  runVerseBuilderToCompletion(state, false, false);
 }
 
 function testAdventurer89ChallengesDecoyAndQuizzes() {

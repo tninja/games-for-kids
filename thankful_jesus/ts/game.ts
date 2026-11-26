@@ -18,7 +18,6 @@ import {
   SoundEvent,
   VerseId
 } from "./types";
-import { BUILDER_VERSE_QUEUE } from "./verses";
 
 export const EMPTY_INPUT: FrameInput = {
   primaryTap: false,
@@ -48,8 +47,8 @@ function finishActiveStage(state: GameState): void {
   state.totalStars += res.stars;
   addUnlockedVerse(state, res.verseUnlocked);
   if (state.stageState.kind === "verse_builder") {
-    for (let i = 0; i < BUILDER_VERSE_QUEUE.length; i++) {
-      addUnlockedVerse(state, BUILDER_VERSE_QUEUE[i]);
+    for (let i = 0; i < state.stageState.verseQueue.length; i++) {
+      addUnlockedVerse(state, state.stageState.verseQueue[i]);
     }
   }
   state.phase = "stage_complete";
@@ -58,7 +57,7 @@ function finishActiveStage(state: GameState): void {
 
 function enterCurrentStage(state: GameState): void {
   const stageId = STAGE_SEQUENCE[state.stageIndex];
-  state.stageState = createStageState(stageId, state.ageMode, () => nextRng(state));
+  state.stageState = createStageState(stageId, state.ageMode, () => nextRng(state), state.playCount);
   state.phase = "stage_intro";
 }
 
@@ -77,6 +76,7 @@ export function createInitialState(config: GameConfig = {}): GameState {
     prayers: [],
     promptIndex: 0,
     totalStars: 0,
+    playCount: 0,
     muted: false,
     autoRead: false,
     harpMusic: true,
@@ -312,6 +312,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       break;
     case "PLAY_AGAIN":
       state.phase = "title";
+      state.playCount += 1;
       state.stageIndex = 0;
       state.activePlayerIndex = 0;
       state.stageState = null;

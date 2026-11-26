@@ -312,6 +312,7 @@ export interface GameState {
   prayers: PrayerLeaf[];
   promptIndex: number;
   totalStars: number;
+  playCount: number;
   muted: boolean;
   autoRead: boolean;
   harpMusic: boolean;

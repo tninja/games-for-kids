@@ -394,8 +394,8 @@ export const STAGE_TEXT: Record<
       zh: "\u4e94\u997c\u4e8c\u9c7c"
     },
     story: {
-      en: "By the Sea of Galilee, a boy offers five loaves and two fish. Tap to give thanks with Jesus, then slide your basket to share with everyone!",
-      zh: "\u5728\u52a0\u5229\u5229\u6e56\u8fb9\uff0c\u5c0f\u7537\u5b69\u732e\u51fa\u4e94\u4e2a\u997c\u548c\u4e24\u6761\u9c7c\u3002\u6211\u4eec\u5148\u548c\u8036\u7a23\u4e00\u8d77\u795d\u8c22\uff0c\u518d\u628a\u6ee1\u6ee1\u7684\u6069\u5178\u5206\u7ed9\u5927\u5bb6\uff01"
+      en: "By the Sea of Galilee, a boy brings five barley loaves and two small fish. Tap to give thanks with Jesus, then slide your basket to share with everyone!",
+      zh: "\u5728\u52a0\u5229\u5229\u6e56\u8fb9\uff0c\u4e00\u4e2a\u5b69\u7ae5\u5e26\u6765\u4e94\u4e2a\u5927\u9ea6\u997c\u548c\u4e24\u6761\u9c7c\u3002\u6211\u4eec\u5148\u548c\u8036\u7a23\u4e00\u8d77\u795d\u8c22\uff0c\u518d\u6ed1\u52a8\u7f16\u7ec7\u7bee\u628a\u6069\u5178\u5206\u7ed9\u5927\u5bb6\uff01"
     }
   },
   run_back_to_jesus: {
@@ -408,8 +408,8 @@ export const STAGE_TEXT: Record<
       zh: "\u56de\u5934\u611f\u6069"
     },
     story: {
-      en: "Jesus healed ten men, and one paused to run back and thank Him! Dodge busy distractions, then turn back at the crossroads to praise Jesus!",
-      zh: "\u8036\u7a23\u533b\u6cbb\u4e86\u5341\u4e2a\u4eba\uff0c\u53ea\u6709\u4e00\u4e2a\u4eba\u505c\u4e0b\u811a\u6b65\u8dd1\u56de\u8036\u7a23\u811a\u524d\u8bf4\u8c22\u8c22\uff01\u907f\u5f00\u5206\u5fc3\u6742\u7269\uff0c\u5230\u5c94\u8def\u53e3\u5feb\u8f6c\u8eab\u8c22\u8c22\u8036\u7a23\uff01"
+      en: "Jesus healed ten men, and one Samaritan man came back praising God loudly and fell at Jesus' feet to thank Him! In this game, dodge road distractions, then turn back at the crossroads to thank Jesus!",
+      zh: "\u8036\u7a23\u533b\u6cbb\u4e86\u5341\u4e2a\u4eba\uff0c\u53ea\u6709\u4e00\u4f4d\u6492\u739b\u5229\u4e9a\u4eba\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c\u56de\u6765\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6\uff01\u5728\u6e38\u620f\u4e2d\u907f\u5f00\u8def\u4e0a\u7684\u5206\u5fc3\u6742\u7269\uff0c\u5230\u5c94\u8def\u53e3\u8f6c\u8eab\u8dd1\u5411\u8036\u7a23\uff01"
     }
   },
   david_harp: {
@@ -422,8 +422,8 @@ export const STAGE_TEXT: Record<
       zh: "\u611f\u6069\u7ad6\u7434"
     },
     story: {
-      en: "David loved playing his harp to thank and praise God! Tap the glowing harp strings as golden notes float down to play a joyful song for Jesus!",
-      zh: "\u5927\u536b\u7231\u5f39\u594f\u7ad6\u7434\u5411\u795e\u732e\u4e0a\u611f\u6069\u548c\u8d5e\u7f8e\uff01\u5f53\u91d1\u8272\u97f3\u7b26\u98d8\u8fdb\u53d1\u5149\u533a\u65f6\uff0c\u8f7b\u70b9\u5bf9\u5e94\u7684\u7434\u5f26\uff0c\u594f\u54cd\u7ed9\u8036\u7a23\u7684\u611f\u6069\u4e4b\u6b4c\uff01"
+      en: "In the Bible, David loved playing his harp to praise God, and Psalm 100:4 calls us to enter God's gates with thanksgiving! Tap the glowing strings to play a joyful praise song to Jesus!",
+      zh: "\u5723\u7ecf\u91cc\u5927\u536b\u7231\u5f39\u7ad6\u7434\u8d5e\u7f8e\u795e\uff0c\u8bd7\u7bc7100:4\u4e5f\u547c\u53ec\u6211\u4eec\u79f0\u8c22\u8fdb\u5165\u795e\u7684\u95e8\uff01\u5f53\u97f3\u7b26\u843d\u8fdb\u53d1\u5149\u533a\u65f6\u8f7b\u70b9\u7434\u5f26\uff0c\u594f\u54cd\u7ed9\u8036\u7a23\u7684\u611f\u6069\u8d5e\u7f8e\u4e4b\u6b4c\uff01"
     }
   },
   verse_builder: {

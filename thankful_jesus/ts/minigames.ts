@@ -9,12 +9,13 @@ import {
   SoundEvent,
   StageId,
   StageResult,
-  VerseBuilderStageState
+  VerseBuilderStageState,
+  VerseId
 } from "./types";
 import {
   ADVENTURER_QUIZ_ORDER,
-  BUILDER_VERSE_QUEUE,
   QUIZ_QUESTIONS,
+  getBuilderVerseQueue,
   getVerseDecoyTile,
   getVerseTiles
 } from "./verses";
@@ -49,7 +50,7 @@ function shuffleIds(ids: string[], rng: () => number): string[] {
 }
 
 function buildShuffledVerseIds(
-  verseId: (typeof BUILDER_VERSE_QUEUE)[number],
+  verseId: VerseId,
   ageMode: AgeMode,
   rng: () => number
 ): { shuffledTileIds: string[]; decoyTileId: string | null } {
@@ -68,7 +69,8 @@ function buildShuffledVerseIds(
 export function createStageState(
   stageId: StageId,
   ageMode: AgeMode,
-  rng: () => number
+  rng: () => number,
+  playCount = 0
 ): ActiveStageState {
   const spec = STAGE_SPECS[stageId];
   const isExplorer = ageMode === "explorer";
@@ -142,12 +144,13 @@ export function createStageState(
     };
   }
 
-  const firstVerse = BUILDER_VERSE_QUEUE[0];
+  const queue = getBuilderVerseQueue(playCount);
+  const firstVerse = queue[0];
   const initialTiles = buildShuffledVerseIds(firstVerse, ageMode, rng);
   return {
     kind: "verse_builder",
     subPhase: "tiles",
-    verseQueue: BUILDER_VERSE_QUEUE.slice(),
+    verseQueue: queue,
     verseCursor: 0,
     placedTileIds: [],
     shuffledTileIds: initialTiles.shuffledTileIds,

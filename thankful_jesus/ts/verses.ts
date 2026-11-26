@@ -158,11 +158,18 @@ export const VERSES: Record<VerseId, VerseDef> = {
       { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
     ],
     adventurerTiles: [
-      { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5f53\u79f0\u8c22\u8fdb\u5165\u4ed6\u7684\u95e8\uff1b" } },
-      { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5f53\u8d5e\u7f8e\u8fdb\u5165\u4ed6\u7684\u9662\u3002" } },
-      { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
-      { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
-    ]
+      { id: "ha1", icon: "hands", text: { en: "Enter his gates", zh: "\u5f53\u79f0\u8c22" } },
+      { id: "ha2", icon: "scroll", text: { en: "with thanksgiving", zh: "\u8fdb\u5165\u4ed6\u7684\u95e8\uff1b" } },
+      { id: "ha3", icon: "sun", text: { en: "and his courts", zh: "\u5f53\u8d5e\u7f8e" } },
+      { id: "ha4", icon: "cross", text: { en: "with praise;", zh: "\u8fdb\u5165\u4ed6\u7684\u9662\u3002" } },
+      { id: "ha5", icon: "heart", text: { en: "give thanks to him", zh: "\u5f53\u611f\u8c22\u4ed6\uff0c" } },
+      { id: "ha6", icon: "star", text: { en: "and praise his name.", zh: "\u79f0\u9882\u4ed6\u7684\u540d\uff01" } }
+    ],
+    adventurerDecoy: {
+      id: "ha_decoy",
+      icon: "scroll",
+      text: { en: "quietly hide away", zh: "\u6084\u6084\u8eb2\u8d77\u6765" }
+    }
   },
   psalm_107_1: {
     id: "psalm_107_1",
@@ -226,7 +233,13 @@ export const VERSES: Record<VerseId, VerseDef> = {
   }
 };
 
+export const BUILDER_PSALM_POOL: VerseId[] = ["psalm_107_1", "psalm_100_4"];
 export const BUILDER_VERSE_QUEUE: VerseId[] = ["psalm_107_1", "thess_5_18"];
+
+export function getBuilderVerseQueue(playCount: number): VerseId[] {
+  const safeIdx = ((playCount % BUILDER_PSALM_POOL.length) + BUILDER_PSALM_POOL.length) % BUILDER_PSALM_POOL.length;
+  return [BUILDER_PSALM_POOL[safeIdx], "thess_5_18"];
+}
 
 export const ADVENTURER_QUIZ_ORDER: string[] = ["q_loaves", "q_leper", "q_harp"];
 
@@ -240,8 +253,8 @@ export const QUIZ_QUESTIONS: Record<string, QuizQuestionDef> = {
     },
     choices: [
       {
-        en: "Took the loaves and gave thanks to God",
-        zh: "\u5148\u62ff\u8d77\u997c\u5411\u5929\u7236\u795d\u8c22"
+        en: "Took the loaves and gave thanks",
+        zh: "\u5148\u62ff\u8d77\u997c\u6765\u795d\u8c22"
       },
       {
         en: "Asked everyone to go home and nap",
@@ -271,8 +284,8 @@ export const QUIZ_QUESTIONS: Record<string, QuizQuestionDef> = {
         zh: "\u6025\u5fd9\u8dd1\u53bb\u96c6\u5e02\u4e70\u73a9\u5177"
       },
       {
-        en: "Praised God loudly and ran back to Jesus' feet to thank Him",
-        zh: "\u5927\u58f0\u8d5e\u7f8e\u795e\u5e76\u8dd1\u56de\u8036\u7a23\u811a\u524d\u8bf4\u8c22\u8c22"
+        en: "Praised God loudly and came back to fall at Jesus' feet and thank Him",
+        zh: "\u5927\u58f0\u5f52\u8363\u8000\u4e0e\u795e\uff0c\u56de\u6765\u4fef\u4f0f\u5728\u8036\u7a23\u811a\u524d\u611f\u8c22\u4ed6"
       },
       {
         en: "Forgot who had helped him",
@@ -308,8 +321,8 @@ export const QUIZ_QUESTIONS: Record<string, QuizQuestionDef> = {
     ],
     correctIndex: 0,
     encouragement: {
-      en: "Yes! God loves when we come to Him and Jesus with thanksgiving and praise!",
-      zh: "\u7b54\u5bf9\u5566\uff01\u5e26\u7740\u79f0\u8c22\u548c\u8d5e\u7f8e\u6765\u5230\u795e\u548c\u8036\u7a23\u9762\u524d\uff0c\u5929\u7236\u6700\u559c\u60a6\uff01"
+      en: "Yes! Just as Psalm 100:4 teaches, we enter God's presence with thanksgiving and praise in Jesus' name!",
+      zh: "\u7b54\u5bf9\u5566\uff01\u6b63\u5982\u8bd7\u7bc7100:4\u6240\u6559\u5bfc\u7684\uff0c\u6211\u4eec\u5949\u8036\u7a23\u7684\u540d\u5e26\u7740\u79f0\u8c22\u548c\u8d5e\u7f8e\u6765\u5230\u795e\u9762\u524d\uff01"
     }
   }
 };

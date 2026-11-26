@@ -2149,8 +2149,8 @@ var __ThankfulJesusBundle = (() => {
         zh: "\u4E94\u997C\u4E8C\u9C7C"
       },
       story: {
-        en: "By the Sea of Galilee, a boy offers five loaves and two fish. Tap to give thanks with Jesus, then slide your basket to share with everyone!",
-        zh: "\u5728\u52A0\u5229\u5229\u6E56\u8FB9\uFF0C\u5C0F\u7537\u5B69\u732E\u51FA\u4E94\u4E2A\u997C\u548C\u4E24\u6761\u9C7C\u3002\u6211\u4EEC\u5148\u548C\u8036\u7A23\u4E00\u8D77\u795D\u8C22\uFF0C\u518D\u628A\u6EE1\u6EE1\u7684\u6069\u5178\u5206\u7ED9\u5927\u5BB6\uFF01"
+        en: "By the Sea of Galilee, a boy brings five barley loaves and two small fish. Tap to give thanks with Jesus, then slide your basket to share with everyone!",
+        zh: "\u5728\u52A0\u5229\u5229\u6E56\u8FB9\uFF0C\u4E00\u4E2A\u5B69\u7AE5\u5E26\u6765\u4E94\u4E2A\u5927\u9EA6\u997C\u548C\u4E24\u6761\u9C7C\u3002\u6211\u4EEC\u5148\u548C\u8036\u7A23\u4E00\u8D77\u795D\u8C22\uFF0C\u518D\u6ED1\u52A8\u7F16\u7EC7\u7BEE\u628A\u6069\u5178\u5206\u7ED9\u5927\u5BB6\uFF01"
       }
     },
     run_back_to_jesus: {
@@ -2163,8 +2163,8 @@ var __ThankfulJesusBundle = (() => {
         zh: "\u56DE\u5934\u611F\u6069"
       },
       story: {
-        en: "Jesus healed ten men, and one paused to run back and thank Him! Dodge busy distractions, then turn back at the crossroads to praise Jesus!",
-        zh: "\u8036\u7A23\u533B\u6CBB\u4E86\u5341\u4E2A\u4EBA\uFF0C\u53EA\u6709\u4E00\u4E2A\u4EBA\u505C\u4E0B\u811A\u6B65\u8DD1\u56DE\u8036\u7A23\u811A\u524D\u8BF4\u8C22\u8C22\uFF01\u907F\u5F00\u5206\u5FC3\u6742\u7269\uFF0C\u5230\u5C94\u8DEF\u53E3\u5FEB\u8F6C\u8EAB\u8C22\u8C22\u8036\u7A23\uFF01"
+        en: "Jesus healed ten men, and one Samaritan man came back praising God loudly and fell at Jesus' feet to thank Him! In this game, dodge road distractions, then turn back at the crossroads to thank Jesus!",
+        zh: "\u8036\u7A23\u533B\u6CBB\u4E86\u5341\u4E2A\u4EBA\uFF0C\u53EA\u6709\u4E00\u4F4D\u6492\u739B\u5229\u4E9A\u4EBA\u5927\u58F0\u5F52\u8363\u8000\u4E0E\u795E\uFF0C\u56DE\u6765\u4FEF\u4F0F\u5728\u8036\u7A23\u811A\u524D\u611F\u8C22\u4ED6\uFF01\u5728\u6E38\u620F\u4E2D\u907F\u5F00\u8DEF\u4E0A\u7684\u5206\u5FC3\u6742\u7269\uFF0C\u5230\u5C94\u8DEF\u53E3\u8F6C\u8EAB\u8DD1\u5411\u8036\u7A23\uFF01"
       }
     },
     david_harp: {
@@ -2177,8 +2177,8 @@ var __ThankfulJesusBundle = (() => {
         zh: "\u611F\u6069\u7AD6\u7434"
       },
       story: {
-        en: "David loved playing his harp to thank and praise God! Tap the glowing harp strings as golden notes float down to play a joyful song for Jesus!",
-        zh: "\u5927\u536B\u7231\u5F39\u594F\u7AD6\u7434\u5411\u795E\u732E\u4E0A\u611F\u6069\u548C\u8D5E\u7F8E\uFF01\u5F53\u91D1\u8272\u97F3\u7B26\u98D8\u8FDB\u53D1\u5149\u533A\u65F6\uFF0C\u8F7B\u70B9\u5BF9\u5E94\u7684\u7434\u5F26\uFF0C\u594F\u54CD\u7ED9\u8036\u7A23\u7684\u611F\u6069\u4E4B\u6B4C\uFF01"
+        en: "In the Bible, David loved playing his harp to praise God, and Psalm 100:4 calls us to enter God's gates with thanksgiving! Tap the glowing strings to play a joyful praise song to Jesus!",
+        zh: "\u5723\u7ECF\u91CC\u5927\u536B\u7231\u5F39\u7AD6\u7434\u8D5E\u7F8E\u795E\uFF0C\u8BD7\u7BC7100:4\u4E5F\u547C\u53EC\u6211\u4EEC\u79F0\u8C22\u8FDB\u5165\u795E\u7684\u95E8\uFF01\u5F53\u97F3\u7B26\u843D\u8FDB\u53D1\u5149\u533A\u65F6\u8F7B\u70B9\u7434\u5F26\uFF0C\u594F\u54CD\u7ED9\u8036\u7A23\u7684\u611F\u6069\u8D5E\u7F8E\u4E4B\u6B4C\uFF01"
       }
     },
     verse_builder: {
@@ -2514,11 +2514,18 @@ var __ThankfulJesusBundle = (() => {
         { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79F0\u9882\u4ED6\u7684\u540D\uFF01" } }
       ],
       adventurerTiles: [
-        { id: "h1", icon: "hands", text: { en: "Enter his gates with thanksgiving", zh: "\u5F53\u79F0\u8C22\u8FDB\u5165\u4ED6\u7684\u95E8\uFF1B" } },
-        { id: "h2", icon: "sun", text: { en: "and his courts with praise;", zh: "\u5F53\u8D5E\u7F8E\u8FDB\u5165\u4ED6\u7684\u9662\u3002" } },
-        { id: "h3", icon: "heart", text: { en: "give thanks to him", zh: "\u5F53\u611F\u8C22\u4ED6\uFF0C" } },
-        { id: "h4", icon: "star", text: { en: "and praise his name.", zh: "\u79F0\u9882\u4ED6\u7684\u540D\uFF01" } }
-      ]
+        { id: "ha1", icon: "hands", text: { en: "Enter his gates", zh: "\u5F53\u79F0\u8C22" } },
+        { id: "ha2", icon: "scroll", text: { en: "with thanksgiving", zh: "\u8FDB\u5165\u4ED6\u7684\u95E8\uFF1B" } },
+        { id: "ha3", icon: "sun", text: { en: "and his courts", zh: "\u5F53\u8D5E\u7F8E" } },
+        { id: "ha4", icon: "cross", text: { en: "with praise;", zh: "\u8FDB\u5165\u4ED6\u7684\u9662\u3002" } },
+        { id: "ha5", icon: "heart", text: { en: "give thanks to him", zh: "\u5F53\u611F\u8C22\u4ED6\uFF0C" } },
+        { id: "ha6", icon: "star", text: { en: "and praise his name.", zh: "\u79F0\u9882\u4ED6\u7684\u540D\uFF01" } }
+      ],
+      adventurerDecoy: {
+        id: "ha_decoy",
+        icon: "scroll",
+        text: { en: "quietly hide away", zh: "\u6084\u6084\u8EB2\u8D77\u6765" }
+      }
     },
     psalm_107_1: {
       id: "psalm_107_1",
@@ -2581,7 +2588,12 @@ var __ThankfulJesusBundle = (() => {
       }
     }
   };
+  var BUILDER_PSALM_POOL = ["psalm_107_1", "psalm_100_4"];
   var BUILDER_VERSE_QUEUE = ["psalm_107_1", "thess_5_18"];
+  function getBuilderVerseQueue(playCount) {
+    const safeIdx = (playCount % BUILDER_PSALM_POOL.length + BUILDER_PSALM_POOL.length) % BUILDER_PSALM_POOL.length;
+    return [BUILDER_PSALM_POOL[safeIdx], "thess_5_18"];
+  }
   var ADVENTURER_QUIZ_ORDER = ["q_loaves", "q_leper", "q_harp"];
   var QUIZ_QUESTIONS = {
     q_loaves: {
@@ -2593,8 +2605,8 @@ var __ThankfulJesusBundle = (() => {
       },
       choices: [
         {
-          en: "Took the loaves and gave thanks to God",
-          zh: "\u5148\u62FF\u8D77\u997C\u5411\u5929\u7236\u795D\u8C22"
+          en: "Took the loaves and gave thanks",
+          zh: "\u5148\u62FF\u8D77\u997C\u6765\u795D\u8C22"
         },
         {
           en: "Asked everyone to go home and nap",
@@ -2624,8 +2636,8 @@ var __ThankfulJesusBundle = (() => {
           zh: "\u6025\u5FD9\u8DD1\u53BB\u96C6\u5E02\u4E70\u73A9\u5177"
         },
         {
-          en: "Praised God loudly and ran back to Jesus' feet to thank Him",
-          zh: "\u5927\u58F0\u8D5E\u7F8E\u795E\u5E76\u8DD1\u56DE\u8036\u7A23\u811A\u524D\u8BF4\u8C22\u8C22"
+          en: "Praised God loudly and came back to fall at Jesus' feet and thank Him",
+          zh: "\u5927\u58F0\u5F52\u8363\u8000\u4E0E\u795E\uFF0C\u56DE\u6765\u4FEF\u4F0F\u5728\u8036\u7A23\u811A\u524D\u611F\u8C22\u4ED6"
         },
         {
           en: "Forgot who had helped him",
@@ -2661,8 +2673,8 @@ var __ThankfulJesusBundle = (() => {
       ],
       correctIndex: 0,
       encouragement: {
-        en: "Yes! God loves when we come to Him and Jesus with thanksgiving and praise!",
-        zh: "\u7B54\u5BF9\u5566\uFF01\u5E26\u7740\u79F0\u8C22\u548C\u8D5E\u7F8E\u6765\u5230\u795E\u548C\u8036\u7A23\u9762\u524D\uFF0C\u5929\u7236\u6700\u559C\u60A6\uFF01"
+        en: "Yes! Just as Psalm 100:4 teaches, we enter God's presence with thanksgiving and praise in Jesus' name!",
+        zh: "\u7B54\u5BF9\u5566\uFF01\u6B63\u5982\u8BD7\u7BC7100:4\u6240\u6559\u5BFC\u7684\uFF0C\u6211\u4EEC\u5949\u8036\u7A23\u7684\u540D\u5E26\u7740\u79F0\u8C22\u548C\u8D5E\u7F8E\u6765\u5230\u795E\u9762\u524D\uFF01"
       }
     }
   };
@@ -2720,7 +2732,7 @@ var __ThankfulJesusBundle = (() => {
       decoyTileId: decoy ? decoy.id : null
     };
   }
-  function createStageState(stageId, ageMode, rng) {
+  function createStageState(stageId, ageMode, rng, playCount = 0) {
     const spec = STAGE_SPECS[stageId];
     const isExplorer = ageMode === "explorer";
     if (stageId === "loaves_and_fish") {
@@ -2789,12 +2801,13 @@ var __ThankfulJesusBundle = (() => {
         lastPopTimer: 0
       };
     }
-    const firstVerse = BUILDER_VERSE_QUEUE[0];
+    const queue = getBuilderVerseQueue(playCount);
+    const firstVerse = queue[0];
     const initialTiles = buildShuffledVerseIds(firstVerse, ageMode, rng);
     return {
       kind: "verse_builder",
       subPhase: "tiles",
-      verseQueue: BUILDER_VERSE_QUEUE.slice(),
+      verseQueue: queue,
       verseCursor: 0,
       placedTileIds: [],
       shuffledTileIds: initialTiles.shuffledTileIds,
@@ -3315,8 +3328,8 @@ var __ThankfulJesusBundle = (() => {
     state.totalStars += res.stars;
     addUnlockedVerse(state, res.verseUnlocked);
     if (state.stageState.kind === "verse_builder") {
-      for (let i = 0; i < BUILDER_VERSE_QUEUE.length; i++) {
-        addUnlockedVerse(state, BUILDER_VERSE_QUEUE[i]);
+      for (let i = 0; i < state.stageState.verseQueue.length; i++) {
+        addUnlockedVerse(state, state.stageState.verseQueue[i]);
       }
     }
     state.phase = "stage_complete";
@@ -3324,7 +3337,7 @@ var __ThankfulJesusBundle = (() => {
   }
   function enterCurrentStage(state) {
     const stageId = STAGE_SEQUENCE[state.stageIndex];
-    state.stageState = createStageState(stageId, state.ageMode, () => nextRng(state));
+    state.stageState = createStageState(stageId, state.ageMode, () => nextRng(state), state.playCount);
     state.phase = "stage_intro";
   }
   function createInitialState(config = {}) {
@@ -3342,6 +3355,7 @@ var __ThankfulJesusBundle = (() => {
       prayers: [],
       promptIndex: 0,
       totalStars: 0,
+      playCount: 0,
       muted: false,
       autoRead: false,
       harpMusic: true,
@@ -3555,6 +3569,7 @@ var __ThankfulJesusBundle = (() => {
         break;
       case "PLAY_AGAIN":
         state.phase = "title";
+        state.playCount += 1;
         state.stageIndex = 0;
         state.activePlayerIndex = 0;
         state.stageState = null;
