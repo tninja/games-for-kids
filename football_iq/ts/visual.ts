@@ -10,7 +10,7 @@ type PhaserAPI = { AUTO: number; Game: new(config:Record<string,unknown>)=>{dest
 type Mark = { kind:"ellipse"|"ring"|"line"|"dot"; x:number;y:number;a:number;b:number;color:number;alpha:number;width:number };
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
-const CW=40, CH=44, FRAMES=5;
+const CW=40, CH=56, FOOT=44, FRAMES=5;
 const color=(n:number)=>"#"+n.toString(16).padStart(6,"0");
 function surface(w:number,h:number):Surface {
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
@@ -83,7 +83,7 @@ function spriteFrame(c:CanvasRenderingContext2D,id:number,direction:number,frame
   const kit=kits[id%5===0?2:id<5?0:1],skin=skins[id%4],hair=["#352b29","#201d25","#7d4a2d","#d6a45b"][id%4];
   const [dx,dy]=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]][direction];
   const phase=frame===0?0:[0,-3,3,-2,4][frame],bob=frame===2||frame===4?-1:0;
-  c.save();c.translate(20,33+bob);
+  c.save();c.translate(20,FOOT+bob);
   // Dark outline, staggered cleats, shorts and two-shade socks.
   for(const side of [-1,1]){
     const lx=side*4+Math.round(dx*phase*side*.5),ly=2+Math.round(dy*phase*side*.5)+phase*side;
@@ -177,7 +177,7 @@ function canvasVisual(canvas:HTMLCanvasElement,field:HTMLCanvasElement,players:H
     }
     c.globalAlpha=1;
     for(const p of [...s.players].sort((a,b)=>a.y-b.y)){
-      const f=spriteIndex(p,s.tick);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-33),CW,CH);
+      const f=spriteIndex(p,s.tick);c.drawImage(players,f.x,f.y,f.w,f.h,Math.round(OX+p.x-CW/2),Math.round(OY+p.y-FOOT),CW,CH);
     }
     c.drawImage(ball,Math.round(OX+s.ball.x-6),Math.round(OY+s.ball.y-6),12,12);
     const u=s.players[s.user];c.textAlign="center";c.font="bold 11px monospace";c.lineWidth=3;c.strokeStyle="#192e38";c.fillStyle="#ffe078";
@@ -215,7 +215,7 @@ export async function createVisual(canvas:HTMLCanvasElement):Promise<Visual>{
             for(let row=0;row<10;row++)for(let col=0;col<8*FRAMES;col++)texture.add(col+":"+row,0,col*CW,row*CH,CW,CH);
             this.add.image(0,0,"stadium").setOrigin(0,0).setDepth(0);
             const gfx=this.add.graphics(); gfx.setDepth(1);
-            const sprites=Array.from({length:10},(_,id)=>this.add.sprite(0,0,"players","0:"+id).setOrigin(.5,33/CH).setDepth(10));
+            const sprites=Array.from({length:10},(_,id)=>this.add.sprite(0,0,"players","0:"+id).setOrigin(.5,FOOT/CH).setDepth(10));
             const football=this.add.image(0,0,"football").setOrigin(.5).setDepth(1000).setScale(.75);
             const style={fontFamily:"monospace",fontSize:"11px",fontStyle:"bold",color:"#ffe078",stroke:"#192e38",strokeThickness:3};
             const label=this.add.text(0,0,"YOU",style).setOrigin(.5).setDepth(1001);
