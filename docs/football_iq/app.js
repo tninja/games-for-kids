@@ -104,7 +104,9 @@ function render(){
   const own=state.ball.owner===state.user, friendly=state.ball.owner!==null&&state.players[state.ball.owner].team===0;
   get("passLabel").textContent=own?"PASS":friendly?"CALL":"PASS";
   get("shootLabel").textContent=own?"SHOOT":"TACKLE";
-  get("status").textContent=paused?"Paused":state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.";
+  const action=state.players[state.user].action;
+  const actionText=action?({pass:"Passing...",shoot:"Shooting...",tackle:"Tackling...",receive:"Control the ball..."})[action.kind]:null;
+  get("status").textContent=paused?"Paused":actionText??(state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.");
 }
 function frame(now){
   const elapsed=previous?Math.min((now-previous)/1000,.1):0;previous=now;
