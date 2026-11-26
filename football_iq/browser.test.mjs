@@ -29,6 +29,21 @@ try {
     await page.route("https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js", route=>usePhaser
       ? route.fulfill({status:200,contentType:"text/javascript",body:phaser,headers:{"access-control-allow-origin":"*"}})
       : route.abort());
+    // Observe the real engine input in the test only; production code
+    // has no debug globals. The original simulation still runs unchanged.
+    await page.route("**/football_iq/engine.js",async route=>{
+      const response=await route.fetch();
+      const source=(await response.text()).replace("export function step(", "function originalStep(");
+      assert.ok(source.includes("function originalStep("));
+      await route.fulfill({response,body:source+`
+export function step(s,input){
+  originalStep(s,input);
+  const t=window.__footballIQInput??={pass:0,shoot:0,sprint:0,tick:0};
+  for(const k of ["pass","shoot","sprint"])if(input[k])t[k]++;
+  t.tick=s.tick;
+}
+`});
+    });
     await page.goto("http://127.0.0.1:"+server.address().port+"/football_iq/index.html");
     await page.waitForFunction(()=>!document.querySelector("#start").disabled,{},{timeout:12000});
     if(usePhaser&&await page.locator("#renderer").textContent()!=="Phaser 3.90")await page.screenshot({path:resolve(out,name+"-boot-failure.png"),fullPage:true});
@@ -38,11 +53,18 @@ try {
     for(const [action,key] of [["pass","j"],["shoot","k"],["sprint","l"],["sprint","Shift"]]){
       const control=page.locator('[data-action="'+action+'"]');
       assert.equal(await control.locator("kbd").textContent(),action==="sprint"?"L":key.toUpperCase());
+      const before=await page.evaluate(action=>window.__footballIQInput?.[action]??0,action);
       await page.keyboard.down(key);
+      await page.waitForFunction(({action,before})=>(window.__footballIQInput?.[action]??0)>before,{action,before});
       await page.waitForFunction(action=>document.querySelector('[data-action="'+action+'"]').classList.contains("key-pressed"),action);
       await page.keyboard.up(key);
       await page.waitForFunction(action=>!document.querySelector('[data-action="'+action+'"]').classList.contains("key-pressed"),action);
     }
+    const before=await page.evaluate(()=>({...window.__footballIQInput}));
+    for(const key of ["z","x","c"]){await page.keyboard.down(key);await page.waitForTimeout(100);await page.keyboard.up(key);}
+    const after=await page.evaluate(()=>({...window.__footballIQInput}));
+    for(const action of ["pass","shoot","sprint"])assert.equal(after[action],before[action],action+" old shortcut");
+    assert.ok(after.tick>before.tick);
     await page.waitForFunction(()=>document.querySelector("#clock").textContent!=="1:00");
     await page.locator("#pause").click();
     assert.equal(await page.locator("#pause").textContent(),"Resume");
