@@ -18,25 +18,27 @@ async function exercise(make,E){
  const s=E.createMatch(),before=JSON.stringify(s),tip={id:"cover",text:"Cover!",target:{x:100,y:150},freeze:true};
  for(const p of s.players)for(let a=0;a<8;a++)for(let t=0;t<20;t+=5){
    const f=V.spriteIndex({...p,vx:Math.cos(a*Math.PI/4)*90,vy:Math.sin(a*Math.PI/4)*90},t);
-   check(f.x>=0&&f.x+f.w<=1232&&f.y>=0&&f.y+f.h<=1360,"atlas bounds");
+   check(f.x>=0&&f.x+f.w<=1584&&f.y>=0&&f.y+f.h<=1360,"atlas bounds");
  }
- const u=s.players[s.user], kick=E.copyState(s);
- Object.assign(kick.players[s.user],{cooldown:.38,vx:0,vy:0});
- Object.assign(kick.ball,{owner:null,last:u.id,vx:300,vy:0});
- const k=V.spriteIndex(kick.players[s.user],kick.tick,kick);
- check(k.x===5*k.w,"kick frame");
- kick.event="Great tackle!";kick.eventTick=kick.tick;kick.ball.owner=u.id;
- const t=V.spriteIndex(kick.players[s.user],kick.tick,kick);
- check(t.x===6*t.w,"tackle frame");
+ const u=s.players[s.user], kick=E.copyState(s), p=kick.players[s.user];
+ p.action={kind:"shoot",elapsed:0,receiver:null,dx:1,dy:0};
+ check(V.spriteIndex(p,kick.tick).x===7*V.spriteIndex(p,kick.tick).w,"windup frame");
+ p.action.elapsed=E.ACTION_TIMING.shoot[0];
+ const k=V.spriteIndex(p,kick.tick);check(k.x===5*k.w,"kick frame");
+ p.action.kind="tackle";p.action.elapsed=E.ACTION_TIMING.tackle[0];
+ const t=V.spriteIndex(p,kick.tick);check(t.x===6*t.w,"tackle frame");
+ p.action.kind="receive";p.action.elapsed=0;
+ check(V.spriteIndex(p,kick.tick).x===8*t.w,"receive frame");
+ check(u.action===null,"copy action isolation");
  const fallback=await V.createVisual(canvas());check(fallback.name==="Canvas fallback","fallback renderer");
  fallback.draw(s,tip,true);check(draws>=12,"canvas draws");check(JSON.stringify(s)===before,"fallback mutated state");
  window.Phaser=mock;const phaser=await V.createVisual(canvas());check(phaser.name==="Phaser 3.90","Phaser renderer");
- phaser.draw(s,tip,true);check(frames===560&&sprites===10,"Phaser atlas/sprite count");check(JSON.stringify(s)===before,"Phaser mutated state");
+ phaser.draw(s,tip,true);check(frames===720&&sprites===10,"Phaser atlas/sprite count");check(JSON.stringify(s)===before,"Phaser mutated state");
  window.Phaser={AUTO:0,Game:class{constructor(){throw Error("boot failed");}}};
  const failed=await V.createVisual(canvas());check(failed.name==="Canvas fallback","boot failure fallback");failed.draw(s,null,false);
  const goal={...s,restart:.6};check(V.marks(goal,null,false).length>V.marks(s,null,false).length,"goal effect");
  return {frames,sprites,draws};
 }
 
-const make = new Function("document","window","E","const {W,H,GOAL}=E;\n"+visual.replace(/^import .*;\n/m,"").replace(/export /g,"")+"\nreturn {spriteIndex,marks,createVisual};");
+const make = new Function("document","window","E","const {W,H,GOAL,ACTION_TIMING}=E;\n"+visual.replace(/^import .*;\n/m,"").replace(/export /g,"")+"\nreturn {spriteIndex,marks,createVisual};");
 console.log("Football IQ visual contracts:", await exercise(make,E));
