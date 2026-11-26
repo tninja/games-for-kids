@@ -40,7 +40,7 @@ try {
     await page.waitForTimeout(1100);
     assert.equal(await page.locator("#clock").textContent(),clock);
     await page.locator("#pause").click();
-    await page.selectOption("#coach","balanced");
+    await page.locator("#pad").scrollIntoViewIfNeeded();
     const sizes=await page.evaluate(()=>{
       const b=document.querySelector("#pitch").getBoundingClientRect();
       return {width:b.width,height:b.height,overflow:document.documentElement.scrollWidth>innerWidth,
@@ -56,7 +56,9 @@ try {
     await session.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[finger1,finger2]});
     await page.waitForTimeout(350);
     await session.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+    assert.equal(await page.locator(".actions .pressed").count(),0);
     await page.waitForTimeout(100);
+    await page.selectOption("#coach","balanced");
     await page.screenshot({path:resolve(out,name+".png"),fullPage:true});
     assert.deepEqual(errors,[],name+" page errors");
     await context.close();
