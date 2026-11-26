@@ -219,11 +219,10 @@ export async function createVisual(canvas){
   const field=stadium(),players=atlas(),ball=ballArt();
   const phaser=await loadPhaser();
   if(!phaser)return canvasVisual(canvas,field,players,ball);
-  try{
-    return await new Promise((resolve,reject)=>{
+  const boot=(type,target)=>new Promise((resolve,reject)=>{
       let game;
       const timeout=window.setTimeout(()=>{game?.destroy(false);reject(new Error("Phaser scene timeout"));},3000);
-      game=new phaser.Game({type:phaser.AUTO,canvas,width:WIDTH,height:HEIGHT,pixelArt:true,roundPixels:true,transparent:false,
+      game=new phaser.Game({type,canvas:target,parent:target.parentElement??undefined,width:WIDTH,height:HEIGHT,pixelArt:true,roundPixels:true,transparent:false,
         banner:false,audio:{noAudio:true},input:{keyboard:false,mouse:false,touch:false,gamepad:false},
         scene:{create(){
           try{
@@ -258,9 +257,18 @@ export async function createVisual(canvas){
         }}
       });
     });
-  }catch{
-    // A WebGL canvas cannot be reused as 2D, so replace the element on failure.
-    const replacement=canvas.cloneNode(false);canvas.replaceWith(replacement);
-    return canvasVisual(replacement,field,players,ball);
+  // A canvas that acquired a WebGL context cannot also acquire a 2D context.
+  const fresh=(old)=>{
+    const replacement=old.cloneNode(false);old.replaceWith(replacement);return replacement;
+  };
+  try{return await boot(phaser.AUTO,canvas);}
+  catch(err){
+    console.warn("Football IQ: Phaser AUTO failed",err);
+    canvas=fresh(canvas);
   }
+  if(typeof phaser.CANVAS==="number"){
+    try{return await boot(phaser.CANVAS,canvas);}
+    catch(err){console.warn("Football IQ: Phaser CANVAS failed",err);canvas=fresh(canvas);}
+  }
+  return canvasVisual(canvas,field,players,ball);
 }
