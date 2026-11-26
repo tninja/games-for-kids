@@ -10,7 +10,9 @@
     "build:flappybird": "node flappybird/ts/build.mjs",
     "build:flappybird3d": "node flappybird/ts/build3d.mjs",
     "typecheck:foosball": "tsc --noEmit",
-    "build:foosball": "node foosball/ts/build.mjs"
+    "build:foosball": "node foosball/ts/build.mjs",
+    "typecheck:thanksgiving": "tsc --noEmit",
+    "build:thanksgiving": "node thanksgiving/ts/build.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.187.0",

@@ -1,0 +1,345 @@
+#+TITLE: Beagle Chef's Backyard Feast - Technical and Level Design
+#+DATE: 2026-11-25
+#+AUTHOR: games-for-kids
+#+OPTIONS: toc:2 num:nil
+
+* Overview and Product Goals
+
+*Beagle Chef's Backyard Feast* is a pure client-side 2D warm-storybook Thanksgiving web game for children ages 5-12 and their families, hosted on GitHub Pages under =docs/thanksgiving/=.
+
+- *Inspiration and IP Safety*: Captures the nostalgic slapstick warmth of *A Charlie Brown Thanksgiving* (toast popping, flying popcorn, pretzels, jelly beans, pumpkin pie, a rebellious folding lawn chair, and a backyard ping-pong feast table) using 100% original hand-drawn characters (Beagle Chef, Little Yellow Bird sous-chef, and family/friend guests). No copyrighted Peanuts names, art, or audio are used.
+- *Core Pillars*:
+  1. *Food and Comedy*: Tactile 20-40 second cooking mini-games with expressive character reactions.
+  2. *Family Togetherness*: Each dish invites more family/friends to the backyard table; built-in Pass-and-Play lets siblings and parents share one iPhone.
+  3. *Natural Gratitude*: Culminates at an autumn Gratitude Maple Tree where kids hang illustrated leaf stickers or short custom notes, ending with a downloadable keepsake Family Postcard and an optional real-world table prompt.
+- *Device Priority*: iPhone portrait touch first (single-hand friendly, 56px+ hit targets, Safari safe-area aware, iOS Share Sheet image export), with full responsive support for laptop browsers (mouse/trackpad + keyboard + optional 2P co-op).
+- *Target Session Length*: 3 to 6 minutes per complete feast.
+- *Constraints*: Zero backend, zero external image/audio fetches, strict TypeScript compiled via esbuild into an ASCII-clean UMD bundle matching =battleship=, =flappybird=, and =foosball=.
+
+* Repository and Module Structure
+
+Follow the existing TypeScript-to-=docs/= web game pattern in this repository:
+
+#+begin_example
+thanksgiving/
+  design.org                  # This design document
+  build_web.sh                # Runs tsc --noEmit and node thanksgiving/ts/build.mjs
+  test_thanksgiving.mjs       # Headless Node unit tests for state machine & mini-games
+  test_web.py                 # Optional browser/mobile-viewport smoke test
+  ts/
+    types.ts                  # Pure data types, state enums, input & config interfaces
+    constants.ts              # Palette, dish specs, gratitude presets, timing tunings
+    game.ts                   # Pure deterministic state machine & feast progression
+    minigames.ts              # Per-dish physics/scoring/AI-helper logic (pure functions)
+    gratitude.ts              # Maple tree leaf layout, preset stickers, table prompts
+    artwork.ts                # Reusable 2D hand-drawn storybook primitives & sprites
+    renderer.ts               # Stage Canvas renderer (kitchen, yard, table, particles)
+    postcard.ts               # Offscreen high-res PNG Family Postcard generator & exporter
+    audio.ts                  # Web Audio API festive SFX synthesizer (iOS gesture unlock)
+    app.ts                    # DOM shell, touch/pointer/keyboard input, animation loop
+    build.mjs                 # esbuild IIFE->UMD bundler (ASCII check + --check flag)
+
+docs/
+  index.html                  # Add launch card for Beagle Chef's Backyard Feast
+  thanksgiving/
+    index.html                # iPhone-first responsive shell + safe-area CSS
+    app.js                    # Built UMD output (window.ThanksgivingWeb / module.exports)
+#+end_example
+
+** Build and Typecheck Integration
+
+- Add ="thanksgiving/ts/**/*.ts"= to =tsconfig.json= =include=.
+- Add scripts to =package.json=:
+  - ="typecheck:thanksgiving": "tsc --noEmit"=
+  - ="build:thanksgiving": "node thanksgiving/ts/build.mjs"=
+- Keep =build.mjs= aligned with =foosball/ts/build.mjs=: =target: "es2020"=, =charset: "ascii"=, ASCII validation loop, and =--check= sync verification.
+  - *Important*: Keep all bundled source text ASCII-only; draw icons (toast, popcorn, heart, dog, pie, maple leaf) as 2D Canvas vector art rather than hardcoded Unicode emojis. Runtime user input on custom gratitude leaves supports any Unicode text (English, Chinese, emoji) naturally.
+
+* Top-Level State Machine and Data Model
+
+** State Flow
+
+#+begin_example
+  +--------+
+  | TITLE  |  (Pick Mode: Cozy / Bustling; Chefs: 1-4 Pass-and-Play or Laptop 2P)
+  +---+----+
+      | startFeast()
+      v
+  +-------------+   (Shown in multi-chef Pass-and-Play so handoff never wastes time)
+  | PASS_BANNER |<--------------------------------------------+
+  +------+------+                                             |
+         | readyForDish()                                     |
+         v                                                    |
+  +-------------+   (Dish 1 -> Dish 2 -> Chair Interlude      |
+  |  DISH_PLAY  |    -> Dish 3 -> Dish 4)                     |
+  +------+------+                                             |
+         | dishCompleted()                                    |
+         v                                                    |
+  +---------------+   more dishes/interlude remaining?        |
+  | DISH_COMPLETE +-------------------------------------------+
+  +-------+-------+
+          | all dishes served
+          v
+  +----------------+  (Each chef picks sticker / optional note -> hangs maple leaf)
+  | GRATITUDE_TREE |
+  +-------+--------+
+          | finishGratitude()
+          v
+  +--------------+    (Backyard ping-pong table celebration + real-world prompt
+  | FEAST_FINALE |     + Save/Share Family Postcard PNG + Play Again)
+  +--------------+
+#+end_example
+
+** Core TypeScript Interfaces (Pure State)
+
+#+begin_src typescript
+export type DifficultyMode = "cozy" | "bustling";
+export type PlayMode = "solo" | "pass_and_play" | "laptop_coop";
+
+export type GamePhase =
+  | "title"
+  | "pass_banner"
+  | "dish_play"
+  | "dish_complete"
+  | "gratitude_tree"
+  | "feast_finale";
+
+export type DishId =
+  | "golden_toast"
+  | "flying_popcorn"
+  | "folding_chair"
+  | "pretzel_platter"
+  | "pumpkin_pie";
+
+export interface DishResult {
+  dishId: DishId;
+  chefIndex: number;
+  stars: 1 | 2 | 3;         // Always >= 1 in Cozy mode; never punitive
+  score: number;
+  dishesMade: number;
+  guestUnlocked: string;
+}
+
+export interface GratitudeLeaf {
+  id: string;
+  authorLabel: string;      // e.g., "Chef 1" or custom short name
+  stickerId: string;        // Vector icon ID (family, food, pet, play, friend, home)
+  message: string;          // Preset caption or custom user note (<= 48 chars)
+  leafColor: "crimson" | "amber" | "gold" | "russet";
+  treeSlot: number;         // Deterministic anchor slot on maple canopy
+}
+
+export interface GameState {
+  phase: GamePhase;
+  difficulty: DifficultyMode;
+  playMode: PlayMode;
+  chefCount: number;        // 1..4 for pass_and_play; 1 for solo; 2 for laptop_coop
+  activeChefIndex: number;
+  stageIndex: number;       // Index into ordered DISH_SEQUENCE
+  dishState: ActiveDishState | null;
+  results: DishResult[];
+  seatedGuests: string[];
+  leaves: GratitudeLeaf[];
+  tablePromptIndex: number;
+  totalStars: number;
+  muted: boolean;
+  elapsedSec: number;
+}
+#+end_src
+
+** Deterministic Headless Step Contract
+
+All simulation logic lives in =game.ts= and =minigames.ts= with zero DOM references:
+
+- =createInitialState(config): GameState=
+- =stepGame(state, dtSec, input, rng): GameState= (or pure state mutation wrapper for 60 FPS)
+- =applyAction(state, action): GameState= (UI button transitions: =START_FEAST=, =CONFIRM_PASS=, =ADD_LEAF=, =FINISH_GRATITUDE=, =PLAY_AGAIN=)
+
+This allows =test_thanksgiving.mjs= to simulate full runs across both =cozy= and =bustling= modes deterministically with a seeded PRNG.
+
+* Level and Mini-Game Design (Food, Comedy, and Cross-Age Scaling)
+
+Every stage lasts 20-40 seconds, teaches itself visually in under 2 seconds, and unlocks a guest at the backyard ping-pong table.
+
+** Stage Sequence
+
+1. *Stage 1 - Golden Pop-Up Toast* (=golden_toast=, unlocks *Little Sister & Puppy Pal*)
+   - *Fantasy*: Beagle Chef operates a jittery vintage toaster while Little Bird holds the butter knife.
+   - *Gameplay*: Toast slices pop upward on arcs through a glowing "Golden Zone". Tap the big =CATCH & BUTTER!= button (or tap directly on the stage) while toast is in the golden arc to butter and plate it.
+   - *Comedy*: Misses launch toast into a funny harmless bounce off Beagle Chef's hat; Little Bird catches stray toast automatically in Cozy Mode.
+   - *Goal*: Plate 5 golden slices (Cozy) or 7 slices with streak multipliers (Bustling, 30s timer).
+
+2. *Stage 2 - Flying Popcorn Bowl* (=flying_popcorn=, unlocks *Grandma & Grandpa*)
+   - *Fantasy*: Popcorn overflows from an oversized skillet on the kitchen counter.
+   - *Gameplay*: Slide finger along the wide bottom thumb-track (or hold big =LEFT= / =RIGHT= buttons; =A/D= or arrows on laptop) to move Beagle Chef's wooden bowl and catch popping kernels. Dodge occasional silly bouncing carrots/spoons that briefly wobble the bowl (never instant game-over).
+   - *Laptop 2P Co-op Twist*: P1 moves Beagle Chef's bowl; P2 steers Little Bird's mini-cup to scoop bonus golden butter-kernels.
+   - *Goal*: Fill the popcorn bowl to 100% (12 kernels Cozy / 20 kernels Bustling).
+
+3. *Stage 3 - Slapstick Interlude: Runaway Folding Lawn Chair!* (=folding_chair=, unlocks *Neighborhood Friends*)
+   - *Fantasy*: Direct loving nod to the classic backyard lawn-chair battle while setting up the outdoor ping-pong feast table.
+   - *Gameplay*: The stubborn folding chair springs open, bounces across the yard, and flaps the checkered tablecloth. Rapidly tap the big =TAME THE CHAIR!= button (or tap the wobbling chair) to fill the "Tamed!" meter before the chair does a silly spring-back wobble.
+   - *Duration*: Quick 12-18 second burst of giggles between cooking stages.
+
+4. *Stage 4 - Pretzel and Jelly Bean Platter* (=pretzel_platter=, unlocks *Cousins*)
+   - *Fantasy*: Guests call out goofy festive snack combos (pretzel twists, orange/berry/lemon jelly beans, apple cider cup).
+   - *Gameplay*: Four oversized illustrated snack buttons sit in the bottom thumb zone. Match the 2-item (Cozy) or 3-4 item (Bustling) order bubble above Beagle Chef to fill colorful party bowls.
+   - *Goal*: Complete 4 platters (Cozy) or 6 platters before the bell rings (Bustling).
+
+5. *Stage 5 - Swirl Pumpkin Pie* (=pumpkin_pie=, unlocks *Mom & Dad* - Full Table!)
+   - *Fantasy*: Grand dessert finale before calling everyone to the backyard table.
+   - *Gameplay*: Swipe back-and-forth across the pie pad (or tap =WHIP CREAM!= bursts for accessibility) to pipe fluffy whipped-cream swirls around the crust, then tap once to drop a maple-leaf cookie right in the center.
+   - *Goal*: Decorate 2 festive pies (Cozy) or 3 pies with precision bonus (Bustling).
+
+** Cross-Age Difficulty Matrix (Ages 5-12)
+
+| Dimension | Cozy Mode (Ages 5-7 / Relaxed) | Bustling Chef Mode (Ages 8-12 / Challenge) |
+| --- | --- | --- |
+| Fail State | None (always progresses, >= 1 star) | Countdown timer; low score still completes dish with 1 star + playful toast confetti |
+| AI Little-Bird Helper | Active: auto-catches missed popcorn/toast after brief delay | Optional toggle; otherwise gives visual hints only |
+| Timing / Hit Windows | +45% wider golden zones and slower arcs | Crisp timing windows + 2x/3x combo streaks |
+| Slapstick Hazards | Soft visual bounce only | Autumn wind gusts & faster chair spring-backs |
+| Gratitude Input | One-tap illustrated leaf stickers (no typing required) | Stickers + optional custom message box (up to 48 chars) |
+
+* Gratitude Maple Tree and Family Postcard Design
+
+** Phase A: Gratitude Maple Tree (=gratitude_tree=)
+
+- After Stage 5, the stage zooms out to the backyard ping-pong table decked with every dish just cooked, all seated characters, and a large warm-toned Maple Tree.
+- Each chef (1 to 4 in Pass-and-Play; or unlimited "Add Another Family Leaf" button) selects:
+  1. *Leaf Color*: Crimson, Amber, Gold, or Russet.
+  2. *Illustrated Sticker* (8 vector icons drawn on Canvas):
+     - =family=: "Thankful for my family!"
+     - =food=: "Thankful for yummy food!"
+     - =play=: "Thankful for fun games together!"
+     - =pet=: "Thankful for our furry friends!"
+     - =home=: "Thankful for a cozy home!"
+     - =friend=: "Thankful for kind friends!"
+     - =laugh=: "Thankful for silly laughs!"
+     - =nature=: "Thankful for autumn leaves!"
+  3. *Optional Custom Note*: Single-line input (=maxlength="48"=, placeholder ="Or type your own note..."=). If left blank, the sticker's friendly English caption is used.
+- Tapping =HANG LEAF ON TREE= plays a gentle fluttering animation onto an open canopy branch slot, followed by either "Pass to Next Family Member" or "Let's Feast!".
+
+** Phase B: Feast Finale and Real-World Bridge (=feast_finale=)
+
+- Animated celebration: falling autumn leaves, clinking cider mugs, Beagle Chef tipping his chef hat, Little Bird fluttering over the pie.
+- *Real-World Table Prompt Card*: Displays one randomly chosen (with a "New Question" shuffle button) kid-friendly prompt to spark offline conversation, e.g.:
+  - "Turn to someone nearby and share one thing that made you laugh this year!"
+  - "What was your favorite dish to help make today?"
+  - "Say thank you to one person at the table for something small they did recently."
+
+** Phase C: Client-Side PNG Family Postcard (=postcard.ts=)
+
+- *Resolution*: Offscreen =HTMLCanvasElement= rendered at =1080 x 1440= (3:4 portrait aspect ratio — ideal for iPhone Photos and family group chats).
+- *Composed Layers*:
+  1. Warm cream stationery card with dashed stitched border and subtle autumn corner leaves.
+  2. Header banner: ="Happy Thanksgiving!"= + current year + earned star ribbon.
+  3. Center illustration: Reuses =artwork.ts= primitives to draw the backyard ping-pong feast table, Beagle Chef, Little Bird, cooked dishes, and seated guests.
+  4. Upper/side canopy: The Gratitude Maple Tree displaying each added leaf along with a clean footer section listing every gratitude note neatly word-wrapped (supporting Unicode/Chinese/Emoji typed by players).
+- *iPhone Safari Save Flow* (critical for iOS UX):
+  1. Convert canvas via =canvas.toBlob(cb, "image/png")=.
+  2. *Primary path on iPhone (iOS 15+ Safari)*: Check =navigator.canShare && navigator.canShare({ files: [file] })= and invoke =navigator.share({ files: [file], title: "Our Thanksgiving Feast Postcard" })=, which opens the native iOS Share Sheet ("Save Image" to Photos, AirDrop, Messages).
+  3. *Fallback path (Laptop & older browsers)*: Trigger blob download =<a download="thanksgiving-feast-postcard.png">= AND display the rendered postcard as an =<img>= preview modal with helper caption ="Tip: On iPhone, press and hold the postcard to Save to Photos"=.
+
+* iPhone-First UX and Laptop Browser Compatibility
+
+** Viewport and Touch Engineering (=docs/thanksgiving/index.html=)
+
+- =<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">=
+- Root container uses =height: 100dvh; overflow: hidden= during active gameplay to prevent accidental rubber-band vertical page scrolling while swiping popcorn or pie.
+- Apply =padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)= so notch and home indicator never overlap buttons.
+- CSS touch hygiene:
+  - Active canvas and swipe pad: =touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;=
+  - Tap buttons: =touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 56px;=
+- Unified =PointerEvent= handling (=pointerdown=, =pointermove=, =pointerup=, =pointercancel=) with =setPointerCapture= for smooth thumb sliding across iPhone Safari and laptop trackpads.
+
+** Portrait iPhone Layout (375x667 SE to 430x932 Pro Max)
+
+#+begin_example
++---------------------------------------+
+| <- Games   [Cozy]   Dish 2/5   [SFX]  |  <- Compact top bar (44px)
++---------------------------------------+
+|                                       |
+|        2D Storybook Stage Canvas      |  <- ~52-55% height
+|    (Beagle Chef, Little Bird, Food,   |     DPR-scaled crisp lines
+|     Animated Reactions & Particles)   |
+|                                       |
++---------------------------------------+
+|  [ Dish Progress Bar / Guest Badge ]  |  <- Slim HUD strip (36px)
++---------------------------------------+
+|                                       |
+|      Thumb-Zone Interactive Deck      |  <- ~35-38% height
+|   (Dynamic per dish: Giant Tap Btn,   |     56-72px hit targets,
+|    Wide Slide Track, or 2x2 Snack     |     effortless 1-thumb play)
+|    Grid; safe-area padded at bottom)  |
+|                                       |
++---------------------------------------+
+#+end_example
+
+- *Pass-and-Play Safety*: Between dishes in multi-chef mode, =PASS_BANNER= displays a full-card friendly prompt (="Pass to Chef 2! Next dish: Flying Popcorn"=) with a single large ="I'm Ready!"= button so handing the iPhone across the couch never triggers accidental inputs or drains a timer.
+
+** Responsive Laptop Browser Adaptation (=min-width: 760px=)
+
+- Centered warm-storybook container (=max-width: 900px=) with either a generous framed portrait stage + side info/guest panel, or wider stage view keeping the same logical aspect ratio.
+- Full mouse click/drag parity on the swipe track and canvas.
+- Keyboard shortcuts (shown subtly as keycaps on desktop only, hidden on touch devices):
+  - =Space= / =Enter=: Primary action (Catch Toast / Tame Chair / Whip Cream / Continue).
+  - =ArrowLeft= / =ArrowRight= (or =A= / =D=): Move popcorn bowl.
+  - =1= =2= =3= =4=: Pick snack items on Pretzel & Jelly Bean Platter.
+  - Optional *Laptop 2P Co-op* toggle on Title Screen: P1 uses =A/D/W/Space= (Beagle Chef) and P2 uses =Left/Right/Up/Enter= (Little Bird) simultaneously on one keyboard.
+
+* 2D Storybook Art Direction and Synthesized Audio
+
+** Visual Style (=artwork.ts= and =renderer.ts=)
+
+- *Color Palette*:
+  - Cream parchment background: =#FFF6E5=
+  - Warm sky / kitchen wallpaper: =#FDE8C8=
+  - Maple crimson: =#D95D39=
+  - Pumpkin gold: =#F2A541=
+  - Toasted crust sienna: =#8C4A27=
+  - Sage autumn accent: =#6B8F71=
+  - Storybook charcoal ink: =#2D2420=
+- *Hand-Drawn Comic Feel*:
+  - Helper functions (=drawInkEllipse=, =drawSketchLine=, =drawMapleLeaf=, =drawBeagleChef=, =drawLittleBird=) draw clean rounded fills with dark charcoal outlines (=lineWidth: 2.5-3=, =lineCap: "round"=, =lineJoin: "round"=) and subtle expressive squash-and-stretch animations.
+  - Device-pixel-ratio scaling (=Math.min(window.devicePixelRatio || 1, 2)=) ensures crisp ink lines on iPhone Retina displays without excessive GPU fill cost.
+
+** Synthesized Web Audio (=audio.ts=)
+
+- Zero audio files required; procedural Web Audio API chimes (same lightweight pattern as =foosball/ts/audio.ts=):
+  - Toaster spring pop + warm chime on golden catch
+  - Playful short pop sound per popcorn kernel
+  - Cartoon spring boing on folding-chair wobble
+  - Soft harp arpeggio when hanging a gratitude leaf
+  - Cheerful 5-note Thanksgiving fanfare at the Feast Finale
+- *iOS Safari Audio Unlock*: Lazily create/resume =AudioContext= inside the first =pointerdown= event handler; include an always-reachable top-bar Mute toggle (default unmuted once tapped, easy to silence in a lively living room).
+
+* Testing and Verification Plan
+
+1. *Typecheck and Bundle Sync*:
+   - =./thanksgiving/build_web.sh= (=tsc --noEmit= + =node thanksgiving/ts/build.mjs=)
+   - =node thanksgiving/ts/build.mjs --check= confirms =docs/thanksgiving/app.js= matches TS sources and is strictly ASCII.
+2. *Headless Logic Unit Tests* (=thanksgiving/test_thanksgiving.mjs=):
+   - Loads UMD =docs/thanksgiving/app.js= directly in Node.
+   - Verifies full state-machine transitions (=title -> pass_banner -> dish_play -> dish_complete -> gratitude_tree -> feast_finale -> title=).
+   - Verifies Cozy Mode guarantees >= 1 star and AI Little-Bird helper rescues missed items.
+   - Verifies Bustling Mode scoring, combo multipliers, and timer completion.
+   - Verifies Pass-and-Play chef rotation across 2-4 chefs and gratitude leaf capping/sanitization.
+3. *Browser and iPhone Viewport Verification* (=thanksgiving/test_web.py=):
+   - Verifies zero console errors, no horizontal overflow at =390x844= (iPhone) and =1280x800= (laptop), clickable buttons with >= 48-56px height, and successful non-empty PNG postcard data URL generation.
+
+* Phased Implementation Roadmap
+
+** Phase 1 - Playable MVP (Fast Path for Thanksgiving Day)
+
+- Build pipeline (=tsconfig.json=, =package.json=, =thanksgiving/ts/build.mjs=, =build_web.sh=).
+- Core state machine + iPhone-first HTML shell (=docs/thanksgiving/index.html=).
+- 3 core mini-games (=golden_toast=, =flying_popcorn=, =pumpkin_pie=) + Cozy & Bustling modes + Pass-and-Play handoff.
+- Gratitude Maple Tree (8 vector stickers + optional custom note) + high-res PNG Family Postcard with iOS Share Sheet / long-press fallback.
+- Headless unit tests (=test_thanksgiving.mjs=) passing cleanly.
+
+** Phase 2 - Full Polish and Catalog Launch
+
+- Add Slapstick Interlude (=folding_chair=) and Dish 4 (=pretzel_platter=).
+- Add Laptop 2P Co-op keyboard controls + synthesized Web Audio festive SFX.
+- Add animated falling leaves, richer character expressions, and real-world table prompt shuffler.
+- Add launch card to =docs/index.html= and run mobile/desktop browser verification.

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Beagle Chef's Backyard Feast - Thanksgiving Kids Game</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #F6E2C4;
+      --card: #FFF8EC;
+      --panel: #FDEBD0;
+      --ink: #2D2420;
+      --muted: #6E513F;
+      --crimson: #D95D39;
+      --crimson-dark: #B54322;
+      --gold: #F2A541;
+      --sage: #5E8765;
+      --border: #3B2D26;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100dvh;
+      background: linear-gradient(180deg, #FCE7C6 0%, #F2D1A5 100%);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overscroll-behavior: none;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+    .shell {
+      width: 100%;
+      max-width: 460px;
+      min-height: calc(100dvh - max(18px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+    .topbar a {
+      color: var(--crimson-dark);
+      text-decoration: none;
+      padding: 6px 10px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+    }
+    .pill {
+      background: var(--gold);
+      color: var(--ink);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+    .mute-btn {
+      background: var(--card);
+      color: var(--ink);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .stage-card {
+      background: var(--card);
+      border: 2.5px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(60, 35, 18, 0.14);
+      display: flex;
+      flex-direction: column;
+    }
+    canvas#stage-canvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 420 / 440;
+      max-height: 49dvh;
+      object-fit: contain;
+      display: block;
+      background: #FFF6E5;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      cursor: pointer;
+    }
+    .hud-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      background: var(--panel);
+      border-top: 2px solid var(--border);
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+    .hud-meter {
+      color: var(--crimson-dark);
+    }
+    .control-deck {
+      flex: 1;
+      background: var(--card);
+      border: 2.5px solid var(--border);
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(60, 35, 18, 0.10);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .deck-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      width: 100%;
+    }
+    .center-stack {
+      align-items: center;
+      text-align: center;
+    }
+    .deck-note {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.38;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 600;
+    }
+    .seg-row {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 7px;
+      width: 100%;
+    }
+    button {
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .seg-btn {
+      min-height: 44px;
+      padding: 7px 6px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: var(--gold);
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.14);
+    }
+    .primary-btn {
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 2.5px solid var(--border);
+      background: var(--crimson);
+      color: #FFFDF9;
+      font-weight: 800;
+      font-size: 1.05rem;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--border);
+    }
+    .primary-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--border);
+    }
+    .primary-btn:disabled {
+      opacity: 0.5;
+    }
+    .giant-btn {
+      min-height: 76px;
+      font-size: 1.25rem;
+      letter-spacing: 0.02em;
+    }
+    .big-btn {
+      min-height: 58px;
+    }
+    .secondary-btn {
+      width: 100%;
+      min-height: 54px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 2.5px solid var(--border);
+      background: var(--sage);
+      color: #FFFDF9;
+      font-weight: 800;
+      font-size: 0.98rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 var(--border);
+    }
+    .secondary-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .ghost-btn {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+    .pass-badge {
+      background: var(--gold);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-weight: 800;
+      font-size: 1.04rem;
+    }
+    .slide-track {
+      width: 100%;
+      min-height: 68px;
+      border-radius: 16px;
+      border: 2.5px dashed var(--crimson);
+      background: #FFF2DC;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: var(--crimson-dark);
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: ew-resize;
+    }
+    .pie-pad {
+      cursor: grab;
+    }
+    .gratitude-head {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .sticker-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 5px 2px;
+      min-height: 62px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFDF8;
+      color: var(--ink);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .sticker-btn.active {
+      background: #FFE5B4;
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 2px rgba(217, 93, 57, 0.25);
+    }
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-dot {
+      width: 32px;
+      height: 32px;
+      flex-shrink: 0;
+      border-radius: 999px;
+      border: 2.5px solid var(--border);
+      cursor: pointer;
+    }
+    .color-dot.active {
+      transform: scale(1.14);
+      box-shadow: 0 0 0 3px #FFFDF8, 0 0 0 5px var(--border);
+    }
+    .note-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFFFFF;
+      color: var(--ink);
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .name-input {
+      flex: 1;
+      min-height: 38px;
+      font-size: 15px;
+    }
+    .prompt-card {
+      background: #FFF2DC;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .prompt-kicker {
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--crimson-dark);
+      margin-bottom: 4px;
+    }
+    .prompt-text {
+      margin: 0;
+      font-size: 0.94rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(34, 24, 18, 0.74);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      max-height: 92dvh;
+      overflow-y: auto;
+      background: var(--card);
+      border: 3px solid var(--border);
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .modal-card img {
+      width: 100%;
+      max-height: 58dvh;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: #FFF8EC;
+    }
+    .modal-status {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: center;
+    }
+    @media (min-width: 820px) {
+      .shell {
+        max-width: 880px;
+        min-height: auto;
+        padding-top: 12px;
+      }
+      .main-grid {
+        display: grid;
+        grid-template-columns: 440px 1fr;
+        gap: 16px;
+        align-items: stretch;
+      }
+      canvas#stage-canvas {
+        max-height: 460px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a href="../index.html">&lt;- Games</a>
+      <span id="mode-pill" class="pill">Cozy Mode</span>
+      <button id="mute-btn" class="mute-btn" type="button">SFX: On</button>
+    </header>
+
+    <main class="main-grid">
+      <section class="stage-card">
+        <canvas id="stage-canvas" width="420" height="440" aria-label="Beagle Chef's Backyard Feast stage"></canvas>
+        <div class="hud-strip">
+          <span id="hud-title">Beagle Chef's Backyard Feast</span>
+          <span id="hud-meter" class="hud-meter">3 Dishes + Gratitude Tree</span>
+        </div>
+      </section>
+
+      <section id="control-deck" class="control-deck" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="postcard-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Family Thanksgiving Postcard">
+    <div class="modal-card">
+      <img id="postcard-img" alt="Family Thanksgiving Postcard">
+      <p id="postcard-status" class="modal-status"></p>
+      <div class="seg-row">
+        <button id="postcard-share-btn" class="primary-btn" type="button">Share / Save PNG</button>
+        <button id="postcard-close-btn" class="ghost-btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
