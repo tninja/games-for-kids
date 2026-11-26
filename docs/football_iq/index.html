@@ -66,7 +66,7 @@ canvas{max-height:54dvh}.scoreboard{padding:2px 10px}#score{font-size:1.1rem}
 <header><a href="../index.html">&larr; Games Hub</a><strong>FOOTBALL IQ</strong><span id="renderer">Loading stadium...</span></header>
 <div class="scoreboard"><span class="blue">BLUE</span><span id="score">0 : 0</span><span class="red">RED</span><span id="clock">3:00</span></div>
 <div class="stage">
-<canvas id="pitch" width="672" height="440" aria-label="Football match: blue team attacks right"></canvas>
+<canvas id="pitch" tabindex="-1" width="672" height="440" aria-label="Football match: blue team attacks right"></canvas>
 <div class="overlay" id="menu">
 <div class="modal"><h1>FOOTBALL IQ</h1><p class="tagline">Play &middot; Think &middot; Improve</p><p>Control one blue player and learn to read the game.</p>
 <div class="choices"><label>Position<select id="role"><option value="defender">Defender</option><option value="midfielder">Midfielder</option><option value="forward">Forward</option></select></label>
@@ -84,6 +84,6 @@ canvas{max-height:54dvh}.scoreboard{padding:2px 10px}#score{font-size:1.1rem}
 <div class="toolbar"><label>Coach <select id="coach"><option value="balanced">Balanced</option><option value="light">Light</option><option value="off">Off</option></select></label><button id="pause">Pause</button><button id="retry" hidden>Retry moment</button><button id="sound" aria-pressed="true">Sound on</button><button id="settings">New match</button></div>
 <small>Keyboard: arrows / WASD to move, J pass/call, K shoot/tackle, L / Shift sprint, Space pause. On a phone, use the joystick and action buttons.</small>
 </main>
-<script type="module" src="./app.js"></script>
+<script type="module" src="./app.js?v=2-jkl"></script>
 </body>
 </html>
