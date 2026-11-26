@@ -5,7 +5,9 @@ export type ActionKind = "pass" | "shoot" | "tackle" | "receive";
 export type Action = { kind: ActionKind; elapsed: number; receiver: number | null; dx: number; dy: number; total?: number };
 export type Player = Point & { id: number; team: Team; role: Role; home: Point; vx: number; vy: number; face: number; heading: number; cooldown: number; action: Action | null; blockedOpponent: number | null };
 export type Ball = Point & { vx: number; vy: number; owner: number | null; lock: number; last: number | null; receiver: number | null };
-export type State = { players: Player[]; ball: Ball; user: number; score: [number, number]; time: number; duration: number; tick: number; restart: number; kickoff: Team; event: string; eventTick: number };
+export type SoundKind = "pass" | "shot" | "receive" | "intercept" | "save" | "tackle" | "miss" | "bounce" | "goalBlue" | "goalRed" | "whistle" | "fullTime" | "coach" | "retry" | "step" | "dribble" | "click";
+export type SoundEvent = { kind: SoundKind; x: number };
+export type State = { players: Player[]; ball: Ball; user: number; score: [number, number]; time: number; duration: number; tick: number; restart: number; kickoff: Team; event: string; eventTick: number; sounds: SoundEvent[] };
 export type Input = { x: number; y: number; pass: boolean; shoot: boolean; sprint: boolean };
 export type Tip = { id: string; text: string; target?: Point; freeze: boolean };
 
@@ -44,21 +46,22 @@ export function createMatch(role:Role="defender", duration=180):State {
     players.push({...home,home,id:players.length,team,role:slot.role,vx:0,vy:0,face:team===0?1:-1,heading:team===0?0:Math.PI,cooldown:0,action:null,blockedOpponent:null});
   }
   const user=players.find(p=>p.team===0&&p.role===role)?.id??1;
-  const s:State={players,user,ball:{x:W/2,y:H/2,vx:0,vy:0,owner:null,lock:0,last:null,receiver:null},score:[0,0],time:0,duration,tick:0,restart:0,kickoff:0,event:"Kick off!",eventTick:0};
+  const s:State={players,user,ball:{x:W/2,y:H/2,vx:0,vy:0,owner:null,lock:0,last:null,receiver:null},score:[0,0],time:0,duration,tick:0,restart:0,kickoff:0,event:"Kick off!",eventTick:0,sounds:[]};
   kickoff(s,0);
   return s;
 }
 export function copyState(s:State):State {
-  return {...s,score:[...s.score],ball:{...s.ball},players:s.players.map(p=>({...p,home:{...p.home},action:p.action?{...p.action}:null}))};
+  return {...s,sounds:s.sounds.map(e=>({...e})),score:[...s.score],ball:{...s.ball},players:s.players.map(p=>({...p,home:{...p.home},action:p.action?{...p.action}:null}))};
 }
 function event(s:State, text:string) { s.event=text; s.eventTick=s.tick; }
+function sound(s:State, kind:SoundKind, x=s.ball.x){s.sounds.push({kind,x});}
 function possess(s:State, p:Player) {
   Object.assign(s.ball,{owner:p.id,last:p.id,receiver:null,lock:0.18,vx:0,vy:0,x:p.x+Math.cos(p.heading)*9,y:p.y+Math.sin(p.heading)*9});
 }
 function kickoff(s:State, team:Team) {
   for(const p of s.players) Object.assign(p,{...p.home,vx:0,vy:0,cooldown:0,action:null,blockedOpponent:null,face:dir(p),heading:p.team===0?0:Math.PI});
   const p=s.players[team*5+3]; p.x=W/2-dir(p)*10; p.y=H/2;
-  possess(s,p); s.ball.lock=0.55; p.cooldown=0.55; s.restart=0;
+  possess(s,p); s.ball.lock=0.55; p.cooldown=0.55; s.restart=0;sound(s,"whistle",W/2);
 }
 function move(p:Player, target:Point, speed:number) {
   const dx=target.x-p.x,dy=target.y-p.y,n=Math.hypot(dx,dy);
@@ -139,16 +142,16 @@ function advanceAction(s:State, p:Player) {
       // Only the dispossessed player is barred from an immediate repeat duel.
       // Other defenders can still challenge; a pass or real separation resets it.
       owner.blockedOpponent=p.id;
-      possess(s,p);if(p.id===s.user)event(s,"Great tackle!");
-    }
+      possess(s,p);sound(s,"tackle",p.x);if(p.id===s.user)event(s,"Great tackle!");
+    }else if(p.id===s.user)sound(s,"miss",p.x);
   } else if(s.ball.owner===p.id){
     if(a.kind==="shoot"){
-      const target=aimShot(s,p);kick(s,p,target,355*kickingPower(p,target));event(s,p.team===0?"Blue shot!":"Red shot!");
+      const target=aimShot(s,p);kick(s,p,target,355*kickingPower(p,target));sound(s,"shot",p.x);event(s,p.team===0?"Blue shot!":"Red shot!");
     } else if(a.kind==="pass"&&a.receiver!==null){
       const q=s.players[a.receiver],d=distance(p,q);
       const target={x:q.x+q.vx*.18,y:q.y+q.vy*.18};
       kick(s,p,target,clamp(d*2.5,180,320)*kickingPower(p,target),q.id);
-      if(p.id===s.user)event(s,"Pass!");
+      sound(s,"pass",p.x);if(p.id===s.user)event(s,"Pass!");
     }
   }
 }
@@ -266,22 +269,25 @@ function updateBall(s:State) {
   if(b.x<=0||b.x>=W) {
     if(Math.abs(b.y-H/2)<GOAL/2) {
       const team:Team=b.x>=W?0:1;s.score[team]++;s.kickoff=team===0?1:0;
-      s.restart=1.15;b.vx=0;b.vy=0;event(s,team===0?"GOAL! Blue scores!":"Red scores!");return;
+      s.restart=1.15;b.vx=0;b.vy=0;sound(s,team===0?"goalBlue":"goalRed",b.x);event(s,team===0?"GOAL! Blue scores!":"Red scores!");return;
     }
-    b.x=clamp(b.x,1,W-1);b.vx*=-0.65;
+    b.x=clamp(b.x,1,W-1);if(Math.abs(b.vx)>35)sound(s,"bounce");b.vx*=-0.65;
   }
-  if(b.y<=0||b.y>=H){b.y=clamp(b.y,1,H-1);b.vy*=-0.65;}
+  if(b.y<=0||b.y>=H){b.y=clamp(b.y,1,H-1);if(Math.abs(b.vy)>35)sound(s,"bounce");b.vy*=-0.65;}
   const nearest=s.players.filter(p=>b.lock<=0&&!p.action&&(p.id!==b.last||p.cooldown<=0)).sort((a,c)=>distance(a,b)-distance(c,b))[0];
   if(nearest&&distance(nearest,b)<(nearest.role==="keeper"?13:10)) {
     const previous=b.last===null?null:s.players[b.last];
     if(previous?.team!==nearest.team&&nearest.id===s.user)event(s,"Great interception!");
     if(previous?.id===s.user&&nearest.team===1)event(s,"Pass intercepted");
     const dx=-b.vx,dy=-b.vy;
+    const opposing=!!previous&&previous.team!==nearest.team;
+    sound(s,opposing&&nearest.role==="keeper"&&b.receiver===null&&Math.hypot(dx,dy)>120?"save":opposing?"intercept":"receive",nearest.x);
     possess(s,nearest);b.lock=0;receive(nearest,dx,dy);
   }
 }
 export function step(s:State, input:Input) {
   if(s.time>=s.duration)return;
+  s.sounds=[];
   s.tick++; s.time=Math.min(s.duration,s.tick*DT);
   if(s.restart>0) {s.restart-=DT;if(s.restart<=0)kickoff(s,s.kickoff);return;}
   for(const p of s.players)p.cooldown=Math.max(0,p.cooldown-DT);
