@@ -36,8 +36,8 @@ fallback, and read-only rendering with DOM/Phaser mocks.
 
 ## Presentation
 Phaser 3.90.0 (pinned, loaded from jsDelivr) is the preferred renderer. It
-uses a cached original stadium texture, a 560-frame atlas (ten players, eight
-directions, idle, four running frames, kick and tackle poses), depth-sorted sprites, graphics
+uses a cached original stadium texture, a 720-frame atlas (ten players, eight
+directions, idle, four running frames, windup, kick, tackle and receiving poses), depth-sorted sprites, graphics
 for coaching hints, possession rings, shadows, dust, ball trails and goal
 confetti. Foreground tactical arrows remain readable over sprites. The sprint
 animation is faster and kick/tackle poses follow engine state. Quick taps are
@@ -49,6 +49,26 @@ new network request; no game data is sent to it. Sound effects are synthesized
 locally via Web Audio and can be muted. No third-party game art is used.
 The Phaser API is kept behind a small typed presentation boundary; no engine
 or coaching state is owned by Phaser.
+
+## Action timing (60 Hz simulation)
+Player and AI share the same action state. Contact is delayed rather than
+releasing the ball on button press. During windup the player cannot move
+under their own control; recovery allows 20% of normal movement, receiving
+allows 30%. A new action cannot start until the current action completes.
+
+| Action | Contact | Recovery | Total |
+| --- | --- | --- | --- |
+| Pass | 9 ticks (150 ms) | 13 ticks (217 ms) | 22 ticks (367 ms) |
+| Shot | 15 ticks (250 ms) | 22 ticks (367 ms) | 37 ticks (617 ms) |
+| Tackle | 6 ticks (100 ms) | 27 ticks (450 ms) | 33 ticks (550 ms) |
+| Receive | Immediate trap on arrival | 13 ticks (217 ms) | 13 ticks (217 ms) |
+
+A pass or shot will not release if possession was lost before contact.
+Receiving is vulnerable to tackles; a player in recovery cannot collect a
+loose ball to bypass the lock. The recovery bar and poses follow simulation
+state, so pause and rewind preserve timing. These are arcade tuning values,
+not measured real-world biomechanics. Deliberate one-touch passes are not
+implemented yet. Held actions may repeat when recovery is complete.
 
 ## Optional browser verification
 ```sh
