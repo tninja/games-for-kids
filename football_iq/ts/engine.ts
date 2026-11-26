@@ -3,7 +3,7 @@ export type Role = "keeper" | "defender" | "midfielder" | "forward";
 export type Point = { x: number; y: number };
 export type ActionKind = "pass" | "shoot" | "tackle" | "receive";
 export type Action = { kind: ActionKind; elapsed: number; receiver: number | null; dx: number; dy: number; total?: number };
-export type Player = Point & { id: number; team: Team; role: Role; home: Point; vx: number; vy: number; face: number; heading: number; cooldown: number; action: Action | null };
+export type Player = Point & { id: number; team: Team; role: Role; home: Point; vx: number; vy: number; face: number; heading: number; cooldown: number; action: Action | null; blockedOpponent: number | null };
 export type Ball = Point & { vx: number; vy: number; owner: number | null; lock: number; last: number | null; receiver: number | null };
 export type State = { players: Player[]; ball: Ball; user: number; score: [number, number]; time: number; duration: number; tick: number; restart: number; kickoff: Team; event: string; eventTick: number };
 export type Input = { x: number; y: number; pass: boolean; shoot: boolean; sprint: boolean };
@@ -15,6 +15,8 @@ export const ACTION_TIMING: Record<ActionKind, readonly [number, number]> = {
   pass: [9, 22], shoot: [15, 37], tackle: [6, 33], receive: [0, 13]
 };
 // Arcade units per second; angular speed is radians per second.
+// A lost challenge is not a fresh tackle opportunity until the pair separates.
+export const DUEL = { reach: 18, bodyReach: 25, resetDistance: 34, containDistance: 27 };
 export const MOVEMENT = { acceleration: 380, braking: 540, turn: Math.PI*3, dribble: .76 };
 export function actionDuration(a:Action) { return a.total??ACTION_TIMING[a.kind][1]; }
 export function turnToward(from:number,to:number,limit:number) {
@@ -39,7 +41,7 @@ export function createMatch(role:Role="defender", duration=180):State {
   const players:Player[] = [];
   for (const team of [0,1] as Team[]) for (const slot of slots) {
     const home={x:team===0?slot.x:W-slot.x,y:team===0?slot.y:H-slot.y};
-    players.push({...home,home,id:players.length,team,role:slot.role,vx:0,vy:0,face:team===0?1:-1,heading:team===0?0:Math.PI,cooldown:0,action:null});
+    players.push({...home,home,id:players.length,team,role:slot.role,vx:0,vy:0,face:team===0?1:-1,heading:team===0?0:Math.PI,cooldown:0,action:null,blockedOpponent:null});
   }
   const user=players.find(p=>p.team===0&&p.role===role)?.id??1;
   const s:State={players,user,ball:{x:W/2,y:H/2,vx:0,vy:0,owner:null,lock:0,last:null,receiver:null},score:[0,0],time:0,duration,tick:0,restart:0,kickoff:0,event:"Kick off!",eventTick:0};
@@ -54,7 +56,7 @@ function possess(s:State, p:Player) {
   Object.assign(s.ball,{owner:p.id,last:p.id,receiver:null,lock:0.18,vx:0,vy:0,x:p.x+Math.cos(p.heading)*9,y:p.y+Math.sin(p.heading)*9});
 }
 function kickoff(s:State, team:Team) {
-  for(const p of s.players) Object.assign(p,{...p.home,vx:0,vy:0,cooldown:0,action:null,face:dir(p),heading:p.team===0?0:Math.PI});
+  for(const p of s.players) Object.assign(p,{...p.home,vx:0,vy:0,cooldown:0,action:null,blockedOpponent:null,face:dir(p),heading:p.team===0?0:Math.PI});
   const p=s.players[team*5+3]; p.x=W/2-dir(p)*10; p.y=H/2;
   possess(s,p); s.ball.lock=0.55; p.cooldown=0.55; s.restart=0;
 }
@@ -99,9 +101,21 @@ function begin(p:Player, kind:ActionKind, target:Point, receiver:number|null=nul
 }
 function shoot(s:State, p:Player) { begin(p,"shoot",aimShot(s,p)); }
 function pass(p:Player, q:Player) { begin(p,"pass",q,q.id); }
+function canChallenge(p:Player,owner:Player) {
+  return p.team!==owner.team&&p.blockedOpponent!==owner.id;
+}
 function tackle(s:State, p:Player) {
-  if(s.ball.owner!==null&&s.players[s.ball.owner].team===p.team)return;
+  if(s.ball.owner!==null){
+    const owner=s.players[s.ball.owner];
+    if(!canChallenge(p,owner))return;
+  }
   begin(p,"tackle",s.ball);
+}
+function resetChallenges(s:State) {
+  for(const p of s.players){
+    if(p.blockedOpponent!==null&&(s.ball.owner!==p.blockedOpponent||
+      distance(p,s.players[p.blockedOpponent])>=DUEL.resetDistance))p.blockedOpponent=null;
+  }
 }
 function receive(p:Player, dx:number,dy:number) {
   // Trap the incoming ball: slow movement and lock new actions, not immunity.
@@ -120,7 +134,11 @@ function advanceAction(s:State, p:Player) {
   if(a.elapsed!==contact)return;
   if(a.kind==="tackle"){
     const owner=s.ball.owner===null?null:s.players[s.ball.owner];
-    if(owner&&owner.team!==p.team&&s.ball.lock<=0&&distance(p,owner)<21){
+    if(owner&&canChallenge(p,owner)&&s.ball.lock<=0&&
+      distance(p,owner)<=DUEL.bodyReach&&distance(p,s.ball)<=DUEL.reach){
+      // Only the dispossessed player is barred from an immediate repeat duel.
+      // Other defenders can still challenge; a pass or real separation resets it.
+      owner.blockedOpponent=p.id;
       possess(s,p);if(p.id===s.user)event(s,"Great tackle!");
     }
   } else if(s.ball.owner===p.id){
@@ -176,16 +194,30 @@ function ai(s:State, p:Player, chase:number, owner:Player|undefined) {
       const q=passTarget(s,p);
       if(p.role==="keeper" || (pressure(s,p)<42 && lane(s,p,q)>12 && pressure(s,q)>20) || (p.role==="defender"&&d*(q.x-p.x)>65&&lane(s,p,q)>20)) {pass(p,q);return;}
     }
+    // If the forward route is blocked, carry into space instead of
+    // repeatedly walking into the same opponent's collision radius.
+    const blocker=s.players.filter(q=>q.team!==p.team&&distance(p,q)<38&&d*(q.x-p.x)>-8)
+      .sort((a,b)=>distance(a,p)-distance(b,p)||a.id-b.id)[0];
+    if(blocker){
+      const side=p.y<45?1:p.y>H-45?-1:p.y<blocker.y?-1:p.y>blocker.y?1:p.y<H/2?-1:1;
+      move(p,{x:p.x+d*22,y:clamp(p.y+side*62,15,H-15)},62);return;
+    }
     move(p,{x:p.x+d*65,y:H/2+(p.y-H/2)*0.74},62);return;
   }
   if(p.role==="keeper") {
     move(p,{x:ownGoal.x+d*27,y:clamp(s.ball.y,H/2-45,H/2+45)},70);
-    if(owner&&owner.team!==p.team&&distance(p,owner)<20)tackle(s,p);
+    if(owner&&canChallenge(p,owner)&&s.ball.lock<=0&&distance(p,s.ball)<=DUEL.reach)tackle(s,p);
     return;
   }
   if(s.ball.receiver===p.id || ((!owner||owner.team!==p.team)&&chase===p.id)) {
+    if(owner&&p.blockedOpponent===owner.id){
+      // Contain after losing a duel; do not chase into the same body.
+      const dx=p.x-owner.x,dy=p.y-owner.y,n=Math.hypot(dx,dy)||1;
+      move(p,{x:owner.x+(dx/n||(!dx&&!dy?-d:0))*DUEL.containDistance,
+        y:owner.y+dy/n*DUEL.containDistance},65);return;
+    }
     move(p,{x:s.ball.x+s.ball.vx*0.07,y:s.ball.y+s.ball.vy*0.07},82);
-    if(owner&&owner.team!==p.team&&distance(p,owner)<19)tackle(s,p);
+    if(owner&&canChallenge(p,owner)&&s.ball.lock<=0&&distance(p,s.ball)<=DUEL.reach&&distance(p,owner)<=DUEL.bodyReach)tackle(s,p);
     return;
   }
   const attacking=owner?.team===p.team;
@@ -222,6 +254,7 @@ export function step(s:State, input:Input) {
   s.tick++; s.time=Math.min(s.duration,s.tick*DT);
   if(s.restart>0) {s.restart-=DT;if(s.restart<=0)kickoff(s,s.kickoff);return;}
   for(const p of s.players)p.cooldown=Math.max(0,p.cooldown-DT);
+  resetChallenges(s);
   // Resolve contacts in stable player-id order, before new decisions.
   for(const p of s.players)advanceAction(s,p);
   const oldVelocity=s.players.map(p=>({x:p.vx,y:p.vy}));
