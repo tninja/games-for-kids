@@ -36,9 +36,13 @@ fallback, and read-only rendering with DOM/Phaser mocks.
 
 ## Presentation
 Phaser 3.90.0 (pinned, loaded from jsDelivr) is the preferred renderer. It
-uses a cached original stadium texture, a 400-frame atlas (ten players, eight
-directions, idle plus four running frames), depth-sorted sprites, graphics
-for coaching hints, shadows, dust, ball trails and goal confetti. The same
+uses a cached original stadium texture, a 560-frame atlas (ten players, eight
+directions, idle, four running frames, kick and tackle poses), depth-sorted sprites, graphics
+for coaching hints, possession rings, shadows, dust, ball trails and goal
+confetti. Foreground tactical arrows remain readable over sprites. The sprint
+animation is faster and kick/tackle poses follow engine state. Quick taps are
+latched until the next simulation step, with a joystick dead zone and
+possession-aware action labels. The same
 art and effects are available in the Canvas 2D fallback if Phaser fails to
 load or boot. The header identifies the actual renderer. The CDN is the only
 new network request; no game data is sent to it. Sound effects are synthesized
@@ -54,7 +58,8 @@ node football_iq/browser.test.mjs
 ```
 The test serves the committed page locally and routes the pinned CDN URL to
 the installed real Phaser package; it also tests a blocked CDN and touch
-input. CI uploads portrait, landscape and fallback screenshots. It does not
+input. CI uses Ubuntu 24.04 for the pinned Playwright version and uploads portrait,
+landscape and fallback screenshots. It does not
 verify the live CDN or replace real iPhone/Safari playtesting.
 
 ## Scope and limitations
