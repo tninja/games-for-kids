@@ -105,7 +105,7 @@ function render(){
   get("passLabel").textContent=own?"PASS":friendly?"CALL":"PASS";
   get("shootLabel").textContent=own?"SHOOT":"TACKLE";
   const action=state.players[state.user].action;
-  const actionText=action?({pass:"Passing...",shoot:"Shooting...",tackle:"Tackling...",receive:"Control the ball..."})[action.kind]:null;
+  const actionText=action?({pass:"Passing...",shoot:"Shooting...",tackle:"Tackling...",receive:(action.total??13)>18?"Difficult first touch — control the ball...":"Control the ball..."})[action.kind]:null;
   get("status").textContent=paused?"Paused":actionText??(state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.");
 }
 function frame(now){
