@@ -10,7 +10,7 @@ type PhaserAPI = { AUTO: number; Game: new(config:Record<string,unknown>)=>{dest
 type Mark = { kind:"ellipse"|"ring"|"line"|"dot"; x:number;y:number;a:number;b:number;color:number;alpha:number;width:number };
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
-const CW=44, CH=60, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
+const CW=44, CH=68, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
 const color=(n:number)=>"#"+n.toString(16).padStart(6,"0");
 function surface(w:number,h:number):Surface {
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
