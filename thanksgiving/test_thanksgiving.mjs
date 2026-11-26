@@ -318,6 +318,7 @@ function makeStrictCanvasCtx() {
       get(_t, prop) {
         if (prop === "measureText") return () => ({ width: 50 });
         if (prop === "createLinearGradient") return () => ({ addColorStop() {} });
+        if (prop === "createRadialGradient") return () => ({ addColorStop() {} });
         if (prop === "arc") return (_x, _y, r) => assertRadius("arc.r", r);
         if (prop === "ellipse")
           return (_x, _y, rx, ry) => {
@@ -415,5 +416,135 @@ testFull5StageCozyPassAndPlayFlow();
 testLaptop2PCoopFlow();
 testCozyLittleBirdRescueAndChairSpringBack();
 testBustlingTimerCompletionAndFallbackLeaf();
+function runCurrentDishToCompletion(state) {
+  const kind = state.dishState.kind;
+  if (kind === "golden_toast") runToastDishToCompletion(state, true);
+  else if (kind === "flying_popcorn") runPopcornDishToCompletion(state, true);
+  else if (kind === "folding_chair") runChairDishToCompletion(state, false);
+  else if (kind === "pretzel_platter") runPlatterDishToCompletion(state, false);
+  else runPieDishToCompletion(state);
+}
+
+function testDuskLightingProgressesTowardFeast() {
+  const state = api.createInitialState({ difficulty: "cozy", playMode: "solo", seed: 9 });
+  const levels = [api.getDuskLevel(state)];
+  assert.equal(levels[0], 0, "Title screen is bright afternoon");
+
+  api.applyAction(state, { type: "START_FEAST" });
+  for (let s = 0; s < api.DISH_SEQUENCE.length; s++) {
+    levels.push(api.getDuskLevel(state));
+    runCurrentDishToCompletion(state);
+    levels.push(api.getDuskLevel(state));
+    api.applyAction(state, { type: "NEXT_STAGE" });
+  }
+  assert.equal(state.phase, "gratitude_tree");
+  levels.push(api.getDuskLevel(state));
+  api.applyAction(state, { type: "FINISH_GRATITUDE" });
+  levels.push(api.getDuskLevel(state));
+
+  for (let i = 1; i < levels.length; i++) {
+    assert.ok(levels[i] >= levels[i - 1], "Dusk never gets brighter: " + levels.join(","));
+  }
+  assert.ok(levels[levels.length - 2] > levels[levels.length - 3], "Gratitude tree is deeper dusk");
+  assert.equal(levels[levels.length - 1], 1, "Feast finale is full sunset");
+
+  assert.equal(api.getLightGlow(0), 0, "String lights are off in the afternoon");
+  assert.equal(api.getLightGlow(1), 1, "String lights glow fully at sunset");
+  assert.ok(api.getLightGlow(0.7) > 0 && api.getLightGlow(0.7) < 1, "Lights fade in gradually");
+}
+
+function makeMeasureCtx(charW = 10) {
+  return { measureText: (s) => ({ width: Array.from(s).length * charW }) };
+}
+
+function testPostcardWrapTextHandlesChineseAndEnglish() {
+  const ctx = makeMeasureCtx(10);
+
+  const zh = "感谢爸爸妈妈每天照顾我们一家人";
+  const zhLines = api.wrapText(ctx, zh, 60);
+  assert.ok(zhLines.length >= 3, "Chinese text without spaces wraps onto several lines");
+  for (const line of zhLines) {
+    assert.ok(ctx.measureText(line).width <= 60, "Chinese line fits width: " + line);
+  }
+  assert.equal(zhLines.join(""), zh, "No Chinese characters are lost while wrapping");
+
+  assert.deepEqual(
+    api.wrapText(ctx, "Thank you for pie", 100),
+    ["Thank you", "for pie"],
+    "English wraps at word boundaries"
+  );
+
+  const capped = api.wrapText(ctx, zh, 60, 2);
+  assert.equal(capped.length, 2, "maxLines caps the number of lines");
+  assert.ok(capped[1].endsWith("..."), "Truncated text ends with an ellipsis");
+  assert.ok(ctx.measureText(capped[1]).width <= 60, "Ellipsis line still fits width");
+}
+
+function makeRecordingCtx() {
+  const texts = [];
+  const base = makeStrictCanvasCtx();
+  const ctx = new Proxy(
+    {},
+    {
+      get(_t, prop) {
+        if (prop === "measureText") return (s) => ({ width: Array.from(String(s)).length * 11 });
+        if (prop === "fillText") return (s) => texts.push(String(s));
+        return base[prop];
+      }
+    }
+  );
+  return { ctx, texts };
+}
+
+function withFakeDocument(ctx, fn) {
+  const origDoc = globalThis.document;
+  globalThis.document = {
+    createElement() {
+      return { width: 0, height: 0, getContext: () => ctx };
+    }
+  };
+  try {
+    return fn();
+  } finally {
+    globalThis.document = origDoc;
+  }
+}
+
+function testPostcardShowsAllLeavesAndFamilyName() {
+  const state = api.createInitialState({ difficulty: "cozy", playMode: "solo", seed: 5 });
+  state.phase = "gratitude_tree";
+  for (let i = 0; i < api.MAX_LEAVES; i++) {
+    api.applyAction(state, {
+      type: "ADD_LEAF",
+      stickerId: "family",
+      leafColor: "gold",
+      customMessage: i === 3 ? "谢谢奶奶做的南瓜派" : "",
+      authorLabel: "Kid " + String(i + 1)
+    });
+  }
+  assert.equal(state.leaves.length, api.MAX_LEAVES);
+  api.applyAction(state, { type: "FINISH_GRATITUDE" });
+
+  api.applyAction(state, { type: "SET_FAMILY_NAME", familyName: "  The   Wang Family  " });
+  assert.equal(state.familyName, "The Wang Family", "Family name is whitespace-sanitized");
+
+  const { ctx, texts } = makeRecordingCtx();
+  withFakeDocument(ctx, () => api.renderPostcardCanvas(state));
+  for (let i = 0; i < api.MAX_LEAVES; i++) {
+    assert.ok(texts.includes("Kid " + String(i + 1)), "Postcard shows leaf author Kid " + String(i + 1));
+  }
+  assert.ok(texts.join("").includes("谢谢奶奶"), "Postcard shows the Chinese gratitude note");
+  assert.ok(texts.some((t) => t.includes("The Wang Family")), "Postcard shows the family name");
+
+  api.applyAction(state, { type: "SET_FAMILY_NAME", familyName: "x".repeat(80) });
+  assert.ok(Array.from(state.familyName).length <= api.MAX_FAMILY_NAME_LEN, "Family name is capped");
+
+  api.applyAction(state, { type: "PLAY_AGAIN" });
+  assert.equal(Array.from(state.familyName).length, api.MAX_FAMILY_NAME_LEN, "Family name survives replay");
+}
+
 testStrictCanvasRenderingAcrossAllPhasesAndIcons();
-console.log("thanksgiving tests passed (5/5 suites)");
+testDuskLightingProgressesTowardFeast();
+testPostcardWrapTextHandlesChineseAndEnglish();
+testPostcardShowsAllLeavesAndFamilyName();
+console.log("thanksgiving tests passed (8/8 suites)");

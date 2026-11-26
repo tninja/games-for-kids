@@ -5,6 +5,7 @@ import {
   DISH_SPECS,
   LEAF_COLORS,
   MAX_CUSTOM_NOTE_LEN,
+  MAX_FAMILY_NAME_LEN,
   MAX_LEAVES,
   SNACK_IDS,
   SNACK_SPECS,
@@ -22,7 +23,8 @@ import {
   stepGame
 } from "./game";
 import { getTablePrompt } from "./gratitude";
-import { exportPostcard, renderPostcardCanvas } from "./postcard";
+import { getDuskLevel, getLightGlow } from "./lighting";
+import { exportPostcard, renderPostcardCanvas, wrapText } from "./postcard";
 import { renderStageCanvas } from "./renderer";
 import { DifficultyMode, GameState, LeafColor, PlayMode, SnackId, StickerId } from "./types";
 
@@ -37,16 +39,20 @@ export {
   EMPTY_INPUT,
   getChefLabel,
   getCurrentDishId,
+  getDuskLevel,
+  getLightGlow,
   getTablePrompt,
   LEAF_COLORS,
   MAX_CUSTOM_NOTE_LEN,
+  MAX_FAMILY_NAME_LEN,
   MAX_LEAVES,
   renderPostcardCanvas,
   renderStageCanvas,
   SNACK_IDS,
   SNACK_SPECS,
   STICKER_PRESETS,
-  stepGame
+  stepGame,
+  wrapText
 };
 
 function byId<T extends HTMLElement>(id: string): T | null {
@@ -823,6 +829,17 @@ export function mountApp(): void {
       promptBox.appendChild(promptTitle);
       promptBox.appendChild(promptText);
       wrap.appendChild(promptBox);
+
+      const familyInput = document.createElement("input");
+      familyInput.type = "text";
+      familyInput.className = "note-input";
+      familyInput.maxLength = MAX_FAMILY_NAME_LEN;
+      familyInput.placeholder = "Family name for the postcard (optional)";
+      familyInput.value = state.familyName;
+      familyInput.addEventListener("input", () => {
+        applyAction(state, { type: "SET_FAMILY_NAME", familyName: familyInput.value });
+      });
+      wrap.appendChild(familyInput);
 
       const btnRow = document.createElement("div");
       btnRow.className = "seg-row";

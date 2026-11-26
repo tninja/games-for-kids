@@ -16,16 +16,20 @@ export function getStickerPreset(id: StickerId): StickerPreset {
   return STICKER_PRESETS[0];
 }
 
-export function sanitizeNote(raw: string, fallback: string): string {
+export function sanitizeNote(
+  raw: string,
+  fallback: string,
+  maxLen: number = MAX_CUSTOM_NOTE_LEN
+): string {
   const collapsed = raw.replace(/\s+/g, " ").trim();
   if (!collapsed) {
     return fallback;
   }
   const chars = Array.from(collapsed);
-  if (chars.length <= MAX_CUSTOM_NOTE_LEN) {
+  if (chars.length <= maxLen) {
     return collapsed;
   }
-  return chars.slice(0, MAX_CUSTOM_NOTE_LEN).join("").trim();
+  return chars.slice(0, maxLen).join("").trim();
 }
 
 export function createGratitudeLeaf(

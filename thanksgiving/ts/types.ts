@@ -256,6 +256,7 @@ export interface GameState {
   easterBubbleText: string;
   easterBubbleTimer: number;
   easterEggCount: number;
+  familyName: string;
 }
 
 export type GameAction =
@@ -273,6 +274,7 @@ export type GameAction =
     }
   | { type: "FINISH_GRATITUDE" }
   | { type: "SHUFFLE_PROMPT" }
+  | { type: "SET_FAMILY_NAME"; familyName: string }
   | { type: "POKE_CHEF" }
   | { type: "POKE_BIRD" }
   | { type: "TOGGLE_MUTE" }

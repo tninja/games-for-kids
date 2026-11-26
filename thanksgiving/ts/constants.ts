@@ -155,6 +155,7 @@ export const TREE_LEAF_SLOTS: TreeSlotCoord[] = [
 ];
 
 export const MAX_CUSTOM_NOTE_LEN = 48;
+export const MAX_FAMILY_NAME_LEN = 24;
 export const MAX_LEAVES = 12;
 export const STAGE_LOGICAL_W = 420;
 export const STAGE_LOGICAL_H = 440;

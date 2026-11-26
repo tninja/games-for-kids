@@ -3,10 +3,11 @@ import {
   CHEF_EASTER_LINES,
   DISH_SEQUENCE,
   DISH_SPECS,
+  MAX_FAMILY_NAME_LEN,
   PALETTE,
   TABLE_PROMPTS
 } from "./constants";
-import { createGratitudeLeaf } from "./gratitude";
+import { createGratitudeLeaf, sanitizeNote } from "./gratitude";
 import { createDishState, stepActiveDish } from "./minigames";
 import { GameAction, GameConfig, GameState, StepInput } from "./types";
 
@@ -60,7 +61,8 @@ export function createInitialState(config: GameConfig = {}): GameState {
     birdChirpTimer: 0,
     easterBubbleText: "",
     easterBubbleTimer: 0,
-    easterEggCount: 0
+    easterEggCount: 0,
+    familyName: ""
   };
 }
 
@@ -182,6 +184,10 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       state.pendingSounds.push("feast_fanfare");
       return state;
     }
+    case "SET_FAMILY_NAME": {
+      state.familyName = sanitizeNote(action.familyName, "", MAX_FAMILY_NAME_LEN);
+      return state;
+    }
     case "SHUFFLE_PROMPT": {
       state.tablePromptIndex = (state.tablePromptIndex + 1) % TABLE_PROMPTS.length;
       return state;
@@ -241,6 +247,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       const keepMode = state.playMode;
       const keepChefs = state.chefCount;
       const keepMuted = state.muted;
+      const keepFamilyName = state.familyName;
       const nextSeed = (state.rngState + 7919) | 0;
       const fresh = createInitialState({
         difficulty: keepDifficulty,
@@ -249,6 +256,7 @@ export function applyAction(state: GameState, action: GameAction): GameState {
         seed: nextSeed
       });
       fresh.muted = keepMuted;
+      fresh.familyName = keepFamilyName;
       Object.assign(state, fresh);
       return state;
     }
