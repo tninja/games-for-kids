@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 // The repository is CommonJS by default; browser modules are loaded via a data URL.
 const source = await readFile(new URL("../docs/football_iq/engine.js", import.meta.url), "utf8");
-const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING, MOVEMENT, actionDuration, firstTouchTicks, turnToward } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+const { createMatch, copyState, step, blank, coachingTip, W, H, DT, ACTION_TIMING, MOVEMENT, actionDuration, firstTouchTicks, turnToward, DUEL, distance } = await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 for (const role of ["defender", "midfielder", "forward"]) {
   const a = createMatch(role, 180), b = copyState(a);
   assert.equal(a.players.length, 10);
@@ -39,13 +39,13 @@ function isolated(){
 }
 {
   const {s,u}=isolated(),opponent=s.players[6];
-  Object.assign(opponent,{x:170,y:180});Object.assign(s.ball,{owner:opponent.id,lock:0,x:170,y:180});
+  Object.assign(opponent,{x:165,y:180,heading:0});Object.assign(s.ball,{owner:opponent.id,lock:0,x:174,y:180});
   step(s,{...blank(),shoot:true,x:1,sprint:true});
   assert.equal(s.ball.owner,opponent.id);assert.equal(u.action.kind,"tackle");
   for(let i=1;i<ACTION_TIMING.tackle[0];i++){
-    Object.assign(opponent,{x:170,y:180});step(s,blank());assert.equal(s.ball.owner,opponent.id);
+    Object.assign(opponent,{x:165,y:180,heading:0});step(s,blank());assert.equal(s.ball.owner,opponent.id);
   }
-  Object.assign(opponent,{x:170,y:180});step(s,blank());assert.equal(s.ball.owner,u.id);
+  Object.assign(opponent,{x:165,y:180,heading:0});step(s,blank());assert.equal(s.ball.owner,u.id);
   assert.equal(u.action.kind,"tackle");assert.equal(u.action.elapsed,ACTION_TIMING.tackle[0]);
   for(let i=ACTION_TIMING.tackle[0];i<ACTION_TIMING.tackle[1];i++)step(s,blank());
   assert.equal(u.action,null);
@@ -84,7 +84,7 @@ for(const kind of ["pass","shoot"]){
 {
   const {s,u}=isolated();Object.assign(s.ball,{owner:u.id,lock:0,x:u.x,y:u.y});
   step(s,{...blank(),pass:true});
-  const opponent=s.players[6];Object.assign(opponent,{x:170,y:180,action:{kind:"tackle",elapsed:5,receiver:null,dx:1,dy:0}});
+  const opponent=s.players[6];Object.assign(opponent,{x:195,y:180,action:{kind:"tackle",elapsed:5,receiver:null,dx:-1,dy:0}});
   // Opponent makes contact during windup; original pass must never fire.
   step(s,blank());assert.equal(s.ball.owner,opponent.id);
   for(let i=1;i<ACTION_TIMING.pass[0];i++)step(s,blank());
@@ -160,6 +160,51 @@ for(const kind of ["pass","shoot"]){
   };
   assert.ok(releaseSpeed(0)>releaseSpeed(Math.PI));
   assert.ok(Math.abs(turnToward(Math.PI-.01,-Math.PI+.01,.1)-(Math.PI+.01))<1e-8);
+}
+// Reproduce the reported face-to-face tackle loop, for both human and AI.
+for(const user of [1,4]){
+  const {s}=isolated();s.user=user;
+  for(const p of s.players)Object.assign(p,{x:p.team===0?55:545,y:30+p.id%5*25});
+  const a=s.players[1],b=s.players[6];
+  Object.assign(a,{x:290,y:180,heading:0});Object.assign(b,{x:307,y:180,heading:Math.PI});
+  Object.assign(s.ball,{owner:b.id,x:298,y:180,lock:0,last:b.id});
+  let last=s.ball.owner,exchanges=0,leftDuel=false;
+  for(let i=0;i<600;i++){
+    step(s,user===1?{...blank(),x:1,shoot:i%2===0}:blank());
+    if((last===a.id&&s.ball.owner===b.id)||(last===b.id&&s.ball.owner===a.id))exchanges++;
+    if(distance(a,b)>DUEL.resetDistance||s.ball.owner===null)leftDuel=true;
+    last=s.ball.owner;
+  }
+  assert.ok(exchanges<=3);assert.ok(leftDuel);
+}
+// A player cannot steal through the ball carrier's body.
+{
+  const {s,u}=isolated(),opponent=s.players[6];
+  Object.assign(opponent,{x:195,y:180,heading:0,cooldown:1});
+  Object.assign(s.ball,{owner:opponent.id,lock:0,x:204,y:180});
+  u.action={kind:"tackle",elapsed:ACTION_TIMING.tackle[0]-1,receiver:null,dx:1,dy:0};
+  step(s,blank());assert.equal(s.ball.owner,opponent.id);
+}
+// Only the previous challenger is blocked, not all opponents; and a new
+// challenge is possible after the two players actually move apart.
+{
+  const {s,u}=isolated(),opponent=s.players[6],third=s.players[7];
+  Object.assign(opponent,{x:195,y:180,heading:Math.PI,blockedOpponent:u.id});
+  Object.assign(s.ball,{owner:u.id,x:189,y:180,lock:0});
+  opponent.action={kind:"tackle",elapsed:ACTION_TIMING.tackle[0]-1,receiver:null,dx:-1,dy:0};
+  step(s,blank());assert.equal(s.ball.owner,u.id);assert.equal(opponent.blockedOpponent,u.id);
+  Object.assign(third,{x:189,y:195,action:{kind:"tackle",elapsed:ACTION_TIMING.tackle[0]-1,receiver:null,dx:0,dy:-1}});
+  step(s,blank());assert.equal(s.ball.owner,third.id);
+}
+{
+  const {s,u}=isolated(),opponent=s.players[6];
+  Object.assign(opponent,{x:195,y:180,heading:Math.PI,blockedOpponent:u.id});
+  Object.assign(s.ball,{owner:u.id,x:189,y:180,lock:0});
+  const saved=copyState(s);opponent.x=u.x+DUEL.resetDistance+3;
+  step(s,blank());assert.equal(opponent.blockedOpponent,null);
+  assert.equal(saved.players[opponent.id].blockedOpponent,u.id);
+  Object.assign(opponent,{x:u.x+15,y:u.y,action:{kind:"tackle",elapsed:ACTION_TIMING.tackle[0]-1,receiver:null,dx:-1,dy:0}});
+  step(s,blank());assert.equal(s.ball.owner,opponent.id);
 }
 assert.equal(DT,1/60);
 console.log("Football IQ: deterministic matches, snapshots, goals, action timing, first touch, interrupted passes and coaching tests passed.");
