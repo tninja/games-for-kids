@@ -37,7 +37,13 @@ async function exercise(make,E){
  fallback.draw(s,tip,true);check(draws>=12,"canvas draws");check(JSON.stringify(s)===before,"fallback mutated state");
  window.Phaser=mock;const phaser=await V.createVisual(canvas());check(phaser.name==="Phaser 3.90","Phaser renderer");
  phaser.draw(s,tip,true);check(frames===720&&sprites===10,"Phaser atlas/sprite count");check(JSON.stringify(s)===before,"Phaser mutated state");
- window.Phaser={AUTO:0,Game:class{constructor(){throw Error("boot failed");}}};
+ window.Phaser={AUTO:0,CANVAS:1,Game:class{
+   constructor(config){if(config.type===0)throw Error("mock WebGL unavailable");Promise.resolve().then(()=>config.scene.create.call(scene));}
+   destroy(){}
+ }};
+ const retry=await V.createVisual(canvas());check(retry.name==="Phaser 3.90","Phaser Canvas retry");
+ retry.draw(s,null,false);
+ window.Phaser={AUTO:0,CANVAS:1,Game:class{constructor(){throw Error("boot failed");}}};
  const failed=await V.createVisual(canvas());check(failed.name==="Canvas fallback","boot failure fallback");failed.draw(s,null,false);
  const goal={...s,restart:.6};check(V.marks(goal,null,false).length>V.marks(s,null,false).length,"goal effect");
  return {frames,sprites,draws};
