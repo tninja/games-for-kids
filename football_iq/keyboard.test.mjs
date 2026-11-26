@@ -25,7 +25,7 @@ async function exercise(E,app,assert){
   document.getElementById("coach").value="off";
   const window={addEventListener(name,fn){handlers.set(name,fn);}};
   const program=new Function("E","document","window","HTMLSelectElement","HTMLButtonElement","requestAnimationFrame",
-    "const {DT,createMatch,copyState,step,coachingTip}=E;const createVisual=async()=>({name:'test',draw(){}});\n"+
+    "const {DT,createMatch,copyState,step,coachingTip}=E;const createVisual=async()=>({name:'test',draw(){}});const MatchAudio=class{enabled=true;unlock(){} stopEffects(){} setCrowd(){} play(){} setEnabled(v){this.enabled=v;}};\n"+
     app.replace(/^import .*;\n/gm,"")+"\nreturn {start,tick,input,state:()=>state};");
   const C=program(E,document,window,Select,Button,()=>{});
   await Promise.resolve();
