@@ -1,7 +1,7 @@
 import { W,H,GOAL } from "./engine.js";
 
 export const WIDTH=672, HEIGHT=440, OX=36, OY=40;
-const CW=44, CH=60, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
+const CW=44, CH=68, FOOT=44, FRAMES=7, COLS=4*FRAMES, ROWS=20;
 const color=(n)=>"#"+n.toString(16).padStart(6,"0");
 function surface(w,h) {
   const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
