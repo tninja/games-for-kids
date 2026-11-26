@@ -61,7 +61,7 @@ allows 30%. A new action cannot start until the current action completes.
 | Pass | 9 ticks (150 ms) | 13 ticks (217 ms) | 22 ticks (367 ms) |
 | Shot | 15 ticks (250 ms) | 22 ticks (367 ms) | 37 ticks (617 ms) |
 | Tackle | 6 ticks (100 ms) | 27 ticks (450 ms) | 33 ticks (550 ms) |
-| Receive | Immediate trap on arrival | 13 ticks (217 ms) | 13 ticks (217 ms) |
+| Receive | Trap on arrival | 9–25 ticks (150–417 ms) | 9–25 ticks (150–417 ms) |
 
 A pass or shot will not release if possession was lost before contact.
 Receiving is vulnerable to tackles; a player in recovery cannot collect a
@@ -69,6 +69,25 @@ loose ball to bypass the lock. The recovery bar and poses follow simulation
 state, so pause and rewind preserve timing. These are arcade tuning values,
 not measured real-world biomechanics. Deliberate one-touch passes are not
 implemented yet. Held actions may repeat when recovery is complete.
+
+## Movement and first touch
+Both user and AI use the same fixed-step movement integrator. Acceleration
+is 380 and braking 540 field units/s²; heading changes by at most 540°/s
+(9° per tick). A full 180° turn takes at least a third of a second; inertia
+means players may initially keep moving in the old direction. Normal running
+accelerates rather than jumping to full speed, and carries reduce target
+speed to 76% of the same player's off-ball speed. The ball follows body
+heading rather than only horizontal facing. Action locks remain higher
+priority than inertia.
+
+First touch depends deterministically on incoming ball speed and whether
+the player was already facing the source: soft/front-facing receptions
+recover quickly; fast or awkward receptions take longer (9–25 ticks). Hard
+touches are indicated in the HUD. Passing or shooting before the body has
+turned toward the intended target reduces ball release speed to 65–100%
+of normal. These are arcade tuning parameters, not measured human reaction
+times. There is no random error, and a difficult touch does not yet spill
+the ball loose. Deliberate one-touch passes remain future work.
 
 ## Optional browser verification
 ```sh
