@@ -89,6 +89,19 @@ of normal. These are arcade tuning parameters, not measured human reaction
 times. There is no random error, and a difficult touch does not yet spill
 the ball loose. Deliberate one-touch passes remain future work.
 
+## Tackling and repeated duels
+A successful tackle requires the ball to be within 18 field units and the
+carrier within 25 units at contact, not just overlapping player bodies.
+The dispossessed player cannot immediately tackle the same carrier again
+until they separate by 34 units or the ball leaves that carrier. This is
+pair-specific: a different opponent may tackle normally. AI defenders
+contain at a 27-unit standoff after losing a challenge, while AI carriers
+look for lateral space when their forward route is blocked. These distances
+are arcade tuning parameters. Replays preserve the pair-specific state.
+Regression tests reproduce the face-to-face loop in both AI/AI and human/AI
+matches and check that a fresh challenge and a third-party tackle remain
+possible.
+
 ## Optional browser verification
 ```sh
 npm install --no-save --package-lock=false playwright@1.56.1 phaser@3.90.0
