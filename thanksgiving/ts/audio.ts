@@ -44,6 +44,17 @@ export class FeastAudio {
         this.tone(780, 1040, 0.08, "sine", 0.14, now);
         this.tone(920, 1180, 0.09, "sine", 0.13, now + 0.08);
         break;
+      case "bird_chirp":
+        this.tone(980, 1340, 0.06, "sine", 0.13, now);
+        this.tone(1120, 860, 0.06, "sine", 0.12, now + 0.06);
+        this.tone(1040, 1420, 0.08, "sine", 0.13, now + 0.12);
+        break;
+      case "happy_dance":
+        this.tone(392.0, 392.0, 0.08, "triangle", 0.15, now);
+        this.tone(493.88, 493.88, 0.08, "triangle", 0.15, now + 0.08);
+        this.tone(587.33, 587.33, 0.09, "triangle", 0.16, now + 0.16);
+        this.tone(783.99, 783.99, 0.14, "triangle", 0.17, now + 0.25);
+        break;
       case "silly_bonk":
         this.tone(240, 140, 0.14, "sawtooth", 0.10, now);
         break;

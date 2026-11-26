@@ -170,17 +170,27 @@ export function mountApp(): void {
     });
   }
 
-  // Stage canvas direct pointer interactions
+  // Stage canvas direct pointer interactions (dish gestures + character Easter eggs!)
   canvas.addEventListener("pointerdown", (e) => {
     unlockAudio();
-    if (state.phase !== "dish_play" || !state.dishState) {
-      return;
-    }
-    e.preventDefault();
-    canvas.setPointerCapture(e.pointerId);
     const rect = canvas.getBoundingClientRect();
     const nx = (e.clientX - rect.left) / Math.max(1, rect.width);
     const ny = (e.clientY - rect.top) / Math.max(1, rect.height);
+
+    if (state.phase !== "dish_play" || !state.dishState) {
+      // Interactive Easter eggs: tap Beagle Chef (left/doghouse) or Little Bird (right)!
+      if (nx < 0.45) {
+        applyAction(state, { type: "POKE_CHEF" });
+      } else if (nx > 0.55) {
+        applyAction(state, { type: "POKE_BIRD" });
+      } else {
+        applyAction(state, { type: state.easterEggCount % 2 === 0 ? "POKE_CHEF" : "POKE_BIRD" });
+      }
+      return;
+    }
+
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
     if (state.dishState.kind === "golden_toast" || state.dishState.kind === "folding_chair") {
       pendingPrimaryTap = true;
     } else if (state.dishState.kind === "flying_popcorn") {

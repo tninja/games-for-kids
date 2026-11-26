@@ -350,6 +350,17 @@ function testStrictCanvasRenderingAcrossAllPhasesAndIcons() {
   });
   api.renderStageCanvas(ctx, state); // title
 
+  // Verify Easter egg pokes (Beagle Chef Happy Dance + Little Bird Chatter)
+  api.applyAction(state, { type: "POKE_CHEF" });
+  assert.ok(state.chefDanceTimer > 0, "POKE_CHEF starts happy dance timer");
+  assert.ok(state.easterBubbleText.length > 0, "POKE_CHEF sets speech bubble");
+  api.renderStageCanvas(ctx, state); // dancing chef + music notes
+
+  api.applyAction(state, { type: "POKE_BIRD" });
+  assert.ok(state.birdChirpTimer > 0, "POKE_BIRD starts chirp loop timer");
+  assert.ok(state.easterBubbleText.includes("|"), "POKE_BIRD shows classic comic bird chatter");
+  api.renderStageCanvas(ctx, state); // chirping bird + music notes
+
   api.applyAction(state, { type: "START_FEAST" });
   api.renderStageCanvas(ctx, state); // pass_banner
 

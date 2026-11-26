@@ -84,7 +84,7 @@ export function drawStar(
   cy: number,
   outerR: number,
   fill: string,
-  stroke = PALETTE.ink
+  stroke: string = PALETTE.ink
 ): void {
   const innerR = outerR * 0.48;
   ctx.beginPath();
@@ -976,6 +976,266 @@ export function drawBackyardTable(
     drawPumpkinPie(ctx, cx + width * 0.34, y - 10, 17, 12, true);
   }
 
+  ctx.restore();
+}
+
+export function drawRedDoghouse(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale = 1
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  // Wooden front wall
+  ctx.fillStyle = "#C93B2B";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(-36, 0);
+  ctx.lineTo(-36, -44);
+  ctx.lineTo(0, -72);
+  ctx.lineTo(36, -44);
+  ctx.lineTo(36, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Horizontal clapboard plank lines
+  ctx.strokeStyle = "rgba(45, 36, 32, 0.28)";
+  ctx.lineWidth = 1.5;
+  for (let py = -12; py >= -38; py -= 12) {
+    ctx.beginPath();
+    ctx.moveTo(-34, py);
+    ctx.lineTo(34, py);
+    ctx.stroke();
+  }
+
+  // Dark cozy arched doorway
+  ctx.fillStyle = "#2A1F1B";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(-14, 0);
+  ctx.lineTo(-14, -22);
+  ctx.arc(0, -22, 14, Math.PI, 0);
+  ctx.lineTo(14, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Iconic pitched crimson roof overhang
+  ctx.fillStyle = "#DF4B38";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.8;
+  ctx.beginPath();
+  ctx.moveTo(-45, -39);
+  ctx.lineTo(0, -78);
+  ctx.lineTo(45, -39);
+  ctx.lineTo(38, -32);
+  ctx.lineTo(0, -64);
+  ctx.lineTo(-38, -32);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Cute autumn pumpkin sitting beside doghouse
+  ctx.fillStyle = "#EC802A";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.1;
+  ctx.beginPath();
+  ctx.ellipse(42, -9, 13, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(42, -9, 6, 10, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Pumpkin stem
+  ctx.strokeStyle = PALETTE.sageLeaf;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(42, -19);
+  ctx.quadraticCurveTo(45, -24, 48, -22);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+export function drawBackyardFence(
+  ctx: CanvasRenderingContext2D,
+  y: number,
+  width: number
+): void {
+  ctx.save();
+  const picketW = 24;
+  const picketH = 44;
+
+  // Horizontal fence rails
+  ctx.fillStyle = "#E8D3B0";
+  ctx.strokeStyle = "rgba(45, 36, 32, 0.45)";
+  ctx.lineWidth = 1.6;
+  ctx.fillRect(0, y - 30, width, 6);
+  ctx.strokeRect(0, y - 30, width, 6);
+  ctx.fillRect(0, y - 12, width, 6);
+  ctx.strokeRect(0, y - 12, width, 6);
+
+  // Wooden pickets
+  for (let x = -4; x < width + picketW; x += picketW) {
+    ctx.fillStyle = "#F5E6CA";
+    ctx.strokeStyle = "rgba(45, 36, 32, 0.42)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x, y - picketH + 8);
+    ctx.lineTo(x + picketW * 0.42, y - picketH);
+    ctx.lineTo(x + picketW * 0.84, y - picketH + 8);
+    ctx.lineTo(x + picketW * 0.84, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+export function drawFestiveStringLights(
+  ctx: CanvasRenderingContext2D,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  t: number
+): void {
+  ctx.save();
+  const midX = (x1 + x2) * 0.5;
+  const sagY = Math.max(y1, y2) + 28;
+
+  // Cord curve
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo(midX, sagY, x2, y2);
+  ctx.stroke();
+
+  const bulbs = 7;
+  const colors = ["#FFE58F", "#FF9A52", "#F2C14E", "#FF7F5C"];
+  for (let i = 1; i <= bulbs; i++) {
+    const u = i / (bulbs + 1);
+    const inv = 1 - u;
+    const bx = inv * inv * x1 + 2 * inv * u * midX + u * u * x2;
+    const by = inv * inv * y1 + 2 * inv * u * sagY + u * u * y2;
+    const twinkle = 0.72 + 0.28 * Math.sin(t * 4.2 + i * 1.3);
+
+    // Warm soft halo
+    ctx.save();
+    ctx.globalAlpha = 0.28 * twinkle;
+    ctx.fillStyle = "#FFE58F";
+    ctx.beginPath();
+    ctx.arc(bx, by + 6, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Bulb
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(bx, by + 6, 4.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+export function drawMusicNote(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  color: string,
+  scale = 1
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(-3, 5, 5, 3.6, -0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(1.5, 4);
+  ctx.lineTo(1.5, -11);
+  ctx.quadraticCurveTo(8, -9, 9, -3);
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawSteamWisp(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  phase: number
+): void {
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.lineWidth = 2.6;
+  ctx.lineCap = "round";
+  const sway = Math.sin(phase) * 4;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.quadraticCurveTo(x + sway, y - 10, x - sway * 0.7, y - 20);
+  ctx.quadraticCurveTo(x + sway * 0.5, y - 28, x, y - 34);
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawPipingBag(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number
+): void {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  // Pastry bag cone
+  ctx.fillStyle = "#FFFDF9";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-15, -34);
+  ctx.quadraticCurveTo(0, -44, 15, -34);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Crimson ribbon tie
+  ctx.fillStyle = PALETTE.mapleCrimson;
+  drawRoundedRect(ctx, -11, -35, 22, 6, 3);
+  ctx.fill();
+  ctx.stroke();
+
+  // Metal star tip
+  ctx.fillStyle = "#B8C2C8";
+  ctx.beginPath();
+  ctx.moveTo(-4, -4);
+  ctx.lineTo(4, -4);
+  ctx.lineTo(2, 4);
+  ctx.lineTo(-2, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
   ctx.restore();
 }
 

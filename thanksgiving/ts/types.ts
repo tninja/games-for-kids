@@ -206,6 +206,8 @@ export type SoundEvent =
   | "toast_pop"
   | "good_catch"
   | "bird_rescue"
+  | "bird_chirp"
+  | "happy_dance"
   | "silly_bonk"
   | "chair_boing"
   | "cream_swirl"
@@ -249,6 +251,11 @@ export interface GameState {
   particles: Particle[];
   pendingSounds: SoundEvent[];
   rngState: number;
+  chefDanceTimer: number;
+  birdChirpTimer: number;
+  easterBubbleText: string;
+  easterBubbleTimer: number;
+  easterEggCount: number;
 }
 
 export type GameAction =
@@ -266,5 +273,7 @@ export type GameAction =
     }
   | { type: "FINISH_GRATITUDE" }
   | { type: "SHUFFLE_PROMPT" }
+  | { type: "POKE_CHEF" }
+  | { type: "POKE_BIRD" }
   | { type: "TOGGLE_MUTE" }
   | { type: "PLAY_AGAIN" };

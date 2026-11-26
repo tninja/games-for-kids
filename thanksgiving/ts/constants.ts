@@ -111,7 +111,26 @@ export const TABLE_PROMPTS: string[] = [
   "Say thank you to one person in the room for a small kindness they showed you.",
   "If our family invented a silly Thanksgiving dish, what would we put in it?",
   "Name one cozy memory from this year you would hang on our Gratitude Tree!",
-  "Give someone at the table a high-five and tell them one thing they are great at!"
+  "Give someone at the table a high-five and tell them one thing they are great at!",
+  "If a tiny yellow bird helped cook dinner tonight, what dish would it make?",
+  "Would you rather eat giant buttery popcorn or a mountain of pumpkin pie?",
+  "Share one thing you learned this year that made you feel proud!",
+  "Pick someone at the table and invent a funny chef nickname for them!"
+];
+
+export const CHEF_EASTER_LINES: string[] = [
+  "Happy Dance! Toast & popcorn for everyone!",
+  "Woof! Watch out for that bouncy lawn chair!",
+  "Extra whipped cream on the pumpkin pie, please!",
+  "Best backyard Thanksgiving crew ever!",
+  "Chef hat on! Let's make yummy memories!"
+];
+
+export const BIRD_EASTER_LINES: string[] = [
+  "|||| '||' ||! (Happy Thanksgiving!)",
+  "|| '| ||'! (Pass the jelly beans!)",
+  "'|| ||| '|! (Best sous-chef ever!)",
+  "|||| ''|! (Save me a pumpkin crumb!)"
 ];
 
 export interface TreeSlotCoord {

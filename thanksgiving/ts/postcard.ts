@@ -1,9 +1,12 @@
 import {
+  drawBackyardFence,
   drawBackyardTable,
   drawBeagleChef,
+  drawFestiveStringLights,
   drawLittleBird,
   drawMapleLeaf,
   drawMapleTree,
+  drawRedDoghouse,
   drawRoundedRect,
   drawStar
 } from "./artwork";
@@ -109,21 +112,25 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
   ctx.strokeStyle = PALETTE.ink;
   ctx.stroke();
 
-  // Soft backyard hill inside scene
+  // Soft backyard hill, fence, doghouse & string lights inside scene
   ctx.save();
   ctx.beginPath();
   drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
   ctx.clip();
+  drawBackyardFence(ctx, 704, W);
   ctx.fillStyle = "#B6C285";
   ctx.beginPath();
   ctx.ellipse(W / 2, 830, 580, 160, 0, Math.PI, 0);
   ctx.fill();
-  drawMapleTree(ctx, W / 2, 705, 480, 404, state.leaves, false);
+  drawRedDoghouse(ctx, 180, 712, 1.55);
+  drawMapleTree(ctx, W / 2 + 30, 705, 460, 396, state.leaves, false);
+  drawFestiveStringLights(ctx, 186, 594, 530, 442, 0.8);
+  drawFestiveStringLights(ctx, 590, 446, 956, 540, 1.6);
   drawBackyardTable(
     ctx,
-    W / 2,
+    W / 2 + 24,
     718,
-    580,
+    556,
     state.seatedGuests.length,
     true,
     true,
@@ -132,8 +139,8 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
     true,
     true
   );
-  drawBeagleChef(ctx, 195, 725, 1.5, "excited", 0);
-  drawLittleBird(ctx, 882, 626, 2.0, 0.3);
+  drawBeagleChef(ctx, 212, 725, 1.45, "excited", 0);
+  drawLittleBird(ctx, 888, 626, 1.9, 0.3);
   ctx.restore();
 
   // Gratitude Notes Box

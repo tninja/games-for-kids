@@ -1,4 +1,11 @@
-import { DISH_SEQUENCE, DISH_SPECS, TABLE_PROMPTS } from "./constants";
+import {
+  BIRD_EASTER_LINES,
+  CHEF_EASTER_LINES,
+  DISH_SEQUENCE,
+  DISH_SPECS,
+  PALETTE,
+  TABLE_PROMPTS
+} from "./constants";
 import { createGratitudeLeaf } from "./gratitude";
 import { createDishState, stepActiveDish } from "./minigames";
 import { GameAction, GameConfig, GameState, StepInput } from "./types";
@@ -48,7 +55,12 @@ export function createInitialState(config: GameConfig = {}): GameState {
     elapsedSec: 0,
     particles: [],
     pendingSounds: [],
-    rngState: (config.seed ?? 20261125) | 0
+    rngState: (config.seed ?? 20261125) | 0,
+    chefDanceTimer: 0,
+    birdChirpTimer: 0,
+    easterBubbleText: "",
+    easterBubbleTimer: 0,
+    easterEggCount: 0
   };
 }
 
@@ -174,6 +186,52 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       state.tablePromptIndex = (state.tablePromptIndex + 1) % TABLE_PROMPTS.length;
       return state;
     }
+    case "POKE_CHEF": {
+      state.chefDanceTimer = 1.45;
+      state.easterEggCount += 1;
+      state.easterBubbleText =
+        CHEF_EASTER_LINES[(state.easterEggCount - 1) % CHEF_EASTER_LINES.length];
+      state.easterBubbleTimer = 2.0;
+      state.pendingSounds.push("happy_dance");
+      for (let i = 0; i < 8; i++) {
+        const a = (Math.PI * 2 * i) / 8;
+        state.particles.push({
+          x: 92,
+          y: 300,
+          vx: Math.cos(a) * 85,
+          vy: Math.sin(a) * 75 - 65,
+          color: i % 2 === 0 ? PALETTE.pumpkinGold : PALETTE.mapleCrimson,
+          size: 7,
+          life: 0,
+          maxLife: 0.7,
+          shape: "star"
+        });
+      }
+      return state;
+    }
+    case "POKE_BIRD": {
+      state.birdChirpTimer = 1.3;
+      state.easterEggCount += 1;
+      state.easterBubbleText =
+        BIRD_EASTER_LINES[(state.easterEggCount - 1) % BIRD_EASTER_LINES.length];
+      state.easterBubbleTimer = 2.0;
+      state.pendingSounds.push("bird_chirp");
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI * 2 * i) / 6;
+        state.particles.push({
+          x: 334,
+          y: 255,
+          vx: Math.cos(a) * 70,
+          vy: Math.sin(a) * 65 - 55,
+          color: PALETTE.birdYellow,
+          size: 6,
+          life: 0,
+          maxLife: 0.65,
+          shape: "star"
+        });
+      }
+      return state;
+    }
     case "TOGGLE_MUTE": {
       state.muted = !state.muted;
       return state;
@@ -200,6 +258,9 @@ export function applyAction(state: GameState, action: GameAction): GameState {
 export function stepGame(state: GameState, dtSec: number, input: StepInput = EMPTY_INPUT): GameState {
   const dt = Math.max(0, Math.min(0.05, dtSec));
   state.elapsedSec += dt;
+  state.chefDanceTimer = Math.max(0, state.chefDanceTimer - dt);
+  state.birdChirpTimer = Math.max(0, state.birdChirpTimer - dt);
+  state.easterBubbleTimer = Math.max(0, state.easterBubbleTimer - dt);
 
   const nextParticles = [];
   for (let i = 0; i < state.particles.length; i++) {
