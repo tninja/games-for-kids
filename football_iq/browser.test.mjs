@@ -35,9 +35,9 @@ try {
     assert.equal(await page.locator("#renderer").textContent(),usePhaser?"Phaser 3.90":"Canvas fallback");
     await page.selectOption("#length","60");await page.selectOption("#coach","off");
     await page.locator("#start").click();
-    for(const [action,key] of [["pass","z"],["shoot","x"],["sprint","c"],["sprint","Shift"]]){
+    for(const [action,key] of [["pass","j"],["shoot","k"],["sprint","l"],["sprint","Shift"]]){
       const control=page.locator('[data-action="'+action+'"]');
-      assert.equal(await control.locator("kbd").textContent(),action==="sprint"?"C":key.toUpperCase());
+      assert.equal(await control.locator("kbd").textContent(),action==="sprint"?"L":key.toUpperCase());
       await page.keyboard.down(key);
       await page.waitForFunction(action=>document.querySelector('[data-action="'+action+'"]').classList.contains("key-pressed"),action);
       await page.keyboard.up(key);
