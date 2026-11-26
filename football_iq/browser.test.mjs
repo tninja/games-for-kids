@@ -20,16 +20,18 @@ const server = createServer(async (req,res)=>{
 await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
 let browser;
 try {
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,args:["--use-angle=swiftshader","--enable-unsafe-swiftshader"]});
   for(const [name,width,height,usePhaser] of [["portrait",390,844,true],["landscape",844,390,true],["offline",390,844,false]]){
     const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,deviceScaleFactor:1});
     const page=await context.newPage(),errors=[];
     page.on("pageerror",error=>errors.push(error.message));
+    page.on("console",msg=>{if(["warning","error"].includes(msg.type()))console.log(name,msg.type(),msg.text());});
     await page.route("https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js", route=>usePhaser
       ? route.fulfill({status:200,contentType:"text/javascript",body:phaser,headers:{"access-control-allow-origin":"*"}})
       : route.abort());
     await page.goto("http://127.0.0.1:"+server.address().port+"/football_iq/index.html");
     await page.waitForFunction(()=>!document.querySelector("#start").disabled,{},{timeout:12000});
+    if(usePhaser&&await page.locator("#renderer").textContent()!=="Phaser 3.90")await page.screenshot({path:resolve(out,name+"-boot-failure.png"),fullPage:true});
     assert.equal(await page.locator("#renderer").textContent(),usePhaser?"Phaser 3.90":"Canvas fallback");
     await page.selectOption("#length","60");await page.selectOption("#coach","off");
     await page.locator("#start").click();
