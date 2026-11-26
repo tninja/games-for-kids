@@ -2,8 +2,8 @@ export type Team = 0 | 1;
 export type Role = "keeper" | "defender" | "midfielder" | "forward";
 export type Point = { x: number; y: number };
 export type ActionKind = "pass" | "shoot" | "tackle" | "receive";
-export type Action = { kind: ActionKind; elapsed: number; receiver: number | null; dx: number; dy: number };
-export type Player = Point & { id: number; team: Team; role: Role; home: Point; vx: number; vy: number; face: number; cooldown: number; action: Action | null };
+export type Action = { kind: ActionKind; elapsed: number; receiver: number | null; dx: number; dy: number; total?: number };
+export type Player = Point & { id: number; team: Team; role: Role; home: Point; vx: number; vy: number; face: number; heading: number; cooldown: number; action: Action | null };
 export type Ball = Point & { vx: number; vy: number; owner: number | null; lock: number; last: number | null; receiver: number | null };
 export type State = { players: Player[]; ball: Ball; user: number; score: [number, number]; time: number; duration: number; tick: number; restart: number; kickoff: Team; event: string; eventTick: number };
 export type Input = { x: number; y: number; pass: boolean; shoot: boolean; sprint: boolean };
@@ -14,6 +14,17 @@ export const W = 600, H = 360, GOAL = 92, DT = 1/60;
 export const ACTION_TIMING: Record<ActionKind, readonly [number, number]> = {
   pass: [9, 22], shoot: [15, 37], tackle: [6, 33], receive: [0, 13]
 };
+// Arcade units per second; angular speed is radians per second.
+export const MOVEMENT = { acceleration: 380, braking: 540, turn: Math.PI*3, dribble: .76 };
+export function actionDuration(a:Action) { return a.total??ACTION_TIMING[a.kind][1]; }
+export function turnToward(from:number,to:number,limit:number) {
+  const delta=Math.atan2(Math.sin(to-from),Math.cos(to-from));
+  return from+Math.max(-limit,Math.min(limit,delta));
+}
+export function firstTouchTicks(speed:number, alignment:number) {
+  if(speed<60)return 9;
+  return Math.min(25,9+(speed>240?9:speed>150?4:0)+(alignment<-.35?7:alignment<.35?4:0));
+}
 const clamp = (n:number, lo:number, hi:number) => Math.max(lo,Math.min(hi,n));
 export const distance = (a:Point, b:Point) => Math.hypot(a.x-b.x,a.y-b.y);
 const dir = (p:Player) => p.team===0?1:-1;
@@ -28,7 +39,7 @@ export function createMatch(role:Role="defender", duration=180):State {
   const players:Player[] = [];
   for (const team of [0,1] as Team[]) for (const slot of slots) {
     const home={x:team===0?slot.x:W-slot.x,y:team===0?slot.y:H-slot.y};
-    players.push({...home,home,id:players.length,team,role:slot.role,vx:0,vy:0,face:team===0?1:-1,cooldown:0,action:null});
+    players.push({...home,home,id:players.length,team,role:slot.role,vx:0,vy:0,face:team===0?1:-1,heading:team===0?0:Math.PI,cooldown:0,action:null});
   }
   const user=players.find(p=>p.team===0&&p.role===role)?.id??1;
   const s:State={players,user,ball:{x:W/2,y:H/2,vx:0,vy:0,owner:null,lock:0,last:null,receiver:null},score:[0,0],time:0,duration,tick:0,restart:0,kickoff:0,event:"Kick off!",eventTick:0};
@@ -40,10 +51,10 @@ export function copyState(s:State):State {
 }
 function event(s:State, text:string) { s.event=text; s.eventTick=s.tick; }
 function possess(s:State, p:Player) {
-  Object.assign(s.ball,{owner:p.id,last:p.id,receiver:null,lock:0.18,vx:0,vy:0,x:p.x+dir(p)*9,y:p.y});
+  Object.assign(s.ball,{owner:p.id,last:p.id,receiver:null,lock:0.18,vx:0,vy:0,x:p.x+Math.cos(p.heading)*9,y:p.y+Math.sin(p.heading)*9});
 }
 function kickoff(s:State, team:Team) {
-  for(const p of s.players) Object.assign(p,{...p.home,vx:0,vy:0,cooldown:0,action:null,face:dir(p)});
+  for(const p of s.players) Object.assign(p,{...p.home,vx:0,vy:0,cooldown:0,action:null,face:dir(p),heading:p.team===0?0:Math.PI});
   const p=s.players[team*5+3]; p.x=W/2-dir(p)*10; p.y=H/2;
   possess(s,p); s.ball.lock=0.55; p.cooldown=0.55; s.restart=0;
 }
@@ -51,7 +62,7 @@ function move(p:Player, target:Point, speed:number) {
   const dx=target.x-p.x,dy=target.y-p.y,n=Math.hypot(dx,dy);
   const v=Math.min(speed,n/DT);
   p.vx=n>0.01?dx/n*v:0; p.vy=n>0.01?dy/n*v:0;
-  if(Math.abs(p.vx)>2)p.face=Math.sign(p.vx);
+
 }
 function segmentDistance(p:Point, a:Point, b:Point) {
   const dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);
@@ -84,7 +95,7 @@ function begin(p:Player, kind:ActionKind, target:Point, receiver:number|null=nul
   if(p.action||p.cooldown>0)return;
   const dx=target.x-p.x,dy=target.y-p.y,n=Math.hypot(dx,dy)||1;
   p.action={kind,elapsed:0,receiver,dx:dx/n,dy:dy/n};
-  p.vx=0;p.vy=0;if(Math.abs(dx)>1)p.face=Math.sign(dx);
+  p.vx=0;p.vy=0;
 }
 function shoot(s:State, p:Player) { begin(p,"shoot",aimShot(s,p)); }
 function pass(p:Player, q:Player) { begin(p,"pass",q,q.id); }
@@ -95,13 +106,15 @@ function tackle(s:State, p:Player) {
 function receive(p:Player, dx:number,dy:number) {
   // Trap the incoming ball: slow movement and lock new actions, not immunity.
   const n=Math.hypot(dx,dy)||1;
-  p.action={kind:"receive",elapsed:0,receiver:null,dx:dx/n,dy:dy/n};
+  const alignment=(Math.cos(p.heading)*dx+Math.sin(p.heading)*dy)/n;
+  p.action={kind:"receive",elapsed:0,receiver:null,dx:dx/n,dy:dy/n,total:firstTouchTicks(Math.hypot(dx,dy),alignment)};
   p.cooldown=0;
-  if(Math.abs(dx)>1)p.face=Math.sign(dx);
+
 }
 function advanceAction(s:State, p:Player) {
   const a=p.action;if(!a)return;
-  const [contact,total]=ACTION_TIMING[a.kind];
+  const [contact]=ACTION_TIMING[a.kind],total=actionDuration(a);
+  // Turn toward the committed action during windup, rather than snapping.
   a.elapsed++;
   if(a.elapsed>=total){p.action=null;return;}
   if(a.elapsed!==contact)return;
@@ -112,18 +125,44 @@ function advanceAction(s:State, p:Player) {
     }
   } else if(s.ball.owner===p.id){
     if(a.kind==="shoot"){
-      kick(s,p,aimShot(s,p),355);event(s,p.team===0?"Blue shot!":"Red shot!");
+      const target=aimShot(s,p);kick(s,p,target,355*kickingPower(p,target));event(s,p.team===0?"Blue shot!":"Red shot!");
     } else if(a.kind==="pass"&&a.receiver!==null){
       const q=s.players[a.receiver],d=distance(p,q);
-      kick(s,p,{x:q.x+q.vx*0.18,y:q.y+q.vy*0.18},clamp(d*2.5,180,320),q.id);
+      const target={x:q.x+q.vx*.18,y:q.y+q.vy*.18};
+      kick(s,p,target,clamp(d*2.5,180,320)*kickingPower(p,target),q.id);
       if(p.id===s.user)event(s,"Pass!");
     }
   }
+}
+function kickingPower(p:Player,target:Point) {
+  const angle=Math.atan2(target.y-p.y,target.x-p.x);
+  return .65+.35*Math.max(0,Math.cos(angle-p.heading));
 }
 function actionSpeed(p:Player) {
   if(!p.action)return 1;
   if(p.action.kind==="receive")return .30;
   return p.action.elapsed<ACTION_TIMING[p.action.kind][0]?0:.20;
+}
+// vx/vy are actual velocity outside decision collection. Desired velocity
+// is produced by the same user/AI code, then resolved once per fixed step.
+function applyMovement(p:Player, old:Point, carries:boolean) {
+  const desired=Math.hypot(p.vx,p.vy), scale=actionSpeed(p)*(carries?MOVEMENT.dribble:1);
+  const a=p.action;
+  const heading=a&&Math.hypot(a.dx,a.dy)>.1?Math.atan2(a.dy,a.dx):desired>.01?Math.atan2(p.vy,p.vx):p.heading;
+  p.heading=turnToward(p.heading,heading,MOVEMENT.turn*DT);
+  if(Math.abs(Math.cos(p.heading))>.12)p.face=Math.cos(p.heading)>0?1:-1;
+  if(scale===0){p.vx=0;p.vy=0;return;}
+  const alignment=desired>.01?Math.max(0,Math.cos(heading-p.heading)):0;
+  // During an action, movement remains capped but the action's aim is not changed.
+  const speed=desired*scale*(a?1:alignment);
+  const targetX=desired>.01?p.vx/desired*speed:0,targetY=desired>.01?p.vy/desired*speed:0;
+  const dx=targetX-old.x,dy=targetY-old.y,d=Math.hypot(dx,dy);
+  const braking=old.x*targetX+old.y*targetY<0||speed<Math.hypot(old.x,old.y);
+  const k=Math.min(1,(braking?MOVEMENT.braking:MOVEMENT.acceleration)*DT/(d||1));
+  p.vx=old.x+dx*k;p.vy=old.y+dy*k;
+  // An action hard cap takes priority over inertia; normal movement decelerates.
+  const cap=a?113*scale:Infinity,v=Math.hypot(p.vx,p.vy);
+  if(v>cap){p.vx*=cap/v;p.vy*=cap/v;}
 }
 function chaser(s:State, team:Team) {
   const list=s.players.filter(p=>p.team===team&&p.role!=="keeper");
@@ -158,7 +197,7 @@ function updateBall(s:State) {
   const b=s.ball;
   b.lock=Math.max(0,b.lock-DT);
   if(b.owner!==null) {
-    const p=s.players[b.owner]; b.x=clamp(p.x+p.face*9,1,W-1); b.y=p.y+3;return;
+    const p=s.players[b.owner]; b.x=clamp(p.x+Math.cos(p.heading)*9,1,W-1); b.y=clamp(p.y+Math.sin(p.heading)*9,1,H-1);return;
   }
   b.x+=b.vx*DT;b.y+=b.vy*DT;b.vx*=0.993;b.vy*=0.993;
   if(b.x<=0||b.x>=W) {
@@ -185,10 +224,11 @@ export function step(s:State, input:Input) {
   for(const p of s.players)p.cooldown=Math.max(0,p.cooldown-DT);
   // Resolve contacts in stable player-id order, before new decisions.
   for(const p of s.players)advanceAction(s,p);
+  const oldVelocity=s.players.map(p=>({x:p.vx,y:p.vy}));
   const user=s.players[s.user], owner=s.ball.owner===null?undefined:s.players[s.ball.owner];
   const n=Math.max(1,Math.hypot(input.x,input.y)), speed=input.sprint?113:88;
   user.vx=input.x/n*speed; user.vy=input.y/n*speed;
-  if(!user.action&&Math.abs(user.vx)>2)user.face=Math.sign(user.vx);
+
   if(!user.action&&user.cooldown<=0){
     if(owner?.id===user.id){if(input.shoot)shoot(s,user);else if(input.pass)pass(user,passTarget(s,user,input));}
     else if(input.pass&&owner?.team===0&&!owner.action&&owner.cooldown<=0)pass(owner,user);
@@ -199,7 +239,10 @@ export function step(s:State, input:Input) {
     if(p.action&&p.action.kind!=="receive"){p.vx=p.action.dx*32;p.vy=p.action.dy*32;}
     else ai(s,p,p.team===0?c0:c1,s.ball.owner===null?undefined:s.players[s.ball.owner]);
   }
-  for(const p of s.players){const scale=actionSpeed(p);p.vx*=scale;p.vy*=scale;p.x=clamp(p.x+p.vx*DT,9,W-9);p.y=clamp(p.y+p.vy*DT,9,H-9);}
+  for(const p of s.players){applyMovement(p,oldVelocity[p.id],s.ball.owner===p.id);p.x=clamp(p.x+p.vx*DT,9,W-9);p.y=clamp(p.y+p.vy*DT,9,H-9);
+    if((p.x===9&&p.vx<0)||(p.x===W-9&&p.vx>0))p.vx=0;
+    if((p.y===9&&p.vy<0)||(p.y===H-9&&p.vy>0))p.vy=0;
+  }
   for(let i=0;i<s.players.length;i++)for(let j=i+1;j<s.players.length;j++){
     const a=s.players[i],b=s.players[j],d=distance(a,b);
     if(d<15){const dx=d>0.01?(b.x-a.x)/d:1,dy=d>0.01?(b.y-a.y)/d:0,k=(15-d)/2;
