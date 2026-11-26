@@ -10,6 +10,10 @@ let state=createMatch(), running=false, paused=false, finished=false;
 let tip=null, tipUntil=0, lastTip=-9999, freezes=0, retryUsed=false;
 let retry=null, history=[];
 const seen={};
+const actionKeys={j:"pass",k:"shoot",l:"sprint",shift:"sprint"};
+const physicalKeys={KeyJ:"j",KeyK:"k",KeyL:"l",KeyW:"w",KeyA:"a",KeyS:"s",KeyD:"d",ShiftLeft:"shift",ShiftRight:"shift",Space:" "};
+function keyboardKey(e){return physicalKeys[e.code]??e.key.toLowerCase();}
+function held(action){return Object.keys(actionKeys).some(k=>actionKeys[k]===action&&keys.has(k));}
 const keys=new Set(), actions=new Set(), queuedActions=new Set();
 let joy={x:0,y:0}, joyId=null, accumulator=0, previous=0;
 const pad=get("pad"), knob=get("knob");
@@ -24,7 +28,7 @@ function start(){
   state=createMatch(role.value,Number(length.value)); running=true; paused=false; finished=false;
   lastTip=-9999;freezes=0;retryUsed=false;retry=null;history=[];tipUntil=0;accumulator=0;
   for(const k of Object.keys(seen))delete seen[k];
-  hideTip();clearInput();get("menu").hidden=true;get("result").hidden=true;get("pause").textContent="Pause";get("retry").hidden=true;
+  hideTip();clearInput();get("menu").hidden=true;get("result").hidden=true;get("pause").textContent="Pause";get("retry").hidden=true;focusPitch();
 }
 function showTip(t){
   tip={...t,target:t.target?{x:t.target.x,y:t.target.y}:undefined};
@@ -32,7 +36,8 @@ function showTip(t){
   get("hintText").textContent=t.text;get("hint").hidden=false;
   if(t.freeze&&coach.value==="balanced"&&freezes<3){freezes++;paused=true;clearInput();get("continue").hidden=false;get("pause").textContent="Resume";}
 }
-function resume(){if(!running||finished)return;paused=false;clearInput();hideTip();get("pause").textContent="Pause";}
+function focusPitch(){get("pitch").focus({preventScroll:true});}
+function resume(){if(!running||finished)return;paused=false;clearInput();hideTip();get("pause").textContent="Pause";focusPitch();}
 function togglePause(){
   if(!running||finished)return;
   if(paused){resume();return;}
@@ -46,7 +51,7 @@ function restore(){
 function input(){
   const x=joy.x+Number(keys.has("arrowright")||keys.has("d"))-Number(keys.has("arrowleft")||keys.has("a"));
   const y=joy.y+Number(keys.has("arrowdown")||keys.has("s"))-Number(keys.has("arrowup")||keys.has("w"));
-  return {x,y,pass:keys.has("j")||actions.has("pass")||queuedActions.has("pass"),shoot:keys.has("k")||actions.has("shoot")||queuedActions.has("shoot"),sprint:keys.has("l")||keys.has("shift")||actions.has("sprint")};
+  return {x,y,pass:held("pass")||actions.has("pass")||queuedActions.has("pass"),shoot:held("shoot")||actions.has("shoot")||queuedActions.has("shoot"),sprint:held("sprint")||actions.has("sprint")};
 }
 function tick(){
   const oldBlue=state.score[0],oldRed=state.score[1],oldEvent=state.eventTick;
@@ -104,9 +109,9 @@ function render(){
   const own=state.ball.owner===state.user, friendly=state.ball.owner!==null&&state.players[state.ball.owner].team===0;
   get("passLabel").textContent=own?"PASS":friendly?"CALL":"PASS";
   get("shootLabel").textContent=own?"SHOOT":"TACKLE";
-  get("passLabel").parentElement.classList.toggle("key-pressed",keys.has("j"));
-  get("shootLabel").parentElement.classList.toggle("key-pressed",keys.has("k"));
-  document.querySelector('[data-action="sprint"]')?.classList.toggle("key-pressed",keys.has("l")||keys.has("shift"));
+  get("passLabel").parentElement.classList.toggle("key-pressed",held("pass"));
+  get("shootLabel").parentElement.classList.toggle("key-pressed",held("shoot"));
+  document.querySelector('[data-action="sprint"]')?.classList.toggle("key-pressed",held("sprint"));
   const action=state.players[state.user].action;
   const actionText=action?({pass:"Passing...",shoot:"Shooting...",tackle:"Tackling...",receive:(action.total??13)>18?"Difficult first touch — control the ball...":"Control the ball..."})[action.kind]:null;
   get("status").textContent=paused?"Paused":actionText??(state.ball.owner===state.user?"Your ball - pass or shoot!":state.tick-state.eventTick<110?state.event:"Stay in position. Blue attacks right.");
@@ -123,15 +128,23 @@ get("settings").addEventListener("click",()=>{running=false;paused=false;clearIn
 get("pause").addEventListener("click",togglePause);
 get("continue").addEventListener("click",resume);
 get("retry").addEventListener("click",restore);
-coach.addEventListener("change",()=>{if(coach.value!=="balanced"){if(paused&&tip&&tip.freeze)resume();hideTip();retry=null;get("retry").hidden=true;}coach.blur();});
+coach.addEventListener("change",()=>{if(coach.value!=="balanced"){if(paused&&tip&&tip.freeze)resume();hideTip();retry=null;get("retry").hidden=true;}coach.blur();if(running&&!paused)focusPitch();});
+// Listen in capture phase so renderer/DOM controls cannot swallow match input.
 window.addEventListener("keydown",e=>{
-  if(e.ctrlKey||e.metaKey||e.altKey||e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&e.key===" "))return;
-  const k=e.key.toLowerCase();
-  if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","j","k","l","shift"," "].includes(k)){
-    e.preventDefault();if(k===" "){if(!e.repeat)togglePause();}else {keys.add(k);if(!e.repeat&&running&&!paused){if(k==="j")queuedActions.add("pass");if(k==="k")queuedActions.add("shoot");}}
+  if(e.ctrlKey||e.metaKey||e.altKey||e.isComposing||!running)return;
+  const k=keyboardKey(e),action=actionKeys[k];
+  // Leave native select and button navigation intact, but action letters
+  // still work if a match control retained focus after a click.
+  if(!action&&(e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&k===" ")))return;
+  if(action||["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d"," "].includes(k)){
+    e.preventDefault();
+    if(k===" "){if(!e.repeat)togglePause();return;}
+    if(paused)return;
+    keys.add(k);
+    if(action&&!e.repeat&&action!=="sprint")queuedActions.add(action);
   }
-});
-window.addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
+},true);
+window.addEventListener("keyup",e=>keys.delete(keyboardKey(e)),true);
 window.addEventListener("blur",()=>{clearInput();if(running&&!paused)togglePause();});
 document.addEventListener("visibilitychange",()=>{if(document.hidden){clearInput();if(running&&!paused)togglePause();}});
 function updateJoy(e){
