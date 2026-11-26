@@ -17,6 +17,7 @@ import {
   drawRoundedRect,
   drawSpeechBubble,
   drawStar,
+  drawStorybookFrame,
   drawSunRays,
   drawToyBlock,
   drawWovenBasket,
@@ -58,19 +59,38 @@ function drawTitleBanner(
   state: GameState,
   w: number
 ): void {
-  drawRoundedRect(ctx, 22, 18, w - 44, 78, 18);
-  ctx.fillStyle = "rgba(255, 248, 235, 0.92)";
+  // Soft shadow + warm parchment banner gradient
+  drawRoundedRect(ctx, 22, 19, w - 40, 80, 18);
+  ctx.fillStyle = "rgba(58, 38, 22, 0.14)";
+  ctx.fill();
+
+  drawRoundedRect(ctx, 20, 16, w - 40, 80, 18);
+  const bg = ctx.createLinearGradient(0, 16, 0, 96);
+  bg.addColorStop(0, "#FFFEFA");
+  bg.addColorStop(1, "#FBEAD0");
+  ctx.fillStyle = bg;
   ctx.fill();
   ctx.lineWidth = 2.5;
   ctx.strokeStyle = PALETTE.ink;
   ctx.stroke();
 
+  // Inner golden storybook hairline
+  drawRoundedRect(ctx, 25, 21, w - 50, 70, 14);
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = "rgba(229, 169, 59, 0.72)";
+  ctx.stroke();
+
+  drawStar(ctx, 42, 56, 10, PALETTE.sunGold);
+  drawStar(ctx, w - 42, 56, 10, PALETTE.sunGold);
+
   ctx.textAlign = "center";
   ctx.fillStyle = PALETTE.ink;
-  ctx.font = "800 22px system-ui, -apple-system, sans-serif";
+  ctx.font = "800 20px Georgia, serif";
   ctx.fillText(formatPrimary(UI_TEXT.gameTitle, state.langMode), w / 2, 50);
 
-  const sub = formatSecondary(UI_TEXT.gameTitle, state.langMode) || formatPrimary(UI_TEXT.gameSubtitle, state.langMode);
+  const sub =
+    formatSecondary(UI_TEXT.gameTitle, state.langMode) ||
+    formatPrimary(UI_TEXT.gameSubtitle, state.langMode);
   ctx.fillStyle = PALETTE.terracottaDark;
   ctx.font = "700 15px system-ui, -apple-system, sans-serif";
   ctx.fillText(sub, w / 2, 78);
@@ -342,15 +362,35 @@ function renderDavidHarpPlay(
   drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
   drawLittleSheep(ctx, w * 0.84, 134, 1.0, timeSec);
 
-  // Warm parchment harp stage frame
+  // Warm parchment harp stage frame with gilded wood top arch
   const boardX = 28;
-  const boardY = 146;
+  const boardY = 148;
   const boardW = w - 56;
-  const boardH = h - 162;
+  const boardH = h - 164;
+
+  // Soft drop shadow
+  drawRoundedRect(ctx, boardX + 2, boardY + 4, boardW, boardH, 20);
+  ctx.fillStyle = "rgba(56, 36, 20, 0.16)";
+  ctx.fill();
+
   drawRoundedRect(ctx, boardX, boardY, boardW, boardH, 20);
-  ctx.fillStyle = "rgba(255, 249, 236, 0.94)";
+  const boardGrad = ctx.createLinearGradient(boardX, boardY, boardX, boardY + boardH);
+  boardGrad.addColorStop(0, "#FFFDF7");
+  boardGrad.addColorStop(1, "#F9E7C4");
+  ctx.fillStyle = boardGrad;
   ctx.fill();
   ctx.lineWidth = 3;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Ornate top wooden harp crossbar
+  drawRoundedRect(ctx, boardX - 4, boardY - 4, boardW + 8, 16, 8);
+  const barGrad = ctx.createLinearGradient(boardX, boardY - 4, boardX, boardY + 12);
+  barGrad.addColorStop(0, "#E7B454");
+  barGrad.addColorStop(1, "#B0732C");
+  ctx.fillStyle = barGrad;
+  ctx.fill();
+  ctx.lineWidth = 2.2;
   ctx.strokeStyle = PALETTE.ink;
   ctx.stroke();
 
@@ -358,7 +398,10 @@ function renderDavidHarpPlay(
   const zoneCenterY = boardY + boardH * 0.78;
   const zoneH = state.ageMode === "explorer" ? 54 : 42;
   drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
-  ctx.fillStyle = "rgba(246, 196, 83, 0.34)";
+  const zoneGrad = ctx.createLinearGradient(boardX, zoneCenterY - zoneH / 2, boardX, zoneCenterY + zoneH / 2);
+  zoneGrad.addColorStop(0, "rgba(255, 236, 158, 0.52)");
+  zoneGrad.addColorStop(1, "rgba(246, 196, 83, 0.28)");
+  ctx.fillStyle = zoneGrad;
   ctx.fill();
   ctx.lineWidth = 2;
   ctx.strokeStyle = PALETTE.warmGold;
@@ -430,12 +473,39 @@ function renderVerseBuilderPlay(
   drawJesus(ctx, w * 0.20, 178, 0.88, "welcome", timeSec);
   drawGratitudeOliveTree(ctx, w * 0.82, 200, 128, 126, [], timeSec);
 
-  // Golden treasure parchment scroll
-  drawRoundedRect(ctx, 22, 186, w - 44, h - 208, 22);
-  ctx.fillStyle = "#FFF9EC";
+  // Illuminated golden treasure parchment scroll with wooden roller handles
+  drawRoundedRect(ctx, 24, 188, w - 44, h - 208, 18);
+  ctx.fillStyle = "rgba(56, 36, 20, 0.14)";
   ctx.fill();
-  ctx.lineWidth = 3;
+
+  drawRoundedRect(ctx, 22, 184, w - 44, h - 208, 18);
+  const scrollGrad = ctx.createLinearGradient(22, 184, 22, h - 24);
+  scrollGrad.addColorStop(0, "#FFFDF7");
+  scrollGrad.addColorStop(0.5, "#FFF6E0");
+  scrollGrad.addColorStop(1, "#F5DFB6");
+  ctx.fillStyle = scrollGrad;
+  ctx.fill();
+  ctx.lineWidth = 2.8;
   ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Left and right wooden scroll rollers
+  drawRoundedRect(ctx, 13, 178, 12, h - 196, 6);
+  ctx.fillStyle = "#B87A4B";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  drawRoundedRect(ctx, w - 25, 178, 12, h - 196, 6);
+  ctx.fillStyle = "#B87A4B";
+  ctx.fill();
+  ctx.stroke();
+
+  // Inner golden scroll border
+  drawRoundedRect(ctx, 30, 191, w - 60, h - 222, 12);
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = "rgba(229, 169, 59, 0.65)";
   ctx.stroke();
 
   if (stage.subPhase === "quiz") {
@@ -552,6 +622,7 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
     drawFloatingLeaves(ctx, w, h, t);
     drawTitleBanner(ctx, state, w);
     drawEasterOverlay(ctx, state, w, w * 0.34, w * 0.77, w * 0.56, 106);
+    drawStorybookFrame(ctx, w, h);
     return;
   }
 
@@ -634,6 +705,7 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
     } else {
       renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
     }
+    drawStorybookFrame(ctx, w, h);
     return;
   }
 
@@ -727,4 +799,5 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
     }
   }
   drawEasterOverlay(ctx, state, w, w * 0.24, w * 0.64, w * 0.42, 18);
+  drawStorybookFrame(ctx, w, h);
 }

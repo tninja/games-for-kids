@@ -390,6 +390,12 @@ function makeStrictCanvasCtx() {
       get(_t, prop) {
         if (prop === "measureText") return () => ({ width: 52 });
         if (prop === "createLinearGradient") return () => ({ addColorStop() {} });
+        if (prop === "createRadialGradient")
+          return (_x0, _y0, r0, _x1, _y1, r1) => {
+            assertRadius("radialGradient.r0", r0);
+            assertRadius("radialGradient.r1", r1);
+            return { addColorStop() {} };
+          };
         if (prop === "arc") return (_x, _y, r) => assertRadius("arc.r", r);
         if (prop === "ellipse")
           return (_x, _y, rx, ry) => {

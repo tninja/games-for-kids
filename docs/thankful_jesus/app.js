@@ -171,6 +171,9 @@ var __ThankfulJesusBundle = (() => {
   function safeEllipse(ctx, x, y, rx, ry, rot, start, end) {
     ctx.ellipse(x, y, safeR(rx), safeR(ry), rot, start, end);
   }
+  function safeRadialGradient(ctx, x0, y0, r0, x1, y1, r1) {
+    return ctx.createRadialGradient(x0, y0, Math.max(0, safeR(r0)), x1, y1, safeR(r1));
+  }
   function drawRoundedRect(ctx, x, y, w, h, r) {
     const rr = Math.max(0, Math.min(r, w / 2, h / 2));
     ctx.beginPath();
@@ -184,6 +187,14 @@ var __ThankfulJesusBundle = (() => {
     ctx.lineTo(x, y + rr);
     ctx.quadraticCurveTo(x, y, x + rr, y);
     ctx.closePath();
+  }
+  function drawGroundShadow(ctx, cx, cy, rx, ry) {
+    ctx.save();
+    ctx.fillStyle = "rgba(58, 40, 24, 0.16)";
+    ctx.beginPath();
+    safeEllipse(ctx, cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
   function drawStar(ctx, cx, cy, outerR, fill, stroke = PALETTE.ink) {
     const rOut = safeR(outerR);
@@ -202,12 +213,22 @@ var __ThankfulJesusBundle = (() => {
       }
     }
     ctx.closePath();
-    ctx.fillStyle = fill;
+    const grad = ctx.createLinearGradient(cx, cy - rOut, cx, cy + rOut);
+    grad.addColorStop(0, "#FFF3B0");
+    grad.addColorStop(0.45, fill);
+    grad.addColorStop(1, fill);
+    ctx.fillStyle = fill === "#E4D7C5" ? fill : grad;
     ctx.fill();
-    ctx.lineWidth = Math.max(1.5, rOut * 0.11);
+    ctx.lineWidth = Math.max(1.4, rOut * 0.1);
     ctx.strokeStyle = stroke;
     ctx.lineJoin = "round";
     ctx.stroke();
+    if (fill !== "#E4D7C5") {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.beginPath();
+      safeArc(ctx, cx - rOut * 0.16, cy - rOut * 0.22, rOut * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
   function drawHeart(ctx, cx, cy, size, fill) {
@@ -215,15 +236,23 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.beginPath();
-    ctx.moveTo(0, s * 0.65);
-    ctx.bezierCurveTo(-s * 1.1, -s * 0.05, -s * 0.85, -s * 0.9, 0, -s * 0.32);
-    ctx.bezierCurveTo(s * 0.85, -s * 0.9, s * 1.1, -s * 0.05, 0, s * 0.65);
+    ctx.moveTo(0, s * 0.68);
+    ctx.bezierCurveTo(-s * 1.12, -s * 0.05, -s * 0.85, -s * 0.92, 0, -s * 0.32);
+    ctx.bezierCurveTo(s * 0.85, -s * 0.92, s * 1.12, -s * 0.05, 0, s * 0.68);
     ctx.closePath();
-    ctx.fillStyle = fill;
+    const g = ctx.createLinearGradient(-s, -s, s, s);
+    g.addColorStop(0, "#FFAD99");
+    g.addColorStop(0.35, fill);
+    g.addColorStop(1, fill);
+    ctx.fillStyle = g;
     ctx.fill();
-    ctx.lineWidth = Math.max(1.5, s * 0.14);
+    ctx.lineWidth = Math.max(1.4, s * 0.13);
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.beginPath();
+    safeEllipse(ctx, -s * 0.32, -s * 0.26, s * 0.18, s * 0.11, -0.5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
   function drawCross(ctx, cx, cy, size, fill = PALETTE.sunGold) {
@@ -231,9 +260,13 @@ var __ThankfulJesusBundle = (() => {
     const bar = s * 0.34;
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.fillStyle = fill;
+    const grad = ctx.createLinearGradient(-s * 0.5, -s, s * 0.5, s);
+    grad.addColorStop(0, "#FFF3BD");
+    grad.addColorStop(0.45, fill);
+    grad.addColorStop(1, fill);
+    ctx.fillStyle = grad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = Math.max(1.5, s * 0.12);
+    ctx.lineWidth = Math.max(1.4, s * 0.11);
     ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(-bar / 2, -s);
@@ -259,21 +292,29 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(tilt);
+    const grad = ctx.createLinearGradient(-s * 0.6, -s, s * 0.6, s);
+    grad.addColorStop(0, "#FFF3CC");
+    grad.addColorStop(0.28, spec.fill);
+    grad.addColorStop(1, spec.vein);
     ctx.beginPath();
     ctx.moveTo(0, -s);
-    ctx.quadraticCurveTo(s * 0.85, -s * 0.25, 0, s);
-    ctx.quadraticCurveTo(-s * 0.85, -s * 0.25, 0, -s);
+    ctx.bezierCurveTo(s * 0.85, -s * 0.45, s * 0.72, s * 0.45, 0, s);
+    ctx.bezierCurveTo(-s * 0.72, s * 0.45, -s * 0.85, -s * 0.45, 0, -s);
     ctx.closePath();
-    ctx.fillStyle = spec.fill;
+    ctx.fillStyle = grad;
     ctx.fill();
-    ctx.lineWidth = Math.max(1.4, s * 0.12);
+    ctx.lineWidth = Math.max(1.2, s * 0.11);
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 251, 236, 0.55)";
+    ctx.lineWidth = Math.max(1, s * 0.08);
     ctx.beginPath();
-    ctx.moveTo(0, -s * 0.65);
+    ctx.moveTo(0, -s * 0.68);
     ctx.lineTo(0, s * 1.15);
-    ctx.strokeStyle = spec.vein;
-    ctx.lineWidth = Math.max(1.2, s * 0.1);
+    ctx.moveTo(0, -s * 0.15);
+    ctx.lineTo(s * 0.32, -s * 0.35);
+    ctx.moveTo(0, s * 0.22);
+    ctx.lineTo(-s * 0.32, 0);
     ctx.stroke();
     ctx.restore();
   }
@@ -281,16 +322,38 @@ var __ThankfulJesusBundle = (() => {
     const r = safeR(radius);
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(timeSec * 0.15);
-    ctx.fillStyle = "rgba(246, 196, 83, " + String(alpha) + ")";
+    const aura = safeRadialGradient(ctx, 0, 0, 4, 0, 0, r);
+    aura.addColorStop(0, "rgba(255, 238, 168, " + String(Math.min(0.65, alpha * 1.6)) + ")");
+    aura.addColorStop(0.55, "rgba(246, 196, 83, " + String(alpha * 0.7) + ")");
+    aura.addColorStop(1, "rgba(246, 196, 83, 0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.rotate(timeSec * 0.12);
+    ctx.fillStyle = "rgba(255, 230, 145, " + String(alpha * 0.72) + ")";
     const rays = 12;
     for (let i = 0; i < rays; i++) {
       const a = i * Math.PI * 2 / rays;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(a - 0.12) * r, Math.sin(a - 0.12) * r);
-      ctx.lineTo(Math.cos(a + 0.12) * r, Math.sin(a + 0.12) * r);
+      ctx.lineTo(Math.cos(a - 0.1) * r, Math.sin(a - 0.1) * r);
+      ctx.lineTo(Math.cos(a + 0.1) * r, Math.sin(a + 0.1) * r);
       ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawLightMotes(ctx, w, h, timeSec) {
+    ctx.save();
+    for (let i = 0; i < 10; i++) {
+      const px = (i * 53 + timeSec * (7 + i % 3 * 3)) % (w - 24) + 12;
+      const py = 24 + (i * 47 + Math.sin(timeSec * 1.4 + i) * 18) % (h * 0.65);
+      const pulse = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(timeSec * 3.1 + i * 1.7));
+      const r = 2 + i % 3 * 1.1;
+      ctx.fillStyle = "rgba(255, 245, 196, " + String(pulse.toFixed(2)) + ")";
+      ctx.beginPath();
+      safeArc(ctx, px, py, r, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
@@ -300,109 +363,219 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
-    ctx.fillStyle = "rgba(255, 253, 248, 0.85)";
+    ctx.fillStyle = "rgba(244, 212, 184, 0.45)";
     ctx.beginPath();
-    safeArc(ctx, -18, 4, 14, 0, Math.PI * 2);
-    safeArc(ctx, 0, -3, 18, 0, Math.PI * 2);
-    safeArc(ctx, 19, 4, 13, 0, Math.PI * 2);
+    safeEllipse(ctx, 2, 10, 32, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const grad = ctx.createLinearGradient(0, -20, 0, 14);
+    grad.addColorStop(0, "rgba(255, 254, 250, 0.95)");
+    grad.addColorStop(1, "rgba(255, 239, 216, 0.85)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    safeArc(ctx, -20, 5, 13, 0, Math.PI * 2);
+    safeArc(ctx, -6, -4, 17, 0, Math.PI * 2);
+    safeArc(ctx, 11, -2, 15, 0, Math.PI * 2);
+    safeArc(ctx, 24, 6, 11, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
   function drawWhiteDove(ctx, cx, cy, scale = 1, timeSec = 0) {
     const s = safeR(scale);
-    const flap = Math.sin(timeSec * 5.2) * 7;
+    const flap = Math.sin(timeSec * 5) * 6.5;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
+    const glow = safeRadialGradient(ctx, 0, 0, 2, 0, 0, 22);
+    glow.addColorStop(0, "rgba(255, 250, 225, 0.55)");
+    glow.addColorStop(1, "rgba(255, 250, 225, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 22, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = "#FFFDF9";
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = "#4A3A31";
+    ctx.lineWidth = 1.5;
     ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(-9, 1);
+    ctx.lineTo(-18, -3);
+    ctx.lineTo(-17, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     ctx.beginPath();
     safeEllipse(ctx, 0, 0, 11, 5.5, -0.08, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(-2, -1);
-    ctx.quadraticCurveTo(-8, -14 + flap, -17, -6 + flap * 0.7);
-    ctx.quadraticCurveTo(-7, -3, -2, 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.beginPath();
     ctx.moveTo(1, -2);
-    ctx.quadraticCurveTo(6, -15 - flap * 0.5, 13, -7 - flap * 0.4);
+    ctx.quadraticCurveTo(6, -15 - flap * 0.45, 13, -7 - flap * 0.35);
     ctx.quadraticCurveTo(6, -3, 2, 1);
     ctx.closePath();
+    ctx.fillStyle = "#F5EFE6";
     ctx.fill();
     ctx.stroke();
-    ctx.strokeStyle = PALETTE.oliveGreen;
-    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-2, -1);
+    ctx.quadraticCurveTo(-8, -15 + flap, -18, -6 + flap * 0.7);
+    ctx.quadraticCurveTo(-7, -2, -2, 2);
+    ctx.closePath();
+    ctx.fillStyle = "#FFFDF9";
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = PALETTE.ink;
+    ctx.beginPath();
+    safeArc(ctx, 7, -1.5, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = PALETTE.oliveDark;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(10, -1);
-    ctx.lineTo(17, 2);
+    ctx.lineTo(18, 2);
     ctx.stroke();
+    ctx.fillStyle = "#7BA86C";
+    ctx.beginPath();
+    safeEllipse(ctx, 15, -0.5, 2.5, 1.3, -0.5, 0, Math.PI * 2);
+    safeEllipse(ctx, 17, 3, 2.5, 1.3, 0.5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
   function drawGalileeBoat(ctx, cx, cy, scale = 1, timeSec = 0) {
     const s = safeR(scale);
     const bob = Math.sin(timeSec * 2.1) * 1.8;
-    const tilt = Math.sin(timeSec * 1.7) * 0.05;
+    const tilt = Math.sin(timeSec * 1.7) * 0.045;
     ctx.save();
     ctx.translate(cx, cy + bob);
+    ctx.fillStyle = "rgba(85, 132, 160, 0.25)";
+    ctx.beginPath();
+    safeEllipse(ctx, 0, 11 * s, 18 * s, 4 * s, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.rotate(tilt);
     ctx.scale(s, s);
-    ctx.fillStyle = "#FFF9EC";
+    const sailGrad = ctx.createLinearGradient(0, -26, 16, -2);
+    sailGrad.addColorStop(0, "#FFFDF7");
+    sailGrad.addColorStop(1, "#F7DFB9");
+    ctx.fillStyle = sailGrad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(0, -24);
-    ctx.quadraticCurveTo(15, -14, 12, -3);
+    ctx.moveTo(0, -26);
+    ctx.quadraticCurveTo(18, -15, 14, -3);
     ctx.lineTo(0, -3);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.strokeStyle = "#7D4C1E";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#D46A43";
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
-    ctx.moveTo(0, -25);
+    ctx.moveTo(1, -13);
+    ctx.quadraticCurveTo(9, -12, 13, -11);
+    ctx.stroke();
+    ctx.strokeStyle = "#7D4C1E";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(0, -27);
     ctx.lineTo(0, 0);
     ctx.stroke();
-    ctx.fillStyle = "#B67346";
+    const hullGrad = ctx.createLinearGradient(0, -2, 0, 9);
+    hullGrad.addColorStop(0, "#C9854E");
+    hullGrad.addColorStop(1, "#8C5229");
+    ctx.fillStyle = hullGrad;
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 1.7;
     ctx.beginPath();
-    ctx.moveTo(-18, -1);
-    ctx.lineTo(18, -1);
-    ctx.lineTo(12, 8);
-    ctx.lineTo(-12, 8);
+    ctx.moveTo(-20, -2);
+    ctx.quadraticCurveTo(0, 1, 20, -2);
+    ctx.lineTo(13, 8);
+    ctx.quadraticCurveTo(0, 10, -13, 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     ctx.restore();
   }
-  function drawWildflower(ctx, cx, cy, scale = 1, petalColor = "#FFF2A6") {
+  function drawDistantVillage(ctx, x, y, scale) {
     const s = safeR(scale);
     ctx.save();
-    ctx.translate(cx, cy);
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    const houses = [
+      { dx: -16, dy: -8, w: 12, h: 9, c: "#F7E6CE" },
+      { dx: -2, dy: -11, w: 14, h: 12, c: "#FFF2DF" },
+      { dx: 14, dy: -7, w: 10, h: 8, c: "#EDD5B8" }
+    ];
+    for (let i = 0; i < houses.length; i++) {
+      const hs = houses[i];
+      ctx.fillStyle = hs.c;
+      ctx.fillRect(hs.dx, hs.dy, hs.w, hs.h);
+      ctx.fillStyle = "#C78D60";
+      ctx.fillRect(hs.dx - 1, hs.dy - 2, hs.w + 2, 2.5);
+      ctx.fillStyle = "#7E604C";
+      ctx.fillRect(hs.dx + hs.w * 0.4, hs.dy + hs.h * 0.42, 2.5, 4);
+    }
+    const trees = [-24, 11, 28];
+    ctx.fillStyle = "#5F7E58";
+    for (let i = 0; i < trees.length; i++) {
+      ctx.beginPath();
+      safeEllipse(ctx, trees[i], -9, 3, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawWildflower(ctx, cx, cy, scale = 1, petalColor = "#FFF2A6", timeSec = 0) {
+    const s = safeR(scale);
+    const sway = Math.sin(timeSec * 2.2 + cx * 0.05) * 0.12;
+    ctx.save();
+    ctx.translate(cx, cy + 10 * s);
+    ctx.rotate(sway);
+    ctx.translate(0, -10 * s);
     ctx.scale(s, s);
     ctx.strokeStyle = PALETTE.oliveDark;
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(0, 10);
+    ctx.quadraticCurveTo(2, 5, 0, 11);
     ctx.stroke();
+    ctx.fillStyle = "#7EA569";
+    ctx.beginPath();
+    safeEllipse(ctx, 3.5, 6, 3.5, 1.5, -0.5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = petalColor;
+    ctx.strokeStyle = "rgba(46, 36, 30, 0.35)";
+    ctx.lineWidth = 0.8;
     for (let i = 0; i < 5; i++) {
       const a = i * Math.PI * 2 / 5;
       ctx.beginPath();
-      safeArc(ctx, Math.cos(a) * 4, Math.sin(a) * 4, 3, 0, Math.PI * 2);
+      safeArc(ctx, Math.cos(a) * 4.2, Math.sin(a) * 4.2, 3.1, 0, Math.PI * 2);
       ctx.fill();
+      ctx.stroke();
     }
     ctx.fillStyle = PALETTE.sunGold;
     ctx.beginPath();
-    safeArc(ctx, 0, 0, 2.5, 0, Math.PI * 2);
+    safeArc(ctx, 0, 0, 2.6, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  }
+  function drawWheatStalk(ctx, cx, baseY, scale, timeSec) {
+    const s = safeR(scale);
+    const sway = Math.sin(timeSec * 1.9 + cx * 0.04) * 0.14;
+    ctx.save();
+    ctx.translate(cx, baseY);
+    ctx.rotate(sway);
+    ctx.scale(s, s);
+    ctx.strokeStyle = "#C9963B";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(3, -12, 1, -24);
+    ctx.stroke();
+    ctx.fillStyle = "#F2C45A";
+    for (let i = 0; i < 4; i++) {
+      const gy = -12 - i * 3.5;
+      ctx.beginPath();
+      safeEllipse(ctx, -2.5, gy, 2.6, 1.4, -0.6, 0, Math.PI * 2);
+      safeEllipse(ctx, 3.5, gy - 1, 2.6, 1.4, 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
   function drawGoldenFootprint(ctx, cx, cy, scale = 1, tilt = 0) {
@@ -411,7 +584,7 @@ var __ThankfulJesusBundle = (() => {
     ctx.translate(cx, cy);
     ctx.rotate(tilt);
     ctx.scale(s, s);
-    ctx.fillStyle = "rgba(246, 196, 83, 0.85)";
+    ctx.fillStyle = "rgba(246, 196, 83, 0.88)";
     ctx.strokeStyle = PALETTE.terracottaDark;
     ctx.lineWidth = 1.4;
     ctx.beginPath();
@@ -426,16 +599,16 @@ var __ThankfulJesusBundle = (() => {
   }
   function drawHeartBurst(ctx, cx, cy, progress, timeSec) {
     const p = Math.max(0, Math.min(1, progress));
-    const spread = 24 + (1 - p) * 46;
+    const spread = 24 + (1 - p) * 48;
     const items = 5;
     for (let i = 0; i < items; i++) {
       const a = -Math.PI * 0.85 + i / (items - 1) * Math.PI * 0.7 + Math.sin(timeSec * 4 + i) * 0.08;
       const px = cx + Math.cos(a) * spread;
       const py = cy + Math.sin(a) * spread;
       if (i % 2 === 0) {
-        drawHeart(ctx, px, py, 6.5, "#E06D53");
+        drawHeart(ctx, px, py, 6.8, "#E06D53");
       } else {
-        drawStar(ctx, px, py, 6.5, PALETTE.sunGold);
+        drawStar(ctx, px, py, 6.8, PALETTE.sunGold);
       }
     }
   }
@@ -448,12 +621,18 @@ var __ThankfulJesusBundle = (() => {
       ctx.font = "700 12px system-ui, -apple-system, sans-serif";
       w2 = ctx.measureText(secondary).width;
     }
-    const boxW = Math.min(canvasWidth - 28, Math.max(126, Math.max(w1, w2) + 28));
+    const boxW = Math.min(canvasWidth - 28, Math.max(130, Math.max(w1, w2) + 30));
     const boxH = secondary ? 48 : 32;
     const x = Math.max(14, Math.min(canvasWidth - 14 - boxW, cx - boxW / 2));
     const y = Math.max(10, topY);
+    drawRoundedRect(ctx, x + 2, y + 3, boxW, boxH, 14);
+    ctx.fillStyle = "rgba(56, 38, 24, 0.14)";
+    ctx.fill();
     drawRoundedRect(ctx, x, y, boxW, boxH, 14);
-    ctx.fillStyle = "rgba(255, 251, 242, 0.96)";
+    const bg = ctx.createLinearGradient(x, y, x, y + boxH);
+    bg.addColorStop(0, "#FFFEFA");
+    bg.addColorStop(1, "#FFF2D9");
+    ctx.fillStyle = bg;
     ctx.fill();
     ctx.lineWidth = 2.2;
     ctx.strokeStyle = PALETTE.ink;
@@ -465,7 +644,7 @@ var __ThankfulJesusBundle = (() => {
       ctx.lineTo(tx, y + boxH + 9);
       ctx.lineTo(tx + 7, y + boxH - 1);
       ctx.closePath();
-      ctx.fillStyle = "rgba(255, 251, 242, 0.96)";
+      ctx.fillStyle = "#FFF2D9";
       ctx.fill();
       ctx.beginPath();
       ctx.moveTo(tx - 7, y + boxH);
@@ -488,222 +667,365 @@ var __ThankfulJesusBundle = (() => {
     }
     ctx.restore();
   }
-  function drawGalileeBackdrop(ctx, w, h, timeSec) {
-    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.7);
-    sky.addColorStop(0, "#D8EEF7");
-    sky.addColorStop(0.55, "#F9ECCE");
-    sky.addColorStop(1, "#FBE1B8");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-    const cloud1X = (timeSec * 8 + w * 0.22) % (w + 90) - 45;
-    const cloud2X = (timeSec * 5 + w * 0.62) % (w + 90) - 45;
-    drawSoftCloud(ctx, cloud1X, h * 0.14, 0.95);
-    drawSoftCloud(ctx, cloud2X, h * 0.24, 0.78);
-    drawSunRays(ctx, w * 0.82, h * 0.16, 95, timeSec, 0.22);
+  function drawStorybookFrame(ctx, w, h) {
     ctx.save();
-    ctx.beginPath();
-    safeArc(ctx, w * 0.82, h * 0.16, 28, 0, Math.PI * 2);
-    ctx.fillStyle = "#FFE394";
-    ctx.fill();
+    drawRoundedRect(ctx, 5, 5, w - 10, h - 10, 14);
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "#E5A93B";
+    ctx.strokeStyle = "rgba(184, 122, 75, 0.36)";
     ctx.stroke();
     ctx.restore();
-    const doveX = (timeSec * 16 + w * 0.15) % (w + 60) - 30;
+  }
+  function drawGalileeBackdrop(ctx, w, h, timeSec) {
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.62);
+    sky.addColorStop(0, "#97CBE3");
+    sky.addColorStop(0.36, "#CBE6F0");
+    sky.addColorStop(0.68, "#FCE7C3");
+    sky.addColorStop(1, "#FAD29F");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    const sunX = w * 0.82;
+    const sunY = h * 0.16;
+    drawSunRays(ctx, sunX, sunY, 118, timeSec, 0.25);
+    const cloud1X = (timeSec * 7 + w * 0.22) % (w + 96) - 48;
+    const cloud2X = (timeSec * 4.5 + w * 0.62) % (w + 96) - 48;
+    drawSoftCloud(ctx, cloud1X, h * 0.14, 0.96);
+    drawSoftCloud(ctx, cloud2X, h * 0.24, 0.78);
+    ctx.save();
+    const sunGrad = safeRadialGradient(ctx, sunX - 5, sunY - 5, 4, sunX, sunY, 30);
+    sunGrad.addColorStop(0, "#FFFDF0");
+    sunGrad.addColorStop(0.6, "#FFE38C");
+    sunGrad.addColorStop(1, "#F5B84B");
+    ctx.beginPath();
+    safeArc(ctx, sunX, sunY, 27, 0, Math.PI * 2);
+    ctx.fillStyle = sunGrad;
+    ctx.fill();
+    ctx.restore();
+    const doveX = (timeSec * 15 + w * 0.15) % (w + 60) - 30;
     const doveY = h * 0.29 + Math.sin(timeSec * 1.8) * 6;
-    drawWhiteDove(ctx, doveX, doveY, 0.82, timeSec);
-    ctx.fillStyle = "#B6C9A4";
+    drawWhiteDove(ctx, doveX, doveY, 0.84, timeSec);
+    const farHill = ctx.createLinearGradient(0, h * 0.38, 0, h * 0.56);
+    farHill.addColorStop(0, "#C3B9C7");
+    farHill.addColorStop(1, "#D9CCB8");
+    ctx.fillStyle = farHill;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.54);
+    ctx.quadraticCurveTo(w * 0.18, h * 0.39, w * 0.44, h * 0.51);
+    ctx.quadraticCurveTo(w * 0.72, h * 0.37, w, h * 0.5);
+    ctx.lineTo(w, h * 0.62);
+    ctx.lineTo(0, h * 0.62);
+    ctx.closePath();
+    ctx.fill();
+    const midHill = ctx.createLinearGradient(0, h * 0.44, 0, h * 0.58);
+    midHill.addColorStop(0, "#A9BF8E");
+    midHill.addColorStop(1, "#7F9F72");
+    ctx.fillStyle = midHill;
     ctx.beginPath();
     ctx.moveTo(0, h * 0.56);
-    ctx.quadraticCurveTo(w * 0.25, h * 0.43, w * 0.55, h * 0.54);
-    ctx.quadraticCurveTo(w * 0.82, h * 0.46, w, h * 0.55);
+    ctx.quadraticCurveTo(w * 0.26, h * 0.44, w * 0.56, h * 0.54);
+    ctx.quadraticCurveTo(w * 0.82, h * 0.47, w, h * 0.55);
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = "#9ACCE0";
-    ctx.fillRect(0, h * 0.55, w, h * 0.12);
-    ctx.strokeStyle = "rgba(255, 253, 247, 0.55)";
-    ctx.lineWidth = 2;
+    drawDistantVillage(ctx, w * 0.22, h * 0.515, 0.88);
+    const waterGrad = ctx.createLinearGradient(0, h * 0.54, 0, h * 0.68);
+    waterGrad.addColorStop(0, "#75B5CF");
+    waterGrad.addColorStop(0.5, "#92C9DD");
+    waterGrad.addColorStop(1, "#6DA7C2");
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(0, h * 0.545, w, h * 0.13);
+    ctx.save();
+    for (let i = 0; i < 6; i++) {
+      const wy = h * (0.558 + i * 0.017);
+      const rw = (22 + i * 7) * (0.85 + 0.15 * Math.sin(timeSec * 3 + i));
+      ctx.fillStyle = "rgba(255, 232, 165, " + String((0.46 - i * 0.05).toFixed(2)) + ")";
+      ctx.beginPath();
+      safeEllipse(ctx, sunX - 10 + Math.sin(timeSec * 2 + i) * 5, wy, rw, 2.2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(255, 253, 247, 0.48)";
+    ctx.lineWidth = 1.6;
     for (let i = 0; i < 4; i++) {
-      const y = h * (0.58 + i * 0.025);
+      const y = h * (0.575 + i * 0.022);
       const shift = Math.sin(timeSec * 1.4 + i) * 8;
       ctx.beginPath();
-      ctx.moveTo(w * (0.12 + i * 0.16) + shift, y);
-      ctx.lineTo(w * (0.28 + i * 0.16) + shift, y);
+      ctx.moveTo(w * (0.1 + i * 0.15) + shift, y);
+      ctx.lineTo(w * (0.24 + i * 0.15) + shift, y);
       ctx.stroke();
     }
-    drawGalileeBoat(ctx, w * 0.72 + Math.sin(timeSec * 0.4) * 14, h * 0.58, 0.72, timeSec);
-    ctx.fillStyle = "#A9C17D";
+    drawGalileeBoat(ctx, w * 0.7 + Math.sin(timeSec * 0.35) * 14, h * 0.578, 0.74, timeSec);
+    const meadowGrad = ctx.createLinearGradient(0, h * 0.62, 0, h);
+    meadowGrad.addColorStop(0, "#BDD186");
+    meadowGrad.addColorStop(0.45, "#9BB86B");
+    meadowGrad.addColorStop(1, "#7B9B54");
+    ctx.fillStyle = meadowGrad;
     ctx.beginPath();
     ctx.moveTo(0, h * 0.65);
-    ctx.quadraticCurveTo(w * 0.5, h * 0.59, w, h * 0.66);
+    ctx.quadraticCurveTo(w * 0.5, h * 0.59, w, h * 0.655);
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = "rgba(255, 244, 196, 0.45)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.652);
+    ctx.quadraticCurveTo(w * 0.5, h * 0.592, w, h * 0.657);
+    ctx.stroke();
+    drawWheatStalk(ctx, w * 0.06, h * 0.94, 0.9, timeSec);
+    drawWheatStalk(ctx, w * 0.11, h * 0.96, 0.78, timeSec + 0.5);
+    drawWheatStalk(ctx, w * 0.94, h * 0.95, 0.88, timeSec + 1.1);
     const flowers = [
-      { x: 0.09, y: 0.86, c: "#FFF4B5" },
-      { x: 0.22, y: 0.91, c: "#FFD5C2" },
-      { x: 0.88, y: 0.84, c: "#FFF4B5" },
-      { x: 0.93, y: 0.92, c: "#E8F6FF" }
+      { x: 0.09, y: 0.85, c: "#FFF5B8" },
+      { x: 0.21, y: 0.91, c: "#FFD5C2" },
+      { x: 0.88, y: 0.84, c: "#FFF5B8" },
+      { x: 0.92, y: 0.92, c: "#E8F6FF" }
     ];
     for (let i = 0; i < flowers.length; i++) {
-      drawWildflower(ctx, w * flowers[i].x, h * flowers[i].y, 0.85, flowers[i].c);
+      drawWildflower(ctx, w * flowers[i].x, h * flowers[i].y, 0.85, flowers[i].c, timeSec);
     }
+    drawLightMotes(ctx, w, h, timeSec);
   }
   function drawJesus(ctx, cx, baseY, scale, pose, timeSec) {
     const s = safeR(scale);
-    const bob = Math.sin(timeSec * 2.2) * 1.6 * s;
+    const bob = Math.sin(timeSec * 2.2) * 1.5 * s;
     ctx.save();
+    drawGroundShadow(ctx, cx, baseY + 3 * s, 26 * s, 6.5 * s);
     ctx.translate(cx, baseY + bob);
     ctx.scale(s, s);
-    ctx.save();
+    const haloR = 30 + Math.sin(timeSec * 2.8) * 1.8;
+    const haloGrad = safeRadialGradient(ctx, 0, -68, 4, 0, -68, haloR);
+    haloGrad.addColorStop(0, "rgba(255, 245, 194, 0.82)");
+    haloGrad.addColorStop(0.55, "rgba(246, 196, 83, 0.42)");
+    haloGrad.addColorStop(1, "rgba(246, 196, 83, 0)");
+    ctx.fillStyle = haloGrad;
     ctx.beginPath();
-    safeArc(ctx, 0, -68, 25 + Math.sin(timeSec * 3) * 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(246, 196, 83, 0.34)";
+    safeArc(ctx, 0, -68, haloR, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    safeArc(ctx, 0, -68, 19, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(229, 169, 59, 0.72)";
-    ctx.lineWidth = 2;
+    safeArc(ctx, 0, -68, 20, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(235, 180, 68, 0.65)";
+    ctx.lineWidth = 1.8;
     ctx.stroke();
-    ctx.restore();
+    const robeGrad = ctx.createLinearGradient(-24, -44, 24, 4);
+    robeGrad.addColorStop(0, "#FFFDF9");
+    robeGrad.addColorStop(0.6, "#FAF0DC");
+    robeGrad.addColorStop(1, "#EAD6B5");
     ctx.beginPath();
     ctx.moveTo(-18, -44);
     ctx.lineTo(18, -44);
-    ctx.lineTo(25, 0);
-    ctx.quadraticCurveTo(0, 6, -25, 0);
+    ctx.quadraticCurveTo(23, -20, 26, 0);
+    ctx.quadraticCurveTo(0, 7, -26, 0);
+    ctx.quadraticCurveTo(-23, -20, -18, -44);
     ctx.closePath();
-    ctx.fillStyle = PALETTE.robeCream;
+    ctx.fillStyle = robeGrad;
     ctx.fill();
-    ctx.lineWidth = 2.4;
+    ctx.lineWidth = 2.3;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
+    ctx.strokeStyle = "rgba(165, 128, 92, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-8, -32);
+    ctx.quadraticCurveTo(-11, -14, -12, 1);
+    ctx.moveTo(6, -26);
+    ctx.quadraticCurveTo(9, -12, 10, 1);
+    ctx.stroke();
+    const sashGrad = ctx.createLinearGradient(-16, -44, 18, 0);
+    sashGrad.addColorStop(0, "#DA5E49");
+    sashGrad.addColorStop(0.55, PALETTE.sashCrimson);
+    sashGrad.addColorStop(1, "#9B3325");
     ctx.beginPath();
     ctx.moveTo(-16, -44);
-    ctx.lineTo(-4, -44);
-    ctx.lineTo(18, -2);
-    ctx.lineTo(4, -2);
+    ctx.lineTo(-3, -44);
+    ctx.quadraticCurveTo(10, -22, 18, -1);
+    ctx.lineTo(4, -1);
+    ctx.quadraticCurveTo(-5, -22, -16, -44);
     ctx.closePath();
-    ctx.fillStyle = PALETTE.sashCrimson;
+    ctx.fillStyle = sashGrad;
     ctx.fill();
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.strokeStyle = "#F6C453";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(-14, -41);
+    ctx.quadraticCurveTo(-3, -20, 6, -3);
     ctx.stroke();
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     if (pose === "bless") {
       ctx.beginPath();
       ctx.moveTo(-16, -36);
-      ctx.quadraticCurveTo(-30, -44, -20, -56);
+      ctx.quadraticCurveTo(-31, -44, -20, -56);
       ctx.moveTo(16, -36);
-      ctx.quadraticCurveTo(30, -44, 20, -56);
-      ctx.strokeStyle = PALETTE.robeCream;
-      ctx.lineWidth = 10;
+      ctx.quadraticCurveTo(31, -44, 20, -56);
+      ctx.strokeStyle = "#FAF0DC";
+      ctx.lineWidth = 10.5;
       ctx.stroke();
       ctx.strokeStyle = PALETTE.ink;
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.1;
       ctx.stroke();
-      ctx.fillStyle = "#F0C39B";
+      ctx.fillStyle = "#F3C79F";
       ctx.beginPath();
-      safeArc(ctx, -20, -58, 4.5, 0, Math.PI * 2);
-      safeArc(ctx, 20, -58, 4.5, 0, Math.PI * 2);
+      safeArc(ctx, -20, -58, 4.6, 0, Math.PI * 2);
+      safeArc(ctx, 20, -58, 4.6, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     } else {
-      const handY = pose === "celebrate" ? -50 : -34;
+      const handY = pose === "celebrate" ? -51 : -34;
       ctx.beginPath();
       ctx.moveTo(-16, -36);
       ctx.lineTo(-32, handY);
       ctx.moveTo(16, -36);
       ctx.lineTo(32, handY);
-      ctx.strokeStyle = PALETTE.robeCream;
-      ctx.lineWidth = 9.5;
+      ctx.strokeStyle = "#FAF0DC";
+      ctx.lineWidth = 10;
       ctx.stroke();
       ctx.strokeStyle = PALETTE.ink;
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.1;
       ctx.stroke();
-      ctx.fillStyle = "#F0C39B";
+      ctx.fillStyle = "#F3C79F";
       ctx.beginPath();
-      safeArc(ctx, -33, handY, 4.5, 0, Math.PI * 2);
-      safeArc(ctx, 33, handY, 4.5, 0, Math.PI * 2);
+      safeArc(ctx, -33, handY, 4.6, 0, Math.PI * 2);
+      safeArc(ctx, 33, handY, 4.6, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     }
-    ctx.fillStyle = "#5B3B24";
+    const hairGrad = ctx.createLinearGradient(-16, -82, 16, -46);
+    hairGrad.addColorStop(0, "#754C2E");
+    hairGrad.addColorStop(1, "#4B2E1A");
+    ctx.fillStyle = hairGrad;
     ctx.beginPath();
-    safeEllipse(ctx, 0, -64, 17, 19, 0, 0, Math.PI * 2);
+    safeEllipse(ctx, 0, -64, 17.5, 20, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.1;
     ctx.stroke();
-    ctx.fillStyle = "#F3C79F";
+    const faceGrad = safeRadialGradient(ctx, -3, -70, 2, 0, -66, 15);
+    faceGrad.addColorStop(0, "#FADAC0");
+    faceGrad.addColorStop(1, "#EBB88C");
+    ctx.fillStyle = faceGrad;
     ctx.beginPath();
     safeArc(ctx, 0, -66, 13.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+    ctx.fillStyle = "#5F3C23";
+    ctx.beginPath();
+    ctx.moveTo(-13, -68);
+    ctx.quadraticCurveTo(-8, -81, 0, -78);
+    ctx.quadraticCurveTo(8, -81, 13, -68);
+    ctx.quadraticCurveTo(6, -75, 0, -73);
+    ctx.quadraticCurveTo(-6, -75, -13, -68);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(229, 128, 108, 0.32)";
+    ctx.beginPath();
+    safeEllipse(ctx, -7.2, -64, 3, 1.9, 0, 0, Math.PI * 2);
+    safeEllipse(ctx, 7.2, -64, 3, 1.9, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = "#5B3B24";
     ctx.beginPath();
-    safeArc(ctx, 0, -62, 11, 0.2, Math.PI - 0.2);
-    ctx.quadraticCurveTo(0, -49, -10.5, -60);
+    safeArc(ctx, 0, -62, 11.2, 0.18, Math.PI - 0.18);
+    ctx.quadraticCurveTo(0, -48.5, -10.8, -60);
     ctx.closePath();
     ctx.fill();
     ctx.fillStyle = PALETTE.ink;
     ctx.beginPath();
-    safeArc(ctx, -4.5, -68, 1.8, 0, Math.PI * 2);
-    safeArc(ctx, 4.5, -68, 1.8, 0, Math.PI * 2);
+    safeArc(ctx, -4.5, -68, 2, 0, Math.PI * 2);
+    safeArc(ctx, 4.5, -68, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    safeArc(ctx, -5, -68.7, 0.7, 0, Math.PI * 2);
+    safeArc(ctx, 4, -68.7, 0.7, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "#FFF8EB";
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 1.9;
     ctx.beginPath();
-    safeArc(ctx, 0, -63, 4.2, 0.25, Math.PI - 0.25);
+    safeArc(ctx, 0, -63, 4.2, 0.22, Math.PI - 0.22);
     ctx.stroke();
     ctx.restore();
   }
   function drawChildFriend(ctx, cx, baseY, scale, tunicColor, happy, timeSec) {
     const s = safeR(scale);
-    const hop = happy ? Math.abs(Math.sin(timeSec * 6)) * 5 * s : Math.sin(timeSec * 2.5) * 1.2 * s;
+    const hop = happy ? Math.abs(Math.sin(timeSec * 5.8)) * 5 * s : Math.sin(timeSec * 2.5) * 1.2 * s;
     ctx.save();
+    drawGroundShadow(ctx, cx, baseY + 3 * s, 17 * s, 4.5 * s);
     ctx.translate(cx, baseY - hop);
     ctx.scale(s, s);
-    ctx.fillStyle = tunicColor;
+    const tunicGrad = ctx.createLinearGradient(-14, -32, 16, 0);
+    tunicGrad.addColorStop(0, tunicColor);
+    tunicGrad.addColorStop(1, tunicColor);
+    ctx.fillStyle = tunicGrad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.1;
     ctx.beginPath();
     ctx.moveTo(-12, -32);
     ctx.lineTo(12, -32);
     ctx.lineTo(16, 0);
-    ctx.lineTo(-16, 0);
+    ctx.quadraticCurveTo(0, 4, -16, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    ctx.fillStyle = "#F6C453";
+    ctx.fillRect(-12, -16, 24, 4);
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(-12, -16, 24, 4);
     const armY = happy ? -40 : -20;
     ctx.beginPath();
     ctx.moveTo(-11, -26);
     ctx.lineTo(-22, armY);
     ctx.moveTo(11, -26);
     ctx.lineTo(22, armY);
+    ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.stroke();
     ctx.fillStyle = "#F5CAA3";
-    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    safeArc(ctx, -22, armY, 3.2, 0, Math.PI * 2);
+    safeArc(ctx, 22, armY, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    const headGrad = safeRadialGradient(ctx, -3, -47, 2, 0, -44, 12);
+    headGrad.addColorStop(0, "#FCE0C6");
+    headGrad.addColorStop(1, "#EEBE93");
+    ctx.fillStyle = headGrad;
+    ctx.lineWidth = 2.1;
     ctx.beginPath();
     safeArc(ctx, 0, -44, 11.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#4A3222";
     ctx.beginPath();
-    safeArc(ctx, 0, -46, 11.5, Math.PI, Math.PI * 2);
+    safeArc(ctx, 0, -46, 11.5, Math.PI * 0.96, Math.PI * 2.04);
+    ctx.fill();
+    ctx.beginPath();
+    safeArc(ctx, -6, -52, 4.2, 0, Math.PI * 2);
+    safeArc(ctx, 2, -54, 4.5, 0, Math.PI * 2);
+    safeArc(ctx, 8, -51, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(232, 128, 106, 0.36)";
+    ctx.beginPath();
+    safeEllipse(ctx, -6.2, -41.5, 2.5, 1.6, 0, 0, Math.PI * 2);
+    safeEllipse(ctx, 6.2, -41.5, 2.5, 1.6, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = PALETTE.ink;
     ctx.beginPath();
-    safeArc(ctx, -3.8, -44, 1.6, 0, Math.PI * 2);
-    safeArc(ctx, 3.8, -44, 1.6, 0, Math.PI * 2);
+    safeArc(ctx, -3.8, -44.2, 1.8, 0, Math.PI * 2);
+    safeArc(ctx, 3.8, -44.2, 1.8, 0, Math.PI * 2);
     ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    safeArc(ctx, 0, -41, 4, 0.2, Math.PI - 0.2);
+    safeArc(ctx, -4.3, -44.8, 0.65, 0, Math.PI * 2);
+    safeArc(ctx, 3.3, -44.8, 0.65, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.beginPath();
+    safeArc(ctx, 0, -41, 4.1, 0.18, Math.PI - 0.18);
     ctx.lineWidth = 1.7;
     ctx.stroke();
     ctx.restore();
@@ -713,14 +1035,18 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
-    ctx.fillStyle = "#DF9D4B";
+    const grad = safeRadialGradient(ctx, -5, -4, 2, 0, 0, 17);
+    grad.addColorStop(0, "#F8D184");
+    grad.addColorStop(0.55, "#DF9D4B");
+    grad.addColorStop(1, "#AE6B26");
+    ctx.fillStyle = grad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.1;
     ctx.beginPath();
-    safeEllipse(ctx, 0, 0, 16, 10, 0, 0, Math.PI * 2);
+    safeEllipse(ctx, 0, 0, 16.5, 10.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.strokeStyle = "#9C5B1D";
+    ctx.strokeStyle = "#8C4E18";
     ctx.lineWidth = 1.8;
     ctx.beginPath();
     ctx.moveTo(-7, -5);
@@ -735,64 +1061,84 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
-    ctx.fillStyle = "#7AB5CE";
+    const grad = ctx.createLinearGradient(0, -9, 0, 9);
+    grad.addColorStop(0, "#B8E4F5");
+    grad.addColorStop(0.5, "#74B4CE");
+    grad.addColorStop(1, "#4C87A4");
+    ctx.fillStyle = grad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.1;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    safeEllipse(ctx, -2, 0, 14, 8, 0, 0, Math.PI * 2);
+    safeEllipse(ctx, -2, 0, 14.5, 8.2, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(10, 0);
-    ctx.lineTo(19, -7);
-    ctx.lineTo(19, 7);
+    ctx.lineTo(19, -7.5);
+    ctx.lineTo(19, 7.5);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 5, -0.8, 0.8);
+    ctx.stroke();
     ctx.fillStyle = PALETTE.ink;
     ctx.beginPath();
-    safeArc(ctx, -8, -1.5, 1.8, 0, Math.PI * 2);
+    safeArc(ctx, -8.5, -1.5, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    safeArc(ctx, -9, -2, 0.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
   function drawWovenBasket(ctx, cx, cy, scale = 1, filledCount = 0) {
     const s = safeR(scale);
     ctx.save();
+    drawGroundShadow(ctx, cx, cy + 20 * s, 28 * s, 5 * s);
     ctx.translate(cx, cy);
     ctx.scale(s, s);
     if (filledCount > 0) {
-      drawBarleyLoaf(ctx, -12, -10, 0.72);
-      drawBarleyLoaf(ctx, 11, -10, 0.72);
+      drawBarleyLoaf(ctx, -12, -10, 0.74);
+      drawBarleyLoaf(ctx, 11, -10, 0.74);
       if (filledCount > 2) {
-        drawFish(ctx, 0, -14, 0.7);
+        drawFish(ctx, 0, -14, 0.72);
       }
     }
-    ctx.fillStyle = "#C98B4B";
+    const bGrad = ctx.createLinearGradient(-34, -8, 34, 22);
+    bGrad.addColorStop(0, "#DEA05D");
+    bGrad.addColorStop(0.5, "#C78747");
+    bGrad.addColorStop(1, "#9B622A");
+    ctx.fillStyle = bGrad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.4;
+    ctx.lineWidth = 2.3;
     ctx.beginPath();
     ctx.moveTo(-34, -8);
     ctx.lineTo(34, -8);
     ctx.lineTo(25, 18);
-    ctx.quadraticCurveTo(0, 23, -25, 18);
+    ctx.quadraticCurveTo(0, 24, -25, 18);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    drawRoundedRect(ctx, -37, -12, 74, 8, 4);
-    ctx.fillStyle = "#A86C32";
+    drawRoundedRect(ctx, -37, -12, 74, 8.5, 4);
+    ctx.fillStyle = "#B37436";
     ctx.fill();
     ctx.stroke();
-    ctx.strokeStyle = "#7D4C1E";
+    ctx.strokeStyle = "rgba(92, 52, 18, 0.65)";
     ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(-26, 4);
-    ctx.lineTo(26, 4);
-    ctx.moveTo(-14, -4);
-    ctx.lineTo(-10, 17);
+    ctx.moveTo(-27, 2);
+    ctx.lineTo(27, 2);
+    ctx.moveTo(-23, 10);
+    ctx.lineTo(23, 10);
+    ctx.moveTo(-15, -4);
+    ctx.lineTo(-10, 18);
     ctx.moveTo(0, -4);
-    ctx.lineTo(0, 19);
-    ctx.moveTo(14, -4);
-    ctx.lineTo(10, 17);
+    ctx.lineTo(0, 20);
+    ctx.moveTo(15, -4);
+    ctx.lineTo(10, 18);
     ctx.stroke();
     ctx.restore();
   }
@@ -801,9 +1147,14 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
+    const pulse = 19 + Math.sin(timeSec * 6) * 2;
+    const g = safeRadialGradient(ctx, 0, 0, 3, 0, 0, pulse);
+    g.addColorStop(0, "rgba(255, 244, 178, 0.85)");
+    g.addColorStop(0.6, "rgba(246, 196, 83, 0.42)");
+    g.addColorStop(1, "rgba(246, 196, 83, 0)");
+    ctx.fillStyle = g;
     ctx.beginPath();
-    safeArc(ctx, 0, 0, 18 + Math.sin(timeSec * 6) * 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(246, 196, 83, 0.45)";
+    safeArc(ctx, 0, 0, pulse, 0, Math.PI * 2);
     ctx.fill();
     drawStar(ctx, 0, 0, 14, PALETTE.sunGold);
     ctx.restore();
@@ -813,11 +1164,20 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
-    drawRoundedRect(ctx, -20, -12, 40, 20, 5);
-    ctx.fillStyle = "#B67346";
-    ctx.fill();
-    ctx.lineWidth = 2.2;
+    ctx.fillStyle = "#D46A43";
     ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-22, -12);
+    ctx.lineTo(22, -12);
+    ctx.lineTo(17, -20);
+    ctx.lineTo(-17, -20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    drawRoundedRect(ctx, -20, -12, 40, 20, 5);
+    ctx.fillStyle = "#C38050";
+    ctx.fill();
     ctx.stroke();
     ctx.fillStyle = "#6E4427";
     ctx.beginPath();
@@ -833,15 +1193,15 @@ var __ThankfulJesusBundle = (() => {
     ctx.translate(cx, cy);
     ctx.scale(s, s);
     drawRoundedRect(ctx, -14, -14, 28, 28, 6);
-    ctx.fillStyle = "#E0846C";
+    const g = ctx.createLinearGradient(-14, -14, 14, 14);
+    g.addColorStop(0, "#F39D82");
+    g.addColorStop(1, "#D26B52");
+    ctx.fillStyle = g;
     ctx.fill();
     ctx.lineWidth = 2.2;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
-    ctx.fillStyle = "#FFF8EB";
-    ctx.beginPath();
-    safeArc(ctx, 0, 0, 6, 0, Math.PI * 2);
-    ctx.fill();
+    drawStar(ctx, 0, 0, 7.5, "#FFF6CC");
     ctx.restore();
   }
   function drawGoldenHarp(ctx, cx, cy, scale = 1, timeSec = 0) {
@@ -850,8 +1210,15 @@ var __ThankfulJesusBundle = (() => {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(s, s);
-    ctx.strokeStyle = "#F6C453";
-    ctx.lineWidth = 1.6;
+    const glow = safeRadialGradient(ctx, 0, 0, 4, 0, 0, 28);
+    glow.addColorStop(0, "rgba(255, 236, 155, 0.45)");
+    glow.addColorStop(1, "rgba(255, 236, 155, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    safeArc(ctx, 0, 0, 28, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#F8CD5C";
+    ctx.lineWidth = 1.7;
     for (let i = 0; i < 4; i++) {
       const sx = -9 + i * 6;
       ctx.beginPath();
@@ -859,18 +1226,23 @@ var __ThankfulJesusBundle = (() => {
       ctx.lineTo(sx, 14);
       ctx.stroke();
     }
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.fillStyle = "#D99B38";
-    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "#B87A24";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(-16, 16);
+    ctx.moveTo(-16, 15);
     ctx.quadraticCurveTo(-20, -14, -10, -22);
     ctx.quadraticCurveTo(4, -26 + shimmer * 0.3, 18, -12);
-    ctx.lineTo(14, 16);
-    ctx.closePath();
+    ctx.lineTo(14, 15);
+    ctx.stroke();
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.lineWidth = 1.8;
     ctx.stroke();
     drawRoundedRect(ctx, -18, 12, 36, 9, 4);
-    ctx.fillStyle = "#B87A4B";
+    const boxG = ctx.createLinearGradient(-18, 12, 18, 21);
+    boxG.addColorStop(0, "#D89A56");
+    boxG.addColorStop(1, "#9B602B");
+    ctx.fillStyle = boxG;
     ctx.fill();
     ctx.stroke();
     ctx.restore();
@@ -881,16 +1253,23 @@ var __ThankfulJesusBundle = (() => {
     ctx.translate(cx, cy);
     ctx.scale(s, s);
     if (golden) {
+      const g = safeRadialGradient(ctx, 0, 0, 3, 0, 0, 22);
+      g.addColorStop(0, "rgba(255, 242, 168, 0.85)");
+      g.addColorStop(1, "rgba(246, 196, 83, 0)");
+      ctx.fillStyle = g;
       ctx.beginPath();
-      safeArc(ctx, 0, 0, 19, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(246, 196, 83, 0.45)";
+      safeArc(ctx, 0, 0, 22, 0, Math.PI * 2);
       ctx.fill();
     }
+    const badgeG = safeRadialGradient(ctx, -4, -5, 2, 0, 0, 15);
+    badgeG.addColorStop(0, "#FFF6D1");
+    badgeG.addColorStop(0.38, golden ? PALETTE.sunGold : color);
+    badgeG.addColorStop(1, golden ? "#D68E23" : color);
     ctx.beginPath();
-    safeArc(ctx, 0, 0, 14, 0, Math.PI * 2);
-    ctx.fillStyle = golden ? PALETTE.sunGold : color;
+    safeArc(ctx, 0, 0, 14.5, 0, Math.PI * 2);
+    ctx.fillStyle = badgeG;
     ctx.fill();
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.1;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
     ctx.fillStyle = "#FFFDF8";
@@ -910,6 +1289,7 @@ var __ThankfulJesusBundle = (() => {
     const s = safeR(scale);
     const bob = Math.abs(Math.sin(timeSec * 3.2)) * 2 * s;
     ctx.save();
+    drawGroundShadow(ctx, cx, baseY + 4 * s, 14 * s, 3.5 * s);
     ctx.translate(cx, baseY - bob);
     ctx.scale(s, s);
     ctx.strokeStyle = PALETTE.ink;
@@ -920,12 +1300,12 @@ var __ThankfulJesusBundle = (() => {
     ctx.moveTo(6, -4);
     ctx.lineTo(6, 4);
     ctx.stroke();
-    ctx.fillStyle = "#FFFDF8";
-    ctx.lineWidth = 2;
+    ctx.fillStyle = "#FFFDF6";
+    ctx.lineWidth = 1.9;
     const puffs = [
       { x: -8, y: -12, r: 8 },
-      { x: 0, y: -15, r: 9 },
-      { x: 8, y: -12, r: 8 },
+      { x: 0, y: -15.5, r: 9.2 },
+      { x: 8.5, y: -12, r: 8 },
       { x: 0, y: -9, r: 8 }
     ];
     for (let i = 0; i < puffs.length; i++) {
@@ -936,11 +1316,14 @@ var __ThankfulJesusBundle = (() => {
     }
     ctx.fillStyle = "#4A3A31";
     ctx.beginPath();
-    safeArc(ctx, -14, -14, 5.5, 0, Math.PI * 2);
+    safeArc(ctx, -14, -14, 5.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    safeEllipse(ctx, -11, -17, 3.5, 1.8, 0.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#FFFDF8";
     ctx.beginPath();
-    safeArc(ctx, -15.5, -15, 1.3, 0, Math.PI * 2);
+    safeArc(ctx, -15.5, -15, 1.4, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
@@ -948,39 +1331,60 @@ var __ThankfulJesusBundle = (() => {
     const w = safeR(width);
     const h = safeR(height);
     const trunkW = w * 0.16;
-    const trunkH = h * 0.42;
+    const trunkH = h * 0.44;
     const rustleShift = rustleTimer > 0 ? Math.sin(timeSec * 22) * 3.5 * Math.min(1, rustleTimer) : 0;
     ctx.save();
-    ctx.fillStyle = "#8C5A37";
+    drawGroundShadow(ctx, cx, baseY + 4, w * 0.38, h * 0.06);
+    const trunkGrad = ctx.createLinearGradient(cx - trunkW, baseY - trunkH, cx + trunkW, baseY);
+    trunkGrad.addColorStop(0, "#A97149");
+    trunkGrad.addColorStop(0.55, "#825231");
+    trunkGrad.addColorStop(1, "#5F3920");
+    ctx.fillStyle = trunkGrad;
     ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.moveTo(cx - trunkW * 0.7, baseY);
-    ctx.quadraticCurveTo(cx - trunkW * 0.4, baseY - trunkH * 0.5, cx - trunkW * 0.45, baseY - trunkH);
-    ctx.lineTo(cx + trunkW * 0.45, baseY - trunkH);
-    ctx.quadraticCurveTo(cx + trunkW * 0.4, baseY - trunkH * 0.5, cx + trunkW * 0.7, baseY);
+    ctx.moveTo(cx - trunkW * 0.85, baseY);
+    ctx.quadraticCurveTo(cx - trunkW * 0.42, baseY - trunkH * 0.45, cx - trunkW * 0.46, baseY - trunkH);
+    ctx.lineTo(cx + trunkW * 0.46, baseY - trunkH);
+    ctx.quadraticCurveTo(cx + trunkW * 0.42, baseY - trunkH * 0.45, cx + trunkW * 0.85, baseY);
+    ctx.quadraticCurveTo(cx, baseY + 5, cx - trunkW * 0.85, baseY);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 232, 200, 0.3)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - trunkW * 0.15, baseY - trunkH * 0.8);
+    ctx.quadraticCurveTo(cx - trunkW * 0.25, baseY - trunkH * 0.4, cx - trunkW * 0.12, baseY - 8);
     ctx.stroke();
     const canopyTop = baseY - h;
     const canopyCenterY = baseY - h * 0.62;
     const puffs = [
-      { dx: -w * 0.26, dy: h * 0.04, rx: w * 0.25, ry: h * 0.22, fill: "#6D9361" },
-      { dx: w * 0.26, dy: h * 0.04, rx: w * 0.25, ry: h * 0.22, fill: "#7FA56E" },
-      { dx: 0, dy: -h * 0.08, rx: w * 0.34, ry: h * 0.27, fill: "#8BB174" },
-      { dx: -w * 0.12, dy: h * 0.11, rx: w * 0.22, ry: h * 0.18, fill: "#789E68" },
-      { dx: w * 0.14, dy: h * 0.11, rx: w * 0.22, ry: h * 0.18, fill: "#86AB70" }
+      { dx: -w * 0.26, dy: h * 0.06, rx: w * 0.26, ry: h * 0.22, top: "#89B071", bot: "#517347" },
+      { dx: w * 0.26, dy: h * 0.06, rx: w * 0.26, ry: h * 0.22, top: "#95BC7A", bot: "#597B4E" },
+      { dx: -w * 0.12, dy: h * 0.12, rx: w * 0.23, ry: h * 0.18, top: "#83AA6B", bot: "#55764A" },
+      { dx: w * 0.14, dy: h * 0.12, rx: w * 0.23, ry: h * 0.18, top: "#8FB675", bot: "#5B7D50" },
+      { dx: 0, dy: -h * 0.08, rx: w * 0.35, ry: h * 0.28, top: "#B4CF84", bot: "#648957" }
     ];
     for (let i = 0; i < puffs.length; i++) {
       const p = puffs[i];
+      const px = cx + p.dx + rustleShift;
+      const py = canopyCenterY + p.dy;
+      const g = ctx.createLinearGradient(px, py - p.ry, px, py + p.ry);
+      g.addColorStop(0, p.top);
+      g.addColorStop(1, p.bot);
       ctx.beginPath();
-      safeEllipse(ctx, cx + p.dx + rustleShift, canopyCenterY + p.dy, p.rx, p.ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = p.fill;
+      safeEllipse(ctx, px, py, p.rx, p.ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = g;
       ctx.fill();
-      ctx.lineWidth = 2.4;
+      ctx.lineWidth = 2.2;
       ctx.strokeStyle = PALETTE.ink;
       ctx.stroke();
     }
+    ctx.fillStyle = "rgba(255, 245, 190, 0.24)";
+    ctx.beginPath();
+    safeEllipse(ctx, cx + w * 0.06 + rustleShift, canopyCenterY - h * 0.17, w * 0.19, h * 0.11, -0.15, 0, Math.PI * 2);
+    ctx.fill();
     const boxLeft = cx - w * 0.46 + rustleShift;
     const boxTop = canopyTop + h * 0.06;
     const boxW = w * 0.92;
@@ -991,7 +1395,7 @@ var __ThankfulJesusBundle = (() => {
       const sway = Math.sin(timeSec * (rustleTimer > 0 ? 10 : 2.1) + i * 0.9) * (rustleTimer > 0 ? 0.22 : 0.08);
       const lx = boxLeft + slot.x * boxW;
       const ly = boxTop + slot.y * boxH;
-      drawLeaf(ctx, lx, ly, Math.max(10, w * 0.055), leaf.leafColor, slot.tilt + sway);
+      drawLeaf(ctx, lx, ly, Math.max(10.5, w * 0.058), leaf.leafColor, slot.tilt + sway);
     }
     if (rustleTimer > 0) {
       const burstColors = ["gold", "crimson", "olive", "sky"];
@@ -2872,31 +3276,38 @@ var __ThankfulJesusBundle = (() => {
       return canvas;
     }
     const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#FFFBF2");
-    bg.addColorStop(1, "#F7E3BE");
+    bg.addColorStop(0, "#FFFDF6");
+    bg.addColorStop(0.5, "#FCEFD6");
+    bg.addColorStop(1, "#F4D5A3");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
     ctx.save();
     drawRoundedRect(ctx, 32, 32, W - 64, H - 64, 34);
-    ctx.fillStyle = "rgba(255, 253, 248, 0.78)";
+    ctx.fillStyle = "rgba(255, 253, 248, 0.84)";
     ctx.fill();
     ctx.lineWidth = 6;
     ctx.strokeStyle = PALETTE.sandalwood;
     ctx.stroke();
-    drawRoundedRect(ctx, 50, 50, W - 100, H - 100, 26);
-    ctx.setLineDash([14, 10]);
+    drawRoundedRect(ctx, 48, 48, W - 96, H - 96, 26);
     ctx.lineWidth = 3;
+    ctx.strokeStyle = PALETTE.warmGold;
+    ctx.stroke();
+    drawRoundedRect(ctx, 60, 60, W - 120, H - 120, 22);
+    ctx.setLineDash([14, 10]);
+    ctx.lineWidth = 2.5;
     ctx.strokeStyle = PALETTE.terracotta;
     ctx.stroke();
     ctx.restore();
     drawLeaf(ctx, 98, 98, 30, "gold", -0.4);
+    drawLeaf(ctx, 134, 92, 20, "olive", 0.35);
     drawLeaf(ctx, W - 98, 98, 30, "olive", 0.4);
+    drawLeaf(ctx, W - 134, 92, 20, "gold", -0.35);
     drawLeaf(ctx, 98, H - 98, 28, "crimson", -2.5);
     drawLeaf(ctx, W - 98, H - 98, 28, "sky", 2.5);
     ctx.textAlign = "center";
     ctx.fillStyle = PALETTE.ink;
-    ctx.font = "800 54px system-ui, -apple-system, sans-serif";
-    ctx.fillText(formatPrimary(UI_TEXT.pcTitle, state.langMode), W / 2, 134);
+    ctx.font = "800 56px Georgia, serif";
+    ctx.fillText(formatPrimary(UI_TEXT.pcTitle, state.langMode), W / 2, 136);
     const secTitle = formatSecondary(UI_TEXT.pcTitle, state.langMode);
     ctx.fillStyle = PALETTE.terracottaDark;
     ctx.font = "700 28px system-ui, -apple-system, sans-serif";
@@ -3042,15 +3453,27 @@ var __ThankfulJesusBundle = (() => {
     }
   }
   function drawTitleBanner(ctx, state, w) {
-    drawRoundedRect(ctx, 22, 18, w - 44, 78, 18);
-    ctx.fillStyle = "rgba(255, 248, 235, 0.92)";
+    drawRoundedRect(ctx, 22, 19, w - 40, 80, 18);
+    ctx.fillStyle = "rgba(58, 38, 22, 0.14)";
+    ctx.fill();
+    drawRoundedRect(ctx, 20, 16, w - 40, 80, 18);
+    const bg = ctx.createLinearGradient(0, 16, 0, 96);
+    bg.addColorStop(0, "#FFFEFA");
+    bg.addColorStop(1, "#FBEAD0");
+    ctx.fillStyle = bg;
     ctx.fill();
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
+    drawRoundedRect(ctx, 25, 21, w - 50, 70, 14);
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = "rgba(229, 169, 59, 0.72)";
+    ctx.stroke();
+    drawStar(ctx, 42, 56, 10, PALETTE.sunGold);
+    drawStar(ctx, w - 42, 56, 10, PALETTE.sunGold);
     ctx.textAlign = "center";
     ctx.fillStyle = PALETTE.ink;
-    ctx.font = "800 22px system-ui, -apple-system, sans-serif";
+    ctx.font = "800 20px Georgia, serif";
     ctx.fillText(formatPrimary(UI_TEXT.gameTitle, state.langMode), w / 2, 50);
     const sub = formatSecondary(UI_TEXT.gameTitle, state.langMode) || formatPrimary(UI_TEXT.gameSubtitle, state.langMode);
     ctx.fillStyle = PALETTE.terracottaDark;
@@ -3254,19 +3677,37 @@ var __ThankfulJesusBundle = (() => {
     drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
     drawLittleSheep(ctx, w * 0.84, 134, 1, timeSec);
     const boardX = 28;
-    const boardY = 146;
+    const boardY = 148;
     const boardW = w - 56;
-    const boardH = h - 162;
+    const boardH = h - 164;
+    drawRoundedRect(ctx, boardX + 2, boardY + 4, boardW, boardH, 20);
+    ctx.fillStyle = "rgba(56, 36, 20, 0.16)";
+    ctx.fill();
     drawRoundedRect(ctx, boardX, boardY, boardW, boardH, 20);
-    ctx.fillStyle = "rgba(255, 249, 236, 0.94)";
+    const boardGrad = ctx.createLinearGradient(boardX, boardY, boardX, boardY + boardH);
+    boardGrad.addColorStop(0, "#FFFDF7");
+    boardGrad.addColorStop(1, "#F9E7C4");
+    ctx.fillStyle = boardGrad;
     ctx.fill();
     ctx.lineWidth = 3;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    drawRoundedRect(ctx, boardX - 4, boardY - 4, boardW + 8, 16, 8);
+    const barGrad = ctx.createLinearGradient(boardX, boardY - 4, boardX, boardY + 12);
+    barGrad.addColorStop(0, "#E7B454");
+    barGrad.addColorStop(1, "#B0732C");
+    ctx.fillStyle = barGrad;
+    ctx.fill();
+    ctx.lineWidth = 2.2;
     ctx.strokeStyle = PALETTE.ink;
     ctx.stroke();
     const zoneCenterY = boardY + boardH * 0.78;
     const zoneH = state.ageMode === "explorer" ? 54 : 42;
     drawRoundedRect(ctx, boardX + 10, zoneCenterY - zoneH / 2, boardW - 20, zoneH, 14);
-    ctx.fillStyle = "rgba(246, 196, 83, 0.34)";
+    const zoneGrad = ctx.createLinearGradient(boardX, zoneCenterY - zoneH / 2, boardX, zoneCenterY + zoneH / 2);
+    zoneGrad.addColorStop(0, "rgba(255, 236, 158, 0.52)");
+    zoneGrad.addColorStop(1, "rgba(246, 196, 83, 0.28)");
+    ctx.fillStyle = zoneGrad;
     ctx.fill();
     ctx.lineWidth = 2;
     ctx.strokeStyle = PALETTE.warmGold;
@@ -3320,11 +3761,32 @@ var __ThankfulJesusBundle = (() => {
     drawGalileeBackdrop(ctx, w, h, timeSec);
     drawJesus(ctx, w * 0.2, 178, 0.88, "welcome", timeSec);
     drawGratitudeOliveTree(ctx, w * 0.82, 200, 128, 126, [], timeSec);
-    drawRoundedRect(ctx, 22, 186, w - 44, h - 208, 22);
-    ctx.fillStyle = "#FFF9EC";
+    drawRoundedRect(ctx, 24, 188, w - 44, h - 208, 18);
+    ctx.fillStyle = "rgba(56, 36, 20, 0.14)";
     ctx.fill();
-    ctx.lineWidth = 3;
+    drawRoundedRect(ctx, 22, 184, w - 44, h - 208, 18);
+    const scrollGrad = ctx.createLinearGradient(22, 184, 22, h - 24);
+    scrollGrad.addColorStop(0, "#FFFDF7");
+    scrollGrad.addColorStop(0.5, "#FFF6E0");
+    scrollGrad.addColorStop(1, "#F5DFB6");
+    ctx.fillStyle = scrollGrad;
+    ctx.fill();
+    ctx.lineWidth = 2.8;
     ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    drawRoundedRect(ctx, 13, 178, 12, h - 196, 6);
+    ctx.fillStyle = "#B87A4B";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = PALETTE.ink;
+    ctx.stroke();
+    drawRoundedRect(ctx, w - 25, 178, 12, h - 196, 6);
+    ctx.fillStyle = "#B87A4B";
+    ctx.fill();
+    ctx.stroke();
+    drawRoundedRect(ctx, 30, 191, w - 60, h - 222, 12);
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = "rgba(229, 169, 59, 0.65)";
     ctx.stroke();
     if (stage.subPhase === "quiz") {
       ctx.textAlign = "center";
@@ -3430,6 +3892,7 @@ var __ThankfulJesusBundle = (() => {
       drawFloatingLeaves(ctx, w, h, t);
       drawTitleBanner(ctx, state, w);
       drawEasterOverlay(ctx, state, w, w * 0.34, w * 0.77, w * 0.56, 106);
+      drawStorybookFrame(ctx, w, h);
       return;
     }
     if (state.phase === "pass_banner") {
@@ -3509,6 +3972,7 @@ var __ThankfulJesusBundle = (() => {
       } else {
         renderVerseBuilderPlay(ctx, state, state.stageState, w, h, t);
       }
+      drawStorybookFrame(ctx, w, h);
       return;
     }
     if (state.phase === "stage_complete") {
@@ -3596,6 +4060,7 @@ var __ThankfulJesusBundle = (() => {
       }
     }
     drawEasterOverlay(ctx, state, w, w * 0.24, w * 0.64, w * 0.42, 18);
+    drawStorybookFrame(ctx, w, h);
   }
 
   // thankful_jesus/ts/speech.ts

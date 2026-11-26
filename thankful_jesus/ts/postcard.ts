@@ -70,40 +70,48 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
     return canvas;
   }
 
-  // Warm cream parchment background
+  // Warm cream-gold stationery background
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, "#FFFBF2");
-  bg.addColorStop(1, "#F7E3BE");
+  bg.addColorStop(0, "#FFFDF6");
+  bg.addColorStop(0.5, "#FCEFD6");
+  bg.addColorStop(1, "#F4D5A3");
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // Stitched storybook frame
+  // Stitched illuminated storybook frame
   ctx.save();
   drawRoundedRect(ctx, 32, 32, W - 64, H - 64, 34);
-  ctx.fillStyle = "rgba(255, 253, 248, 0.78)";
+  ctx.fillStyle = "rgba(255, 253, 248, 0.84)";
   ctx.fill();
   ctx.lineWidth = 6;
   ctx.strokeStyle = PALETTE.sandalwood;
   ctx.stroke();
 
-  drawRoundedRect(ctx, 50, 50, W - 100, H - 100, 26);
-  ctx.setLineDash([14, 10]);
+  drawRoundedRect(ctx, 48, 48, W - 96, H - 96, 26);
   ctx.lineWidth = 3;
+  ctx.strokeStyle = PALETTE.warmGold;
+  ctx.stroke();
+
+  drawRoundedRect(ctx, 60, 60, W - 120, H - 120, 22);
+  ctx.setLineDash([14, 10]);
+  ctx.lineWidth = 2.5;
   ctx.strokeStyle = PALETTE.terracotta;
   ctx.stroke();
   ctx.restore();
 
-  // Corner olive & autumn leaves
+  // Corner olive & autumn leaf sprigs
   drawLeaf(ctx, 98, 98, 30, "gold", -0.4);
+  drawLeaf(ctx, 134, 92, 20, "olive", 0.35);
   drawLeaf(ctx, W - 98, 98, 30, "olive", 0.4);
+  drawLeaf(ctx, W - 134, 92, 20, "gold", -0.35);
   drawLeaf(ctx, 98, H - 98, 28, "crimson", -2.5);
   drawLeaf(ctx, W - 98, H - 98, 28, "sky", 2.5);
 
   // Bilingual title header
   ctx.textAlign = "center";
   ctx.fillStyle = PALETTE.ink;
-  ctx.font = "800 54px system-ui, -apple-system, sans-serif";
-  ctx.fillText(formatPrimary(UI_TEXT.pcTitle, state.langMode), W / 2, 134);
+  ctx.font = "800 56px Georgia, serif";
+  ctx.fillText(formatPrimary(UI_TEXT.pcTitle, state.langMode), W / 2, 136);
 
   const secTitle = formatSecondary(UI_TEXT.pcTitle, state.langMode);
   ctx.fillStyle = PALETTE.terracottaDark;
