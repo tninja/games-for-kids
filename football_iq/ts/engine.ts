@@ -182,11 +182,37 @@ function applyMovement(p:Player, old:Point, carries:boolean) {
   const cap=a?113*scale:Infinity,v=Math.hypot(p.vx,p.vy);
   if(v>cap){p.vx*=cap/v;p.vy*=cap/v;}
 }
-function chaser(s:State, team:Team) {
+// Give the controlled player responsibility only when they actually press.
+// Otherwise the closest available AI player steps up, even if YOU is nearer.
+export function defensiveAssignments(s:State,team:Team){
+  const owner=s.ball.owner===null?undefined:s.players[s.ball.owner];
+  if(owner?.team===team)return {press:-1,cover:-1,target:null};
   const list=s.players.filter(p=>p.team===team&&p.role!=="keeper");
-  return list.reduce((a,b)=>distance(a,s.ball)<=distance(b,s.ball)?a:b).id;
+  const user=s.players[s.user], predicted={x:s.ball.x+s.ball.vx*.12,y:s.ball.y+s.ball.vy*.12};
+  const userDistance=distance(user,predicted);
+  const closing=user.vx*(predicted.x-user.x)+user.vy*(predicted.y-user.y)>userDistance*12;
+  const userTackling=user.action?.kind==="tackle"&&user.action.elapsed<ACTION_TIMING.tackle[0];
+  const userPress=user.team===team&&user.role!=="keeper"&&userDistance<42&&
+    (!user.action&&closing||userTackling)&&(!owner||canChallenge(user,owner));
+  const available=list.filter(p=>p.id!==s.user);
+  // Favor a player who is able to challenge, but don't send a distant player
+  // past a nearby defender just because the latter is containing.
+  const rank=(p:Player)=>distance(p,predicted)+(p.action&&!(p.action.kind==="tackle"&&p.action.elapsed<ACTION_TIMING.tackle[0])?35:0)+
+    (owner&&!canChallenge(p,owner)?24:0);
+  const ranked=[...available].sort((a,b)=>rank(a)-rank(b)||a.id-b.id);
+  const receiver=s.ball.receiver===null?undefined:s.players[s.ball.receiver];
+  const press=userPress?user.id:!owner&&receiver?.team===team?receiver.id:ranked[0]?.id??-1;
+  if(!owner)return {press,cover:-1,target:null};
+  // The second defender protects the central route to their own goal.
+  const own=goal(team===0?1:0),dx=own.x-owner.x,dy=own.y-owner.y,n=Math.hypot(dx,dy)||1;
+  const target={x:clamp(owner.x+dx/n*48,18,W-18),y:clamp(owner.y+dy/n*48,24,H-24)};
+  const cover=available.filter(p=>p.id!==press).sort((a,b)=>
+    (distance(a,target)-(a.role==="defender"?12:0)+(a.action?30:0))-
+    (distance(b,target)-(b.role==="defender"?12:0)+(b.action?30:0))||a.id-b.id)[0]?.id??-1;
+  return {press,cover,target};
 }
-function ai(s:State, p:Player, chase:number, owner:Player|undefined) {
+function ai(s:State, p:Player, assignment:ReturnType<typeof defensiveAssignments>, owner:Player|undefined) {
+  const chase=assignment.press;
   const d=dir(p), ownGoal=goal(p.team===0?1:0);
   if(owner?.id===p.id) {
     if(!p.action&&p.cooldown<=0) {
@@ -218,6 +244,11 @@ function ai(s:State, p:Player, chase:number, owner:Player|undefined) {
     }
     move(p,{x:s.ball.x+s.ball.vx*0.07,y:s.ball.y+s.ball.vy*0.07},82);
     if(owner&&canChallenge(p,owner)&&s.ball.lock<=0&&distance(p,s.ball)<=DUEL.reach&&distance(p,owner)<=DUEL.bodyReach)tackle(s,p);
+    return;
+  }
+  if(owner&&owner.team!==p.team&&p.id===assignment.cover&&assignment.target){
+    // Step toward goal-side cover, rather than watching from the home slot.
+    move(p,assignment.target,78);
     return;
   }
   const attacking=owner?.team===p.team;
@@ -267,7 +298,7 @@ export function step(s:State, input:Input) {
     else if(input.pass&&owner?.team===0&&!owner.action&&owner.cooldown<=0)pass(owner,user);
     else if(input.shoot)tackle(s,user);
   }
-  const c0=chaser(s,0),c1=chaser(s,1);
+  const c0=defensiveAssignments(s,0),c1=defensiveAssignments(s,1);
   for(const p of s.players)if(p.id!==s.user){
     if(p.action&&p.action.kind!=="receive"){p.vx=p.action.dx*32;p.vy=p.action.dy*32;}
     else ai(s,p,p.team===0?c0:c1,s.ball.owner===null?undefined:s.players[s.ball.owner]);
