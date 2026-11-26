@@ -1,0 +1,26 @@
+name: Football IQ checks
+on:
+  pull_request:
+    paths:
+      - 'football_iq/**'
+      - 'docs/football_iq/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/football-iq.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck:football_iq
+      - run: npm run test:football_iq
+      - run: npm run build:football_iq
+      - run: npm run test:football_iq
