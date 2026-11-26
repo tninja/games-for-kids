@@ -46,6 +46,17 @@ locally via Web Audio and can be muted. No third-party game art is used.
 The Phaser API is kept behind a small typed presentation boundary; no engine
 or coaching state is owned by Phaser.
 
+## Optional browser verification
+```sh
+npm install --no-save --package-lock=false playwright@1.56.1 phaser@3.90.0
+npx playwright install chromium
+node football_iq/browser.test.mjs
+```
+The test serves the committed page locally and routes the pinned CDN URL to
+the installed real Phaser package; it also tests a blocked CDN and touch
+input. CI uploads portrait, landscape and fallback screenshots. It does not
+verify the live CDN or replace real iPhone/Safari playtesting.
+
 ## Scope and limitations
 This is an arcade prototype: the boundary rebounds the ball outside goal
 mouths; no throw-ins, corners, offside, fouls, substitutions, or 7v7 yet.
