@@ -1,4 +1,4 @@
-import { W,H,GOAL,DT,createMatch,copyState,step,blank,coachingTip } from "./engine.js";
+import { W,H,GOAL,DT,createMatch,copyState,step,coachingTip } from "./engine.js";
 
 const get = (id) => document.getElementById(id);
 const canvas=get("pitch"), ctx=canvas.getContext("2d");
@@ -12,7 +12,7 @@ const keys=new Set(), actions=new Set();
 let joy={x:0,y:0}, joyId=null, accumulator=0, previous=0;
 const pad=get("pad"), knob=get("knob");
 function clearInput(){
-  keys.clear();actions.clear();joy={x:0,y:0};joyId=null;knob.style.transform="translate(-50%,-50%)";
+  keys.clear();actions.clear();document.querySelectorAll(".pressed").forEach(b=>b.classList.remove("pressed"));joy={x:0,y:0};joyId=null;knob.style.transform="translate(-50%,-50%)";
 }
 function hideTip(){
   tip=null; get("hint").hidden=true; get("continue").hidden=true;
@@ -147,7 +147,7 @@ get("continue").addEventListener("click",resume);
 get("retry").addEventListener("click",restore);
 coach.addEventListener("change",()=>{if(coach.value==="off"){if(paused&&tip)resume();hideTip();retry=null;get("retry").hidden=true;}});
 window.addEventListener("keydown",e=>{
-  if(e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;
+  if(e.target instanceof HTMLSelectElement||(e.target instanceof HTMLButtonElement&&e.key===" "))return;
   const k=e.key.toLowerCase();
   if(["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","z","x","shift"," "].includes(k)){
     e.preventDefault();if(k===" "){if(!e.repeat)togglePause();}else keys.add(k);
@@ -165,7 +165,7 @@ pad.addEventListener("pointermove",e=>{if(e.pointerId===joyId)updateJoy(e);});
 for(const name of ["pointerup","pointercancel","lostpointercapture"])pad.addEventListener(name,e=>{
   if((e).pointerId!==joyId)return;joyId=null;joy={x:0,y:0};knob.style.transform="translate(-50%,-50%)";
 });
-for(const button of document.querySelectorAll("[data-action]")){
+for(const button of Array.from(document.querySelectorAll("[data-action]"))){
   const action=button.dataset.action;
   button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture(e.pointerId);actions.add(action);button.classList.add("pressed");});
   for(const name of ["pointerup","pointercancel","lostpointercapture"])button.addEventListener(name,()=>{actions.delete(action);button.classList.remove("pressed");});
