@@ -35,6 +35,14 @@ try {
     assert.equal(await page.locator("#renderer").textContent(),usePhaser?"Phaser 3.90":"Canvas fallback");
     await page.selectOption("#length","60");await page.selectOption("#coach","off");
     await page.locator("#start").click();
+    for(const [action,key] of [["pass","z"],["shoot","x"],["sprint","c"],["sprint","Shift"]]){
+      const control=page.locator('[data-action="'+action+'"]');
+      assert.equal(await control.locator("kbd").textContent(),action==="sprint"?"C":key.toUpperCase());
+      await page.keyboard.down(key);
+      await page.waitForFunction(action=>document.querySelector('[data-action="'+action+'"]').classList.contains("key-pressed"),action);
+      await page.keyboard.up(key);
+      await page.waitForFunction(action=>!document.querySelector('[data-action="'+action+'"]').classList.contains("key-pressed"),action);
+    }
     await page.waitForFunction(()=>document.querySelector("#clock").textContent!=="1:00");
     await page.locator("#pause").click();
     assert.equal(await page.locator("#pause").textContent(),"Resume");
