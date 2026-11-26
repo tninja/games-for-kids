@@ -285,6 +285,7 @@ export type GameAction =
   | { type: "POKE_FRIEND" }
   | { type: "TOGGLE_MUTE" }
   | { type: "TOGGLE_AUTO_READ" }
+  | { type: "TOGGLE_HARP_MUSIC" }
   | { type: "PLAY_AGAIN" };
 
 export interface GameConfig {
@@ -313,6 +314,7 @@ export interface GameState {
   totalStars: number;
   muted: boolean;
   autoRead: boolean;
+  harpMusic: boolean;
   elapsedSec: number;
   rngState: number;
   pendingSounds: SoundEvent[];

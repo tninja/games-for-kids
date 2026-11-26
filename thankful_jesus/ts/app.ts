@@ -489,6 +489,7 @@ export function mountThankfulJesusApp(): void {
       String(state.prayers.length),
       String(state.promptIndex),
       String(state.autoRead),
+      String(state.harpMusic),
       selectedSticker,
       selectedLeafColor,
       extra
@@ -793,6 +794,23 @@ export function mountThankfulJesusApp(): void {
           harpRow.appendChild(btn);
         }
         stack.appendChild(harpRow);
+
+        const bgBtn = document.createElement("button");
+        bgBtn.type = "button";
+        bgBtn.className = "ghost-btn";
+        bgBtn.appendChild(
+          makeDualButtonContent(
+            state.harpMusic ? UI_TEXT.harpMusicOn : UI_TEXT.harpMusicOff,
+            state.langMode
+          )
+        );
+        bgBtn.addEventListener("click", () => {
+          unlockAudio();
+          applyAction(state, { type: "TOGGLE_HARP_MUSIC" });
+          syncAll(true);
+        });
+        stack.appendChild(bgBtn);
+
         controlDeck.appendChild(stack);
         return;
       }
@@ -1149,9 +1167,21 @@ export function mountThankfulJesusApp(): void {
     }
   }
 
+  function syncAccompaniment(): void {
+    const inHarpStage =
+      state.phase === "stage_play" &&
+      Boolean(state.stageState && state.stageState.kind === "david_harp");
+    const visible = typeof document === "undefined" || document.visibilityState !== "hidden";
+    audio.setHarpAccompaniment(
+      inHarpStage && state.harpMusic && visible,
+      state.ageMode === "adventurer"
+    );
+  }
+
   function syncAll(forceDeck = false): void {
     audio.setMuted(state.muted);
     speech.setMuted(state.muted);
+    syncAccompaniment();
     flushSounds();
     updateTopBar();
     updateHud();
@@ -1331,6 +1361,10 @@ export function mountThankfulJesusApp(): void {
     renderStageCanvas(stageCtx, state);
   });
 
+  document.addEventListener("visibilitychange", () => {
+    syncAccompaniment();
+  });
+
   resizeCanvas();
   syncAll(true);
 
@@ -1375,6 +1409,7 @@ export function mountThankfulJesusApp(): void {
       }
     }
     if (state.phase !== prevPhase) {
+      syncAccompaniment();
       maybeAutoRead();
     }
     renderStageCanvas(stageCtx, state);

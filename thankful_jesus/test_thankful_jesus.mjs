@@ -186,9 +186,20 @@ function testExplorer67DoveHelperAndRelaxedFlow() {
   runRunBackToCompletion(state, true);
   assert.ok(state.unlockedVerses.includes("luke_17_15_16"));
 
-  // Stage 3: Hands-off verifies Explorer Dove Helper helps on Harp too!
+  // Stage 3: Hands-off verifies Explorer Dove Helper helps on Harp + harpMusic toggle!
   api.applyAction(state, { type: "NEXT_STAGE" });
   api.applyAction(state, { type: "BEGIN_STAGE" });
+  assert.equal(state.harpMusic, true, "Harp praise accompaniment defaults to on");
+  api.applyAction(state, { type: "TOGGLE_HARP_MUSIC" });
+  assert.equal(state.harpMusic, false);
+  api.applyAction(state, { type: "TOGGLE_HARP_MUSIC" });
+  assert.equal(state.harpMusic, true);
+  const testAudio = new api.JourneyAudio();
+  testAudio.setHarpAccompaniment(true, false);
+  assert.equal(testAudio.isHarpAccompanimentPlaying(), true);
+  testAudio.setMuted(true);
+  assert.equal(testAudio.isHarpAccompanimentPlaying(), false, "Muting stops harp accompaniment");
+  testAudio.stopHarpAccompaniment();
   runDavidHarpToCompletion(state, false);
   assert.ok(state.unlockedVerses.includes("psalm_100_4"));
 

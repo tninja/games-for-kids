@@ -1574,10 +1574,24 @@ var __ThankfulJesusBundle = (() => {
   }
 
   // thankful_jesus/ts/audio.ts
+  var PRAISE_CHORDS = [
+    { bass: 130.81, mid: 261.63, top: 329.63 },
+    // C major
+    { bass: 196, mid: 293.66, top: 392 },
+    // G major
+    { bass: 220, mid: 261.63, top: 329.63 },
+    // A minor
+    { bass: 174.61, mid: 261.63, top: 349.23 }
+    // F major
+  ];
   var JourneyAudio = class {
     constructor() {
       this.ctx = null;
       this.muted = false;
+      this.bgTimer = null;
+      this.bgActive = false;
+      this.bgFast = false;
+      this.bgBeat = 0;
     }
     unlock() {
       if (typeof window === "undefined") {
@@ -1596,6 +1610,65 @@ var __ThankfulJesusBundle = (() => {
     }
     setMuted(muted) {
       this.muted = muted;
+      if (muted) {
+        this.stopHarpAccompaniment();
+      }
+    }
+    isHarpAccompanimentPlaying() {
+      return this.bgActive && !this.muted;
+    }
+    setHarpAccompaniment(active, fastTempo) {
+      const shouldRun = active && !this.muted;
+      if (!shouldRun) {
+        this.stopHarpAccompaniment();
+        return;
+      }
+      if (this.bgActive && this.bgFast === fastTempo) {
+        return;
+      }
+      this.stopHarpAccompaniment();
+      this.bgActive = true;
+      this.bgFast = fastTempo;
+      this.bgBeat = 0;
+      if (typeof setInterval !== "function") {
+        return;
+      }
+      const beatMs = fastTempo ? 518 : 698;
+      this.playAccompanimentBeat();
+      this.bgTimer = setInterval(() => {
+        if (!this.bgActive || this.muted) {
+          this.stopHarpAccompaniment();
+          return;
+        }
+        this.playAccompanimentBeat();
+      }, beatMs);
+    }
+    stopHarpAccompaniment() {
+      this.bgActive = false;
+      if (this.bgTimer !== null) {
+        clearInterval(this.bgTimer);
+        this.bgTimer = null;
+      }
+    }
+    playAccompanimentBeat() {
+      if (this.muted || !this.ctx || this.ctx.state !== "running") {
+        return;
+      }
+      const now = this.ctx.currentTime;
+      const beatInBar = this.bgBeat % 4;
+      const chord = PRAISE_CHORDS[Math.floor(this.bgBeat / 4) % PRAISE_CHORDS.length];
+      this.bgBeat += 1;
+      if (beatInBar === 0) {
+        this.tone(chord.bass, chord.bass, 0.36, "sine", 0.065, now);
+        this.tone(chord.mid, chord.mid, 0.28, "triangle", 0.042, now + 0.02);
+        this.tone(chord.top, chord.top, 0.26, "sine", 0.036, now + 0.045);
+      } else if (beatInBar === 2) {
+        this.tone(chord.bass * 1.5, chord.bass * 1.5, 0.22, "sine", 0.04, now);
+        this.tone(chord.top, chord.top, 0.22, "triangle", 0.036, now + 0.015);
+      } else {
+        this.tone(chord.mid, chord.mid, 0.14, "sine", 0.028, now);
+        this.tone(880, 620, 0.045, "triangle", 0.024, now);
+      }
     }
     play(event) {
       if (this.muted || !this.ctx || this.ctx.state !== "running") {
@@ -2001,6 +2074,14 @@ var __ThankfulJesusBundle = (() => {
     s3DecoyHint: {
       en: "Oops! That's an extra decoy word!",
       zh: "\u54CE\u5440\uFF0C\u8FD9\u662F\u591A\u51FA\u6765\u7684\u5E72\u6270\u8BCD\u5757\u54E6\uFF01"
+    },
+    harpMusicOn: {
+      en: "Praise Beat: On",
+      zh: "\u4F34\u594F\u97F3\u5F8B: \u5F00"
+    },
+    harpMusicOff: {
+      en: "Praise Beat: Off",
+      zh: "\u4F34\u594F\u97F3\u5F8B: \u5173"
     }
   };
   var JESUS_EASTER_LINES = [
@@ -3179,6 +3260,7 @@ var __ThankfulJesusBundle = (() => {
       totalStars: 0,
       muted: false,
       autoRead: false,
+      harpMusic: true,
       elapsedSec: 0,
       rngState: (config.seed ?? 20261125) >>> 0,
       pendingSounds: [],
@@ -3383,6 +3465,9 @@ var __ThankfulJesusBundle = (() => {
         break;
       case "TOGGLE_AUTO_READ":
         state.autoRead = !state.autoRead;
+        break;
+      case "TOGGLE_HARP_MUSIC":
+        state.harpMusic = !state.harpMusic;
         break;
       case "PLAY_AGAIN":
         state.phase = "title";
@@ -3885,11 +3970,13 @@ var __ThankfulJesusBundle = (() => {
   }
   function renderDavidHarpPlay(ctx, state, stage, w, h, timeSec) {
     drawGalileeBackdrop(ctx, w, h, timeSec);
-    drawSunRays(ctx, w * 0.5, 92, 130, timeSec, 0.24);
+    const beatHz = state.ageMode === "adventurer" ? 116 / 60 : 86 / 60;
+    const musicPulse = state.harpMusic && !state.muted ? 0.5 + 0.5 * Math.sin(timeSec * Math.PI * 2 * beatHz) : 0;
+    drawSunRays(ctx, w * 0.5, 92, 126 + musicPulse * 18, timeSec, 0.22 + musicPulse * 0.12);
     drawJesus(ctx, w * 0.19, 136, 0.86, "welcome", timeSec);
     drawChildFriend(ctx, w * 0.5, 136, 0.82, "#6BA8C9", true, timeSec);
-    drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
-    drawLittleSheep(ctx, w * 0.84, 134, 1, timeSec);
+    drawGoldenHarp(ctx, w * 0.61, 114 - musicPulse * 2, 0.88 + musicPulse * 0.04, timeSec);
+    drawLittleSheep(ctx, w * 0.84, 134 - musicPulse * 3, 1, timeSec);
     const boardX = 28;
     const boardY = 148;
     const boardW = w - 56;
@@ -4797,6 +4884,7 @@ var __ThankfulJesusBundle = (() => {
         String(state.prayers.length),
         String(state.promptIndex),
         String(state.autoRead),
+        String(state.harpMusic),
         selectedSticker,
         selectedLeafColor,
         extra
@@ -5070,6 +5158,21 @@ var __ThankfulJesusBundle = (() => {
             harpRow.appendChild(btn);
           }
           stack.appendChild(harpRow);
+          const bgBtn = document.createElement("button");
+          bgBtn.type = "button";
+          bgBtn.className = "ghost-btn";
+          bgBtn.appendChild(
+            makeDualButtonContent(
+              state.harpMusic ? UI_TEXT.harpMusicOn : UI_TEXT.harpMusicOff,
+              state.langMode
+            )
+          );
+          bgBtn.addEventListener("click", () => {
+            unlockAudio();
+            applyAction(state, { type: "TOGGLE_HARP_MUSIC" });
+            syncAll(true);
+          });
+          stack.appendChild(bgBtn);
           controlDeck.appendChild(stack);
           return;
         }
@@ -5380,9 +5483,18 @@ var __ThankfulJesusBundle = (() => {
         audio.play(sounds[i]);
       }
     }
+    function syncAccompaniment() {
+      const inHarpStage = state.phase === "stage_play" && Boolean(state.stageState && state.stageState.kind === "david_harp");
+      const visible = typeof document === "undefined" || document.visibilityState !== "hidden";
+      audio.setHarpAccompaniment(
+        inHarpStage && state.harpMusic && visible,
+        state.ageMode === "adventurer"
+      );
+    }
     function syncAll(forceDeck = false) {
       audio.setMuted(state.muted);
       speech.setMuted(state.muted);
+      syncAccompaniment();
       flushSounds();
       updateTopBar();
       updateHud();
@@ -5524,6 +5636,9 @@ var __ThankfulJesusBundle = (() => {
       resizeCanvas();
       renderStageCanvas(stageCtx, state);
     });
+    document.addEventListener("visibilitychange", () => {
+      syncAccompaniment();
+    });
     resizeCanvas();
     syncAll(true);
     let lastTs = performance.now();
@@ -5557,6 +5672,7 @@ var __ThankfulJesusBundle = (() => {
         }
       }
       if (state.phase !== prevPhase) {
+        syncAccompaniment();
         maybeAutoRead();
       }
       renderStageCanvas(stageCtx, state);

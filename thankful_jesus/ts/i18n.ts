@@ -309,6 +309,14 @@ export const UI_TEXT = {
   s3DecoyHint: {
     en: "Oops! That's an extra decoy word!",
     zh: "\u54ce\u5440\uff0c\u8fd9\u662f\u591a\u51fa\u6765\u7684\u5e72\u6270\u8bcd\u5757\u54e6\uff01"
+  },
+  harpMusicOn: {
+    en: "Praise Beat: On",
+    zh: "\u4f34\u594f\u97f3\u5f8b: \u5f00"
+  },
+  harpMusicOff: {
+    en: "Praise Beat: Off",
+    zh: "\u4f34\u594f\u97f3\u5f8b: \u5173"
   }
 } as const;
 

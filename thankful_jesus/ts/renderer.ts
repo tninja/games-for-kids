@@ -396,13 +396,16 @@ function renderDavidHarpPlay(
   timeSec: number
 ): void {
   drawGalileeBackdrop(ctx, w, h, timeSec);
-  drawSunRays(ctx, w * 0.5, 92, 130, timeSec, 0.24);
+  const beatHz = state.ageMode === "adventurer" ? 116 / 60 : 86 / 60;
+  const musicPulse =
+    state.harpMusic && !state.muted ? 0.5 + 0.5 * Math.sin(timeSec * Math.PI * 2 * beatHz) : 0;
+  drawSunRays(ctx, w * 0.5, 92, 126 + musicPulse * 18, timeSec, 0.22 + musicPulse * 0.12);
 
-  // Smiling Jesus, young David with golden harp, and joyful listening sheep
+  // Smiling Jesus, young David with golden harp, and joyful sheep bouncing on the praise beat
   drawJesus(ctx, w * 0.19, 136, 0.86, "welcome", timeSec);
   drawChildFriend(ctx, w * 0.50, 136, 0.82, "#6BA8C9", true, timeSec);
-  drawGoldenHarp(ctx, w * 0.61, 114, 0.88, timeSec);
-  drawLittleSheep(ctx, w * 0.84, 134, 1.0, timeSec);
+  drawGoldenHarp(ctx, w * 0.61, 114 - musicPulse * 2, 0.88 + musicPulse * 0.04, timeSec);
+  drawLittleSheep(ctx, w * 0.84, 134 - musicPulse * 3, 1.0, timeSec);
 
   // Warm parchment harp stage frame with gilded wood top arch
   const boardX = 28;

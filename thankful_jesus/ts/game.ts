@@ -79,6 +79,7 @@ export function createInitialState(config: GameConfig = {}): GameState {
     totalStars: 0,
     muted: false,
     autoRead: false,
+    harpMusic: true,
     elapsedSec: 0,
     rngState: (config.seed ?? 20261125) >>> 0,
     pendingSounds: [],
@@ -305,6 +306,9 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       break;
     case "TOGGLE_AUTO_READ":
       state.autoRead = !state.autoRead;
+      break;
+    case "TOGGLE_HARP_MUSIC":
+      state.harpMusic = !state.harpMusic;
       break;
     case "PLAY_AGAIN":
       state.phase = "title";

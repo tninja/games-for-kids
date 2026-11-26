@@ -4,9 +4,28 @@ interface AudioWindow extends Window {
   webkitAudioContext?: typeof AudioContext;
 }
 
+// Gentle C-major worship/thanksgiving chord progression (C -> G -> Am -> F)
+// Every player pentatonic harp note (C5, D5, E5, G5) harmonizes cleanly over every chord.
+interface PraiseChord {
+  bass: number;
+  mid: number;
+  top: number;
+}
+
+const PRAISE_CHORDS: PraiseChord[] = [
+  { bass: 130.81, mid: 261.63, top: 329.63 }, // C major
+  { bass: 196.0, mid: 293.66, top: 392.0 }, // G major
+  { bass: 220.0, mid: 261.63, top: 329.63 }, // A minor
+  { bass: 174.61, mid: 261.63, top: 349.23 } // F major
+];
+
 export class JourneyAudio {
   private ctx: AudioContext | null = null;
   private muted = false;
+  private bgTimer: ReturnType<typeof setInterval> | null = null;
+  private bgActive = false;
+  private bgFast = false;
+  private bgBeat = 0;
 
   public unlock(): void {
     if (typeof window === "undefined") {
@@ -25,6 +44,75 @@ export class JourneyAudio {
 
   public setMuted(muted: boolean): void {
     this.muted = muted;
+    if (muted) {
+      this.stopHarpAccompaniment();
+    }
+  }
+
+  public isHarpAccompanimentPlaying(): boolean {
+    return this.bgActive && !this.muted;
+  }
+
+  public setHarpAccompaniment(active: boolean, fastTempo: boolean): void {
+    const shouldRun = active && !this.muted;
+    if (!shouldRun) {
+      this.stopHarpAccompaniment();
+      return;
+    }
+    if (this.bgActive && this.bgFast === fastTempo) {
+      return;
+    }
+    this.stopHarpAccompaniment();
+    this.bgActive = true;
+    this.bgFast = fastTempo;
+    this.bgBeat = 0;
+
+    if (typeof setInterval !== "function") {
+      return;
+    }
+    // Explorer: warm 86 BPM (~350ms eighth-pulse -> 700ms beat); Adventurer: lively 116 BPM (~518ms beat)
+    const beatMs = fastTempo ? 518 : 698;
+    this.playAccompanimentBeat();
+    this.bgTimer = setInterval(() => {
+      if (!this.bgActive || this.muted) {
+        this.stopHarpAccompaniment();
+        return;
+      }
+      this.playAccompanimentBeat();
+    }, beatMs);
+  }
+
+  public stopHarpAccompaniment(): void {
+    this.bgActive = false;
+    if (this.bgTimer !== null) {
+      clearInterval(this.bgTimer);
+      this.bgTimer = null;
+    }
+  }
+
+  private playAccompanimentBeat(): void {
+    if (this.muted || !this.ctx || this.ctx.state !== "running") {
+      return;
+    }
+    const now = this.ctx.currentTime;
+    const beatInBar = this.bgBeat % 4;
+    const chord = PRAISE_CHORDS[Math.floor(this.bgBeat / 4) % PRAISE_CHORDS.length];
+    this.bgBeat += 1;
+
+    if (beatInBar === 0) {
+      // Warm downbeat bass + gentle strummed triad pad
+      this.tone(chord.bass, chord.bass, 0.36, "sine", 0.065, now);
+      this.tone(chord.mid, chord.mid, 0.28, "triangle", 0.042, now + 0.02);
+      this.tone(chord.top, chord.top, 0.26, "sine", 0.036, now + 0.045);
+    } else if (beatInBar === 2) {
+      // Gentle lifted off-bar chord pulse
+      this.tone(chord.bass * 1.5, chord.bass * 1.5, 0.22, "sine", 0.04, now);
+      this.tone(chord.top, chord.top, 0.22, "triangle", 0.036, now + 0.015);
+    } else {
+      // Soft wooden tambourine / gentle harp tick on beats 2 & 4
+      this.tone(chord.mid, chord.mid, 0.14, "sine", 0.028, now);
+      this.tone(880, 620, 0.045, "triangle", 0.024, now);
+    }
   }
 
   public play(event: SoundEvent): void {
