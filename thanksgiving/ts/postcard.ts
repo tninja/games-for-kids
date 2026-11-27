@@ -10,38 +10,247 @@ import {
   drawRoundedRect,
   drawStar
 } from "./artwork";
-import { PALETTE } from "./constants";
-import { GameState } from "./types";
+import { LEAF_COLORS, PALETTE } from "./constants";
+import { lerpColor } from "./lighting";
+import { drawDuskGroundTint, drawDuskSky, drawGroundShadow, drawSun } from "./scenery";
+import { GameState, GratitudeLeaf } from "./types";
 
-function wrapText(
-  ctx: CanvasRenderingContext2D,
+const W = 1080;
+const H = 1440;
+// iOS Safari ships SF Pro Rounded as ui-rounded; other browsers fall back to system-ui.
+const FONT_STACK = 'ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif';
+const SCENE = { x: 88, y: 250, w: 904, h: 590 };
+const NOTES_TOP = 908;
+const NOTES_BOTTOM = 1300;
+const NOTES_SIDE = 96;
+const NOTE_GAP = 14;
+const NOTE_MAX_ROW_H = 120;
+const STARS_SHOWN = 5;
+const MAX_TOTAL_STARS = 15;
+const ELLIPSIS = "...";
+
+interface NoteGrid {
+  cols: number;
+  colW: number;
+  rowH: number;
+  startY: number;
+  msgSize: number;
+}
+
+interface TextMeasurer {
+  measureText(text: string): { width: number };
+}
+
+function font(weight: number, size: number): string {
+  return String(weight) + " " + String(size) + "px " + FONT_STACK;
+}
+
+function fitWithEllipsis(ctx: TextMeasurer, line: string, maxWidth: number): string {
+  const chars = Array.from(line);
+  while (chars.length > 0 && ctx.measureText(chars.join("").trimEnd() + ELLIPSIS).width > maxWidth) {
+    chars.pop();
+  }
+  return chars.join("").trimEnd() + ELLIPSIS;
+}
+
+// Greedy wrap that breaks at spaces when possible and between characters otherwise,
+// so Chinese/Japanese notes (no spaces) and emoji wrap as cleanly as English.
+export function wrapText(
+  ctx: TextMeasurer,
   text: string,
-  maxWidth: number
+  maxWidth: number,
+  maxLines: number = Number.POSITIVE_INFINITY
 ): string[] {
-  const words = text.split(" ");
   const lines: string[] = [];
-  let current = "";
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const candidate = current ? current + " " + word : word;
-    if (ctx.measureText(candidate).width <= maxWidth) {
-      current = candidate;
+  let line = "";
+  for (const ch of Array.from(text.replace(/\s+/g, " ").trim())) {
+    if (!line || ctx.measureText(line + ch).width <= maxWidth) {
+      line += ch;
+    } else if (ch === " ") {
+      lines.push(line);
+      line = "";
     } else {
-      if (current) {
-        lines.push(current);
-      }
-      current = word;
+      const breakAt = line.lastIndexOf(" ");
+      lines.push(breakAt > 0 ? line.slice(0, breakAt) : line);
+      line = (breakAt > 0 ? line.slice(breakAt + 1) : "") + ch;
     }
   }
-  if (current) {
-    lines.push(current);
+  if (line) {
+    lines.push(line);
   }
-  return lines.length > 0 ? lines : [text];
+  if (lines.length <= maxLines) {
+    return lines.length > 0 ? lines : [""];
+  }
+  const kept = lines.slice(0, maxLines);
+  kept[maxLines - 1] = fitWithEllipsis(ctx, kept[maxLines - 1], maxWidth);
+  return kept;
+}
+
+function drawFrame(ctx: CanvasRenderingContext2D): void {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#FFF9EE");
+  bg.addColorStop(1, "#F8E1BE");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  drawRoundedRect(ctx, 34, 34, W - 68, H - 68, 36);
+  ctx.fillStyle = "rgba(255, 253, 247, 0.72)";
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = PALETTE.toastedSienna;
+  ctx.stroke();
+  drawRoundedRect(ctx, 52, 52, W - 104, H - 104, 28);
+  ctx.setLineDash([14, 10]);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = PALETTE.mapleCrimson;
+  ctx.stroke();
+  ctx.restore();
+
+  drawMapleLeaf(ctx, 102, 102, 34, "crimson", -0.4);
+  drawMapleLeaf(ctx, W - 102, 102, 34, "amber", 0.4);
+  drawMapleLeaf(ctx, 102, H - 102, 30, "gold", -2.5);
+  drawMapleLeaf(ctx, W - 102, H - 102, 30, "russet", 2.5);
+}
+
+function drawHeader(ctx: CanvasRenderingContext2D, state: GameState): void {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.fillStyle = PALETTE.ink;
+  ctx.font = font(800, 66);
+  ctx.fillText("Happy Thanksgiving!", W / 2, 132);
+
+  const year = String(new Date().getFullYear());
+  const who = state.familyName || "Beagle Chef's Backyard Feast";
+  ctx.fillStyle = PALETTE.toastedSienna;
+  ctx.font = font(700, 30);
+  ctx.fillText(who + "  -  " + year, W / 2, 180);
+
+  const earned = Math.max(0, Math.min(STARS_SHOWN, Math.round(state.totalStars / 3)));
+  const startX = W / 2 - 150;
+  for (let i = 0; i < STARS_SHOWN; i++) {
+    drawStar(ctx, startX + i * 42, 214, 16, i < earned ? PALETTE.pumpkinGold : "#E2D5C3");
+  }
+  ctx.textAlign = "left";
+  ctx.fillStyle = PALETTE.toastedSienna;
+  ctx.font = font(700, 24);
+  ctx.fillText(String(state.totalStars) + " / " + String(MAX_TOTAL_STARS) + " stars", startX + 200, 222);
+  ctx.restore();
+}
+
+function drawSunsetScene(ctx: CanvasRenderingContext2D, state: GameState): void {
+  const bottom = SCENE.y + SCENE.h;
+  ctx.save();
+  drawRoundedRect(ctx, SCENE.x, SCENE.y, SCENE.w, SCENE.h, 28);
+  ctx.clip();
+  drawDuskSky(ctx, SCENE.x, SCENE.y, SCENE.w, SCENE.h, 0.8, 1);
+  drawSun(ctx, 860, 440, 280, 1, 1.6);
+  drawBackyardFence(ctx, 752, W);
+  ctx.fillStyle = "#B6C285";
+  ctx.beginPath();
+  ctx.ellipse(W / 2, 878, 580, 160, 0, Math.PI, 0);
+  ctx.fill();
+  drawRedDoghouse(ctx, 180, 760, 1.55);
+  drawDuskGroundTint(ctx, SCENE.x, 720, SCENE.w, bottom, 1);
+  drawMapleTree(ctx, W / 2 + 30, 753, 480, 440, state.leaves, false);
+  drawFestiveStringLights(ctx, 186, 642, 530, 490, 0.8, 1);
+  drawFestiveStringLights(ctx, 590, 494, 956, 588, 1.6, 1);
+  drawBackyardTable(ctx, W / 2 + 24, 766, 556, state.seatedGuests.length, true, true, true, 0, true, true);
+  drawGroundShadow(ctx, 215, 833, 38, 9);
+  drawBeagleChef(ctx, 212, 760, 1.45, "excited", 0);
+  drawLittleBird(ctx, 888, 674, 1.9, 0.3);
+  ctx.restore();
+
+  drawRoundedRect(ctx, SCENE.x, SCENE.y, SCENE.w, SCENE.h, 28);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+}
+
+function layoutNoteGrid(count: number): NoteGrid {
+  const cols = count <= 3 ? 1 : count <= 8 ? 2 : 3;
+  const rows = Math.max(1, Math.ceil(count / cols));
+  const areaH = NOTES_BOTTOM - NOTES_TOP;
+  const colW = (W - 2 * NOTES_SIDE - (cols - 1) * NOTE_GAP) / cols;
+  const rowH = Math.min(NOTE_MAX_ROW_H, (areaH - (rows - 1) * NOTE_GAP) / rows);
+  const totalH = rows * rowH + (rows - 1) * NOTE_GAP;
+  const msgSize = cols === 3 ? 19 : cols === 2 ? 21 : 24;
+  return { cols, colW, rowH, startY: NOTES_TOP + (areaH - totalH) / 2, msgSize };
+}
+
+function drawNoteCard(
+  ctx: CanvasRenderingContext2D,
+  leaf: GratitudeLeaf,
+  x: number,
+  y: number,
+  grid: NoteGrid,
+  index: number
+): void {
+  const w = grid.colW;
+  const h = grid.rowH;
+  const colors = LEAF_COLORS[leaf.leafColor];
+  ctx.save();
+  ctx.translate(x + w / 2, y + h / 2);
+  ctx.rotate(index % 2 === 0 ? -0.012 : 0.012);
+  ctx.translate(-w / 2, -h / 2);
+
+  drawRoundedRect(ctx, 0, 0, w, h, 18);
+  ctx.fillStyle = lerpColor(PALETTE.cream, colors.fill, 0.14);
+  ctx.fill();
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+
+  // Washi tape strip "holding" the card onto the postcard
+  ctx.save();
+  ctx.translate(w / 2, 0);
+  ctx.rotate(index % 2 === 0 ? -0.06 : 0.05);
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = colors.fill;
+  ctx.fillRect(-30, -8, 60, 16);
+  ctx.restore();
+
+  const badge = Math.min(24, h * 0.24);
+  drawMapleLeaf(ctx, 14 + badge, h / 2, badge, leaf.leafColor, -0.2);
+
+  const textX = badge * 2 + 26;
+  const textW = w - textX - 14;
+  const authorSize = grid.msgSize - 3;
+  const lineH = grid.msgSize * 1.18;
+  const maxLines = Math.max(1, Math.floor((h - authorSize - 26 + lineH - grid.msgSize) / lineH));
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = colors.vein;
+  ctx.font = font(700, authorSize);
+  ctx.fillText(leaf.authorLabel, textX, 12);
+  ctx.fillStyle = PALETTE.ink;
+  ctx.font = font(600, grid.msgSize);
+  const lines = wrapText(ctx, leaf.message, textW, maxLines);
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], textX, 18 + authorSize + i * lineH);
+  }
+  ctx.restore();
+}
+
+function drawGratitudeNotes(ctx: CanvasRenderingContext2D, leaves: GratitudeLeaf[]): void {
+  ctx.save();
+  ctx.fillStyle = PALETTE.mapleCrimson;
+  ctx.font = font(800, 34);
+  ctx.textAlign = "center";
+  ctx.fillText("Our Gratitude Leaves", W / 2, 886);
+  ctx.restore();
+
+  const grid = layoutNoteGrid(leaves.length);
+  for (let i = 0; i < leaves.length; i++) {
+    const col = i % grid.cols;
+    const row = Math.floor(i / grid.cols);
+    const x = NOTES_SIDE + col * (grid.colW + NOTE_GAP);
+    const y = grid.startY + row * (grid.rowH + NOTE_GAP);
+    drawNoteCard(ctx, leaves[i], x, y, grid, i);
+  }
 }
 
 export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
-  const W = 1080;
-  const H = 1440;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -50,148 +259,15 @@ export function renderPostcardCanvas(state: GameState): HTMLCanvasElement {
     return canvas;
   }
 
-  // Warm cream stationery background
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, "#FFF9EE");
-  bg.addColorStop(1, "#F8E1BE");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  drawFrame(ctx);
+  drawHeader(ctx, state);
+  drawSunsetScene(ctx, state);
+  drawGratitudeNotes(ctx, state.leaves);
 
-  // Stitched storybook frame
-  ctx.save();
-  drawRoundedRect(ctx, 34, 34, W - 68, H - 68, 36);
-  ctx.fillStyle = "rgba(255, 253, 247, 0.72)";
-  ctx.fill();
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = PALETTE.toastedSienna;
-  ctx.stroke();
-
-  drawRoundedRect(ctx, 52, 52, W - 104, H - 104, 28);
-  ctx.setLineDash([14, 10]);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = PALETTE.mapleCrimson;
-  ctx.stroke();
-  ctx.restore();
-
-  // Corner autumn leaves
-  drawMapleLeaf(ctx, 102, 102, 34, "crimson", -0.4);
-  drawMapleLeaf(ctx, W - 102, 102, 34, "amber", 0.4);
-  drawMapleLeaf(ctx, 102, H - 102, 30, "gold", -2.5);
-  drawMapleLeaf(ctx, W - 102, H - 102, 30, "russet", 2.5);
-
-  // Header banner
-  ctx.fillStyle = PALETTE.ink;
-  ctx.textAlign = "center";
-  ctx.font = "800 58px system-ui, -apple-system, sans-serif";
-  ctx.fillText("Happy Thanksgiving!", W / 2, 140);
-
-  ctx.fillStyle = PALETTE.toastedSienna;
-  ctx.font = "700 28px system-ui, -apple-system, sans-serif";
-  const year = new Date().getFullYear();
-  ctx.fillText("Beagle Chef's Backyard Feast  -  " + String(year), W / 2, 188);
-
-  // Earned star badge strip
-  const displayedStars = 5;
-  const starStartX = W / 2 - ((displayedStars - 1) * 46) / 2;
-  for (let i = 0; i < displayedStars; i++) {
-    drawStar(ctx, starStartX + i * 46, 236, 17, PALETTE.pumpkinGold);
-  }
-  ctx.fillStyle = PALETTE.toastedSienna;
-  ctx.font = "700 22px system-ui, -apple-system, sans-serif";
-  ctx.fillText(
-    "Feast Stars Earned: " + String(state.totalStars) + " / 15",
-    W / 2,
-    272
-  );
-
-  // Illustrated backyard scene (Tree + Ping-Pong Feast Table + Beagle Chef)
-  drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
-  ctx.fillStyle = "#FCE5C0";
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = PALETTE.ink;
-  ctx.stroke();
-
-  // Soft backyard hill, fence, doghouse & string lights inside scene
-  ctx.save();
-  ctx.beginPath();
-  drawRoundedRect(ctx, 88, 290, W - 176, 502, 28);
-  ctx.clip();
-  drawBackyardFence(ctx, 704, W);
-  ctx.fillStyle = "#B6C285";
-  ctx.beginPath();
-  ctx.ellipse(W / 2, 830, 580, 160, 0, Math.PI, 0);
-  ctx.fill();
-  drawRedDoghouse(ctx, 180, 712, 1.55);
-  drawMapleTree(ctx, W / 2 + 30, 705, 460, 396, state.leaves, false);
-  drawFestiveStringLights(ctx, 186, 594, 530, 442, 0.8);
-  drawFestiveStringLights(ctx, 590, 446, 956, 540, 1.6);
-  drawBackyardTable(
-    ctx,
-    W / 2 + 24,
-    718,
-    556,
-    state.seatedGuests.length,
-    true,
-    true,
-    true,
-    0,
-    true,
-    true
-  );
-  drawBeagleChef(ctx, 212, 725, 1.45, "excited", 0);
-  drawLittleBird(ctx, 888, 626, 1.9, 0.3);
-  ctx.restore();
-
-  // Gratitude Notes Box
-  ctx.fillStyle = PALETTE.mapleCrimson;
-  ctx.font = "800 34px system-ui, -apple-system, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Our Gratitude Maple Leaves", W / 2, 856);
-
-  const notes = state.leaves.slice(0, 8);
-  const cols = notes.length > 4 ? 2 : 1;
-  const colW = cols === 2 ? 430 : 840;
-  const startX = cols === 2 ? 96 : 120;
-  let yCursor = 900;
-
-  for (let i = 0; i < notes.length; i++) {
-    const leaf = notes[i];
-    const col = cols === 2 ? i % 2 : 0;
-    const row = cols === 2 ? Math.floor(i / 2) : i;
-    const x = startX + col * (colW + 28);
-    const y = yCursor + row * 108;
-
-    drawRoundedRect(ctx, x, y, colW, 92, 18);
-    ctx.fillStyle = PALETTE.cream;
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.stroke();
-
-    drawMapleLeaf(ctx, x + 36, y + 46, 20, leaf.leafColor, -0.2);
-
-    ctx.textAlign = "left";
-    ctx.fillStyle = PALETTE.toastedSienna;
-    ctx.font = "700 22px system-ui, -apple-system, sans-serif";
-    ctx.fillText(leaf.authorLabel, x + 68, y + 32);
-
-    ctx.fillStyle = PALETTE.ink;
-    ctx.font = "600 23px system-ui, -apple-system, sans-serif";
-    const lines = wrapText(ctx, leaf.message, colW - 84);
-    ctx.fillText(lines[0], x + 68, y + 64);
-    if (lines[1]) {
-      ctx.font = "600 18px system-ui, -apple-system, sans-serif";
-      ctx.fillText(lines[1], x + 68, y + 84);
-    }
-  }
-
-  // Footer signature
   ctx.textAlign = "center";
   ctx.fillStyle = PALETTE.toastedSienna;
-  ctx.font = "600 22px system-ui, -apple-system, sans-serif";
-  ctx.fillText("Made together with gratitude  -  games-for-kids", W / 2, H - 82);
-
+  ctx.font = font(600, 22);
+  ctx.fillText("Made together with gratitude  -  games-for-kids", W / 2, H - 74);
   return canvas;
 }
 

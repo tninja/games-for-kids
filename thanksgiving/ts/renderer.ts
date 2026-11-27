@@ -21,6 +21,19 @@ import {
   drawToast
 } from "./artwork";
 import { DISH_SPECS, PALETTE, STAGE_LOGICAL_H, STAGE_LOGICAL_W } from "./constants";
+import { getDuskLevel, getLightGlow } from "./lighting";
+import {
+  COUNTER_TOP_Y,
+  drawDuskGroundTint,
+  drawDuskSky,
+  drawGroundShadow,
+  drawKitchenCounter,
+  drawKitchenWall,
+  drawKitchenWindow,
+  drawPendantLamp,
+  drawStoveRange,
+  drawSun
+} from "./scenery";
 import {
   ChairDishState,
   GameState,
@@ -30,38 +43,39 @@ import {
   ToastDishState
 } from "./types";
 
+const OUTDOOR_HORIZON_Y = 300;
+
+function drawChefShadow(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number): void {
+  drawGroundShadow(ctx, x + 2, y + 50 * scale, 26 * scale, 6 * scale);
+}
+
+function drawLabelPill(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number): void {
+  ctx.save();
+  ctx.font = "700 14px system-ui, -apple-system, sans-serif";
+  const w = ctx.measureText(text).width + 24;
+  drawRoundedRect(ctx, cx - w / 2, cy - 13, w, 26, 13);
+  ctx.fillStyle = PALETTE.cream;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.stroke();
+  ctx.fillStyle = PALETTE.ink;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, cx, cy + 1);
+  ctx.restore();
+}
+
 function drawWarmBackdrop(
   ctx: CanvasRenderingContext2D,
   t: number,
   outdoor: boolean,
-  showDoghouse = true
+  showDoghouse = true,
+  dusk = 0
 ): void {
-  const grad = ctx.createLinearGradient(0, 0, 0, STAGE_LOGICAL_H);
   if (outdoor) {
-    grad.addColorStop(0, "#FFEAC9");
-    grad.addColorStop(0.58, "#FAD7A3");
-    grad.addColorStop(1, "#D8BA85");
-  } else {
-    grad.addColorStop(0, PALETTE.parchment);
-    grad.addColorStop(0.7, PALETTE.warmSky);
-    grad.addColorStop(1, "#E8C396");
-  }
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, STAGE_LOGICAL_W, STAGE_LOGICAL_H);
-
-  if (outdoor) {
-    // Warm golden autumn afternoon sun glow
-    ctx.save();
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = "#FFF4C2";
-    ctx.beginPath();
-    ctx.arc(360, 74, 48, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 0.7;
-    ctx.beginPath();
-    ctx.arc(360, 74, 28, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawDuskSky(ctx, 0, 0, STAGE_LOGICAL_W, STAGE_LOGICAL_H, t, dusk);
+    drawSun(ctx, 360, 74, 220, dusk);
 
     // Wooden backyard picket fence across horizon
     drawBackyardFence(ctx, 326, STAGE_LOGICAL_W);
@@ -79,24 +93,10 @@ function drawWarmBackdrop(
     if (showDoghouse) {
       drawRedDoghouse(ctx, 52, 336, 0.85);
     }
+    drawDuskGroundTint(ctx, 0, OUTDOOR_HORIZON_Y, STAGE_LOGICAL_W, STAGE_LOGICAL_H, dusk);
   } else {
-    // Subtle warm kitchen wallpaper stripes
-    ctx.save();
-    ctx.fillStyle = "rgba(217, 93, 57, 0.045)";
-    for (let sx = 0; sx < STAGE_LOGICAL_W; sx += 36) {
-      ctx.fillRect(sx, 0, 16, 336);
-    }
-    ctx.restore();
-
-    // Cozy kitchen countertop
-    ctx.fillStyle = "#D49B63";
-    ctx.fillRect(0, 336, STAGE_LOGICAL_W, STAGE_LOGICAL_H - 336);
-    ctx.strokeStyle = PALETTE.ink;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, 336);
-    ctx.lineTo(STAGE_LOGICAL_W, 336);
-    ctx.stroke();
+    drawKitchenWall(ctx, STAGE_LOGICAL_W, STAGE_LOGICAL_H, dusk);
+    drawKitchenCounter(ctx, STAGE_LOGICAL_W, STAGE_LOGICAL_H);
   }
 
   // Drifting autumn maple leaves
@@ -164,6 +164,7 @@ function drawAnimatedChefAndBird(
   const dancing = state.chefDanceTimer > 0;
   const chirping = state.birdChirpTimer > 0;
 
+  drawChefShadow(ctx, chefX, chefY, chefScale);
   ctx.save();
   if (dancing) {
     const hop = Math.abs(Math.sin(state.elapsedSec * 16)) * -14;
@@ -198,7 +199,11 @@ function drawAnimatedChefAndBird(
 }
 
 function renderToastStage(ctx: CanvasRenderingContext2D, state: GameState, dish: ToastDishState): void {
-  drawWarmBackdrop(ctx, state.elapsedSec, false);
+  const dusk = getDuskLevel(state);
+  drawWarmBackdrop(ctx, state.elapsedSec, false, true, dusk);
+  drawKitchenWindow(ctx, 24, 96, 100, 96, state.elapsedSec, dusk);
+  drawPendantLamp(ctx, 334, 30, getLightGlow(dusk), state.elapsedSec);
+  drawGroundShadow(ctx, STAGE_LOGICAL_W / 2 + 4, 348, 56, 7);
   const isCozy = state.difficulty === "cozy";
   const goldenMinY = (isCozy ? 0.14 : 0.20) * STAGE_LOGICAL_H;
   const goldenMaxY = (isCozy ? 0.56 : 0.48) * STAGE_LOGICAL_H;
@@ -236,6 +241,7 @@ function renderToastStage(ctx: CanvasRenderingContext2D, state: GameState, dish:
     : dish.feedbackTimer > 0.2 && dish.streak > 0
       ? "excited"
       : "happy";
+  drawChefShadow(ctx, 64, 324, 0.96);
   drawBeagleChef(ctx, 64, 324, 0.96, mood, bob);
   const birdY = dish.birdAssistTimer > 0 ? 245 : 284 + Math.sin(state.elapsedSec * 6) * 6;
   drawLittleBird(ctx, 348, birdY, 1.2, Math.sin(state.elapsedSec * 14));
@@ -287,8 +293,12 @@ function renderPopcornStage(
   state: GameState,
   dish: PopcornDishState
 ): void {
-  drawWarmBackdrop(ctx, state.elapsedSec, false);
+  const dusk = getDuskLevel(state);
+  drawWarmBackdrop(ctx, state.elapsedSec, false, true, dusk);
   const isCoop = state.playMode === "laptop_coop";
+  drawKitchenWindow(ctx, 326, 64, 78, 92, state.elapsedSec, dusk);
+  drawPendantLamp(ctx, 62, 40, getLightGlow(dusk), state.elapsedSec);
+  drawStoveRange(ctx, STAGE_LOGICAL_W / 2, 126, state.elapsedSec);
 
   // Sizzling skillet with rattling lid & steam puffs
   const lidRattle = Math.sin(state.elapsedSec * 22) * 3;
@@ -366,6 +376,7 @@ function renderPopcornStage(
 
   const bx = dish.bowlX * STAGE_LOGICAL_W;
   const wobble = Math.sin(state.elapsedSec * 36) * dish.bowlWobble * 7;
+  drawChefShadow(ctx, bx, 382, 0.88);
   drawBeagleChef(ctx, bx, 382, 0.88, dish.bowlWobble > 0.2 ? "oops" : "happy", 0);
 
   ctx.save();
@@ -394,7 +405,7 @@ function renderChairStage(
   state: GameState,
   dish: ChairDishState
 ): void {
-  drawWarmBackdrop(ctx, state.elapsedSec, true, true);
+  drawWarmBackdrop(ctx, state.elapsedSec, true, true, getDuskLevel(state));
 
   const flap = Math.sin(state.elapsedSec * 9) * (1 - dish.tamedProgress / 100) * 6;
   drawBackyardTable(ctx, STAGE_LOGICAL_W / 2 + 24, 168 + flap * 0.2, 224, 3, true, true, false, flap * 0.3);
@@ -440,6 +451,7 @@ function renderChairStage(
   }
 
   const chefMood = dish.tamedProgress >= 100 ? "excited" : dish.chairHopY > 15 ? "oops" : "happy";
+  drawChefShadow(ctx, 84, 340, 0.96);
   drawBeagleChef(ctx, 84, 340, 0.96, chefMood, Math.sin(state.elapsedSec * 8) * 3);
   drawLittleBird(
     ctx,
@@ -481,15 +493,11 @@ function renderPlatterStage(
   state: GameState,
   dish: PlatterDishState
 ): void {
-  drawWarmBackdrop(ctx, state.elapsedSec, false);
+  const dusk = getDuskLevel(state);
+  drawWarmBackdrop(ctx, state.elapsedSec, false, true, dusk);
 
-  // Cozy kitchen pass-through window with excited guest peeking in
-  drawRoundedRect(ctx, 152, 166, 116, 78, 12);
-  ctx.fillStyle = "#FCE5C0";
-  ctx.fill();
-  ctx.strokeStyle = PALETTE.toastedSienna;
-  ctx.lineWidth = 4;
-  ctx.stroke();
+  // Kitchen window with an excited guest peeking in from the backyard
+  drawKitchenWindow(ctx, 152, 166, 116, 78, state.elapsedSec, dusk);
   drawGuestCharacter(
     ctx,
     210,
@@ -557,16 +565,18 @@ function renderPlatterStage(
   }
   ctx.restore();
 
+  drawChefShadow(ctx, 50, 310, 0.92);
   drawBeagleChef(
     ctx,
-    72,
-    252,
+    50,
+    310,
     0.92,
     dish.wrongFlashTimer > 0 ? "oops" : dish.platterBounce > 0.2 ? "excited" : "happy",
     Math.sin(state.elapsedSec * 5) * 2.5
   );
   drawLittleBird(ctx, 344, 214 + Math.sin(state.elapsedSec * 7) * 5, 1.2, Math.sin(state.elapsedSec * 14));
 
+  drawGroundShadow(ctx, STAGE_LOGICAL_W / 2, 352, 112, 10);
   const bounceY = -dish.platterBounce * 10;
   ctx.save();
   ctx.translate(STAGE_LOGICAL_W / 2, 338 + bounceY);
@@ -589,13 +599,11 @@ function renderPlatterStage(
   }
   ctx.restore();
 
-  ctx.font = "700 14px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = PALETTE.ink;
-  ctx.textAlign = "center";
-  ctx.fillText(
+  drawLabelPill(
+    ctx,
     "Platter " + String(Math.min(dish.plattersDone + 1, dish.target)) + " of " + String(dish.target),
     STAGE_LOGICAL_W / 2,
-    404
+    398
   );
 
   if (dish.feedbackTimer > 0) {
@@ -604,12 +612,28 @@ function renderPlatterStage(
 }
 
 function renderPieStage(ctx: CanvasRenderingContext2D, state: GameState, dish: PieDishState): void {
-  drawWarmBackdrop(ctx, state.elapsedSec, false);
+  const dusk = getDuskLevel(state);
+  drawWarmBackdrop(ctx, state.elapsedSec, false, true, dusk);
+  drawPendantLamp(ctx, 124, 40, getLightGlow(dusk), state.elapsedSec);
+  drawPendantLamp(ctx, 296, 40, getLightGlow(dusk), state.elapsedSec + 1.1);
 
+  // Wooden serving board grounding the pie on the counter
+  drawGroundShadow(ctx, STAGE_LOGICAL_W / 2, COUNTER_TOP_Y + 14, 128, 12, 0.2);
+  ctx.save();
+  ctx.fillStyle = "#B8774A";
+  ctx.strokeStyle = PALETTE.ink;
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.ellipse(STAGE_LOGICAL_W / 2, COUNTER_TOP_Y + 6, 124, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  drawChefShadow(ctx, 48, 310, 0.84);
   drawBeagleChef(
     ctx,
-    66,
-    112,
+    48,
+    310,
     0.84,
     dish.stage === "pie_celebrate" ? "excited" : "happy",
     Math.sin(state.elapsedSec * 5) * 3
@@ -640,13 +664,11 @@ function renderPieStage(ctx: CanvasRenderingContext2D, state: GameState, dish: P
     drawSteamWisp(ctx, STAGE_LOGICAL_W / 2 + 24, 174, state.elapsedSec * 4 + 1.5);
   }
 
-  ctx.font = "700 14px system-ui, -apple-system, sans-serif";
-  ctx.fillStyle = PALETTE.ink;
-  ctx.textAlign = "center";
-  ctx.fillText(
+  drawLabelPill(
+    ctx,
     "Pie " + String(Math.min(dish.piesFinished + 1, dish.target)) + " of " + String(dish.target),
     STAGE_LOGICAL_W / 2,
-    396
+    398
   );
 
   if (dish.feedbackTimer > 0) {
@@ -657,11 +679,13 @@ function renderPieStage(ctx: CanvasRenderingContext2D, state: GameState, dish: P
 export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameState): void {
   ctx.save();
   ctx.clearRect(0, 0, STAGE_LOGICAL_W, STAGE_LOGICAL_H);
+  const dusk = getDuskLevel(state);
+  const glow = getLightGlow(dusk);
 
   if (state.phase === "title") {
-    drawWarmBackdrop(ctx, state.elapsedSec, true, true);
+    drawWarmBackdrop(ctx, state.elapsedSec, true, true, dusk);
     drawMapleTree(ctx, STAGE_LOGICAL_W / 2 + 24, 330, 250, 250, state.leaves, false);
-    drawFestiveStringLights(ctx, 56, 268, 220, 186, state.elapsedSec);
+    drawFestiveStringLights(ctx, 56, 268, 220, 186, state.elapsedSec, glow);
     drawBackyardTable(
       ctx,
       STAGE_LOGICAL_W / 2 + 12,
@@ -682,9 +706,9 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
         : "Tap Beagle or Bird! Ready to cook?";
     drawSpeechBubble(ctx, bubble, STAGE_LOGICAL_W / 2, 42);
   } else if (state.phase === "pass_banner") {
-    drawWarmBackdrop(ctx, state.elapsedSec, true, true);
+    drawWarmBackdrop(ctx, state.elapsedSec, true, true, dusk);
     drawMapleTree(ctx, STAGE_LOGICAL_W / 2 + 26, 320, 215, 215, state.leaves, false);
-    drawFestiveStringLights(ctx, 56, 268, 232, 198, state.elapsedSec);
+    drawFestiveStringLights(ctx, 56, 268, 232, 198, state.elapsedSec, glow);
     drawAnimatedChefAndBird(ctx, state, STAGE_LOGICAL_W / 2 - 42, 314, 1.1, STAGE_LOGICAL_W / 2 + 54, 270, 1.32);
   } else if (state.phase === "dish_play" && state.dishState) {
     if (state.dishState.kind === "golden_toast") {
@@ -699,12 +723,13 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
       renderPieStage(ctx, state, state.dishState);
     }
   } else if (state.phase === "dish_complete") {
-    drawWarmBackdrop(ctx, state.elapsedSec, true, true);
+    drawWarmBackdrop(ctx, state.elapsedSec, true, true, dusk);
     const hasToast = state.results.some((r) => r.dishId === "golden_toast");
     const hasPopcorn = state.results.some((r) => r.dishId === "flying_popcorn");
     const hasChair = state.results.some((r) => r.dishId === "folding_chair");
     const hasPlatter = state.results.some((r) => r.dishId === "pretzel_platter");
     const hasPie = state.results.some((r) => r.dishId === "pumpkin_pie");
+    drawFestiveStringLights(ctx, 6, 176, 414, 196, state.elapsedSec, glow);
     drawBackyardTable(
       ctx,
       STAGE_LOGICAL_W / 2 + 12,
@@ -735,7 +760,8 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
       drawSpeechBubble(ctx, spec.shortTitle + " Done! +" + last.guestUnlocked, STAGE_LOGICAL_W / 2, 46);
     }
   } else if (state.phase === "gratitude_tree") {
-    drawWarmBackdrop(ctx, state.elapsedSec, true, false);
+    drawWarmBackdrop(ctx, state.elapsedSec, true, false, dusk);
+    drawFestiveStringLights(ctx, 0, 250, 420, 262, state.elapsedSec, glow);
     drawMapleTree(ctx, STAGE_LOGICAL_W / 2, 396, 320, 326, state.leaves, true);
     drawAnimatedChefAndBird(ctx, state, 72, 362, 0.88, 348, 134, 1.2);
     const bubble =
@@ -744,10 +770,10 @@ export function renderStageCanvas(ctx: CanvasRenderingContext2D, state: GameStat
         : "Gratitude Maple Tree (" + String(state.leaves.length) + " leaves)";
     drawSpeechBubble(ctx, bubble, STAGE_LOGICAL_W / 2, 36);
   } else if (state.phase === "feast_finale") {
-    drawWarmBackdrop(ctx, state.elapsedSec, true, true);
+    drawWarmBackdrop(ctx, state.elapsedSec, true, true, dusk);
     drawMapleTree(ctx, STAGE_LOGICAL_W / 2 + 24, 306, 254, 236, state.leaves, false);
-    drawFestiveStringLights(ctx, 56, 268, 224, 182, state.elapsedSec);
-    drawFestiveStringLights(ctx, 250, 186, 398, 226, state.elapsedSec + 1.2);
+    drawFestiveStringLights(ctx, 56, 268, 224, 182, state.elapsedSec, glow);
+    drawFestiveStringLights(ctx, 250, 186, 398, 226, state.elapsedSec + 1.2, glow);
     drawBackyardTable(
       ctx,
       STAGE_LOGICAL_W / 2 + 12,

@@ -1107,7 +1107,8 @@ export function drawFestiveStringLights(
   y1: number,
   x2: number,
   y2: number,
-  t: number
+  t: number,
+  glow = 0
 ): void {
   ctx.save();
   const midX = (x1 + x2) * 0.5;
@@ -1130,12 +1131,16 @@ export function drawFestiveStringLights(
     const by = inv * inv * y1 + 2 * inv * u * sagY + u * u * y2;
     const twinkle = 0.72 + 0.28 * Math.sin(t * 4.2 + i * 1.3);
 
-    // Warm soft halo
+    // Warm soft halo that blooms as evening falls
+    const haloR = 11 + 18 * glow;
     ctx.save();
-    ctx.globalAlpha = 0.28 * twinkle;
-    ctx.fillStyle = "#FFE58F";
+    ctx.globalAlpha = Math.min(1, (0.28 + 0.55 * glow) * twinkle);
+    const halo = ctx.createRadialGradient(bx, by + 6, 0, bx, by + 6, haloR);
+    halo.addColorStop(0, "rgba(255, 229, 143, 1)");
+    halo.addColorStop(1, "rgba(255, 229, 143, 0)");
+    ctx.fillStyle = halo;
     ctx.beginPath();
-    ctx.arc(bx, by + 6, 11, 0, Math.PI * 2);
+    ctx.arc(bx, by + 6, haloR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -1147,6 +1152,17 @@ export function drawFestiveStringLights(
     ctx.arc(bx, by + 6, 4.8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+
+    // Hot white filament once the lights are on
+    if (glow > 0) {
+      ctx.save();
+      ctx.globalAlpha = glow * twinkle;
+      ctx.fillStyle = "#FFFDF0";
+      ctx.beginPath();
+      ctx.arc(bx - 1, by + 5, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
   ctx.restore();
 }
