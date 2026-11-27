@@ -3,7 +3,10 @@
     "target": "ES2020",
     "module": "ES2020",
     "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
     "strict": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
@@ -19,6 +22,7 @@
     "thanksgiving/ts/**/*.ts",
     "thankful_jesus/ts/**/*.ts",
     "pokemon_fight/ts/**/*.ts",
-    "football_iq/ts/**/*.ts"
+    "football_iq/ts/**/*.ts",
+    "adventure_worlds/ts/**/*.ts"
   ]
 }
