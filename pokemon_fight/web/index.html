@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142735">
+  <meta name="description" content="A little Pokemon adventure for John and Luke. Choose a real card character, move, and let your Pokemon do the battling.">
+  <title>Pokemon Pocket Arena</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="app">
+    <header class="topbar">
+      <a class="brand" href="../index.html" aria-label="Back to Games for Kids"><span class="brand-ball" aria-hidden="true"></span><span>POCKET<span class="brand-small">ARENA</span></span></a>
+      <span class="club">JOHN &amp; LUKE'S TRAINER CLUB</span>
+      <button type="button" id="sound" class="quiet-button" aria-pressed="true">Sound on</button>
+    </header>
+
+    <section id="selection" class="selection" aria-labelledby="welcome">
+      <div class="welcome">
+        <span class="eyebrow"><span class="sparkle" aria-hidden="true">&#10022;</span> LITTLE CONTROLS. BIG ADVENTURE.</span>
+        <h1 id="welcome">Your cards.<br>Your <em>next adventure.</em></h1>
+        <p>Pick a partner. Find your feet.<br>Your Pokemon takes care of the battling.</p>
+      </div>
+      <div class="selection-content">
+        <div class="section-label"><h2>Who is coming with you?</h2><span>ALL FOUR READY TO PLAY</span></div>
+        <div id="characters" class="characters" aria-label="Choose your Pokemon"></div>
+        <p id="selection-description" class="selection-description"></p>
+        <div class="settings">
+          <div class="buddy-setting">
+            <label class="switch-label" for="companion"><input id="companion" type="checkbox" checked><span class="switch" aria-hidden="true"></span><span>Bring a computer buddy<small>A little help, whenever you want it.</small></span></label>
+            <label id="buddy-choice" class="select-label">Buddy <select id="buddy-character" aria-label="Choose computer buddy"></select></label>
+          </div>
+          <label class="select-label">Adventure style<select id="difficulty"><option value="relaxed">Relaxed - take your time</option><option value="standard">Standard - a little more action</option></select></label>
+        </div>
+        <div class="launch-row"><button id="start" type="button" class="primary-button" disabled>Let's battle <span aria-hidden="true">&#10022;</span></button><div class="control-description"><strong>Just move. We handle the rest.</strong><span>Arrow keys / WASD on a computer. Thumbstick on a phone.</span></div></div>
+        <div class="menu-footer"><p id="art-status" role="status">Opening your card pictures...</p><button id="practice-again" type="button" class="text-button">Try the movement practice</button></div>
+      </div>
+      <div class="adventure-strip"><span><b aria-hidden="true">&#9678;</b> One cozy arena</span><span><b aria-hidden="true">&#10022;</b> About 3 minutes</span><span><b aria-hidden="true">&#9825;</b> Solo or with a buddy</span></div>
+    </section>
+
+    <section id="battle" class="battle" aria-label="Pokemon arena" hidden>
+      <div class="battle-hud">
+        <div id="health" class="health"><strong id="player-name">Radiant Steelix</strong><div id="hearts" class="hearts" aria-hidden="true"></div></div>
+        <div class="round-info"><span id="stage">ROUND 1</span><strong id="clock">0:00</strong></div>
+        <button id="pause" type="button" class="quiet-button">Pause <span aria-hidden="true">&#10074;&#10074;</span></button>
+      </div>
+      <div id="arena-wrap" class="arena-wrap">
+        <canvas id="arena" width="1000" height="620" tabindex="0" aria-label="Battle arena. Move with the arrow keys, WASD, or the thumbstick. Attacks are automatic."></canvas>
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+        <div id="boss-hud" class="boss-hud" hidden><div><strong>MACHAMP</strong><span id="boss-tip">Find an opening!</span></div><progress id="boss-health" max="100" value="100" aria-label="Machamp health"></progress></div>
+        <div id="practice-tip" class="practice-tip"><span>Move around. Your Pokemon attacks by itself!</span><button id="skip-practice" type="button">Ready to play</button></div>
+      </div>
+      <footer class="battle-controls">
+        <div class="touch-control"><div id="joystick" class="joystick" role="group" aria-label="Movement thumbstick"><span class="stick-cross" aria-hidden="true"></span><span id="stick-knob" class="stick-knob" aria-hidden="true"></span></div><span class="move-label">MOVE</span></div>
+        <div class="battle-readout"><div class="energy-label"><span>Automatic special</span><span aria-hidden="true">&#10022;</span></div><progress id="energy" max="100" value="25" aria-label="Automatic special energy"></progress><span id="buddy-status">Solo trainer</span></div>
+        <div class="keyboard-tip"><span class="keycap">W</span><div><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span></div><small>or arrow keys</small></div>
+        <div class="auto-tag"><span class="auto-symbol" aria-hidden="true">&#9678;</span><span>AUTO ATTACK<strong>Just keep moving.</strong></span></div>
+      </footer>
+    </section>
+
+    <section id="pause-panel" class="overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden>
+      <div class="dialog"><span class="dialog-eyebrow">TAKE YOUR TIME</span><h2 id="pause-title">A little breather.</h2><p>Your adventure is waiting right here.</p><button id="resume" class="primary-button" type="button">Keep playing</button><button id="restart" class="secondary-button" type="button">Start this round again</button><button id="pause-home" class="text-button" type="button">Choose another Pokemon</button></div>
+    </section>
+    <section id="result-panel" class="overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" hidden>
+      <div class="dialog result-dialog"><div id="result-medal" class="result-medal"><span id="result-symbol" aria-hidden="true">&#9733;</span></div><span class="dialog-eyebrow">POCKET ARENA TRAINER CLUB</span><h2 id="result-title">Training badge earned!</h2><p id="result-description"></p><p id="result-stats" class="result-stats"></p><button id="retry" class="primary-button" type="button">Play again</button><button id="choose-again" class="secondary-button" type="button">Choose another Pokemon</button></div>
+    </section>
+    <noscript><p class="no-script">Please enable JavaScript to play Pocket Arena.</p></noscript>
+  </main>
+</body>
+</html>

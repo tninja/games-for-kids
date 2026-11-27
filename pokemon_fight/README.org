@@ -1,0 +1,72 @@
+#+TITLE: Pokemon Pocket Arena
+
+* Play
+
+A single-player TypeScript arena game for John and Luke. Choose Radiant Steelix,
+Duskull, Greninja, or Darmanitan. Move with arrow keys / WASD on a computer or the
+thumbstick on iPhone. Targeting, basic attacks, pickup collection, and charged
+specials are automatic. The computer buddy is optional. All four are available
+immediately, and each is designed to work without a buddy.
+
+The first visit offers a safe movement practice. Clear two short waves and defeat
+Machamp. Three minutes is a pacing goal, not a failure deadline. Enemy stripes and
+circles warn of attacks. Stone shelters block projectiles in both directions.
+Stand close to a downed buddy to help; a living buddy can rescue the player once.
+
+Pause with the button, Escape, or P. Switching tabs or losing window focus also
+pauses the game. Use Relaxed for a gentler first round. Landscape gives more room
+on a phone; portrait is also supported. Settings are saved locally when available.
+
+* Build and verify
+
+Run from the repository root:
+
+#+begin_src sh
+npm run typecheck:pokemon_fight
+npm run build:pokemon_fight
+npm run test:pokemon_fight
+node pokemon_fight/ts/build.mjs --check
+python3 -m http.server 8000 --directory docs
+#+end_src
+
+Open http://localhost:8000/pokemon_fight/ in a computer browser. For an actual
+iPhone, use the computer's reachable local-network address in place of localhost,
+or the deployed GitHub Pages address after the normal repository publishing flow.
+Opening index.html with file:// is not the supported way to run the game.
+
+The repository home page links to the generated game. Changes to ts/ or web/
+require rebuilding; docs/pokemon_fight/ is the generated, deployable output.
+The build copies original photos unchanged and checks all emitted assets.
+
+* Source photos
+
+| Role       | Photo         |
+|------------+---------------|
+| Steelix    | IMG_0713.jpeg |
+| Duskull    | IMG_0714.jpeg |
+| Greninja   | IMG_0712.jpeg |
+| Darmanitan | IMG_0718.jpeg |
+| Machamp    | IMG_0717.jpeg |
+| Machoke    | IMG_0719.jpeg |
+| Spewpa     | IMG_0715.jpeg |
+
+The app rotates and crops the original card illustrations at render time and
+retains small canvases. It does not redraw the Pokemon or modify the source
+photos. These are illustration badges, not transparent character cutouts. The
+seven full-resolution source JPEGs total about 23 MB; they load sequentially,
+and battle can start once the selected character is ready. Missing art falls
+back to labeled color badges. Reducing download size is a future asset-production
+improvement. Browser image caching controls subsequent downloads.
+
+All combat values and signature mechanics are simplified game designs, not the
+printed card rules. Steelix has a compact, visible ground hit circle, and Duskull
+retains a visible picture during its shield. The first version has no human
+multiplayer or networking; future cooperation is intended for the same device.
+
+* Verification limits
+
+Automated tests exercise the deterministic game simulation, including cover,
+damage protection, warnings, partner rescue, and complete solo rounds. They are
+not a substitute for browser rendering, real iPhone touch/audio checks, or John
+and Luke playtests. Actual device usability, performance, and final difficulty
+still require those checks.

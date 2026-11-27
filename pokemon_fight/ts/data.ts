@@ -1,0 +1,34 @@
+export type HeroId = "steelix" | "duskull" | "greninja" | "darmanitan";
+export type ArtId = HeroId | "machamp" | "machoke" | "spewpa";
+export interface Point { x: number; y: number }
+export interface Rect extends Point { w: number; h: number }
+export interface ArtSpec { file: string; turn: boolean; crop: [number, number, number, number] }
+export interface HeroSpec {
+  id: HeroId; name: string; title: string; description: string; color: string;
+  hp: number; speed: number; damage: number; interval: number; range: number;
+  special: string;
+}
+
+export const WIDTH = 1000;
+export const HEIGHT = 620;
+export const RADIUS = 18;
+export const COVER: Rect[] = [
+  { x: 270, y: 242, w: 112, h: 62 },
+  { x: 618, y: 316, w: 112, h: 62 }
+];
+export const HEROES: HeroSpec[] = [
+  { id: "steelix", name: "Radiant Steelix", title: "The golden guardian", description: "Sturdy armor and a mighty tail sweep.", color: "#ffd56a", hp: 10, speed: 188, damage: 11, interval: 0.39, range: 265, special: "Golden tail sweep" },
+  { id: "duskull", name: "Duskull", title: "The friendly phantom", description: "Ghostly orbs and a cozy spirit shield.", color: "#c6a0ff", hp: 8, speed: 201, damage: 8, interval: 0.34, range: 290, special: "Spirit shield" },
+  { id: "greninja", name: "Greninja", title: "The water ninja", description: "Quick feet and a splash of water stars.", color: "#71dbff", hp: 8, speed: 226, damage: 8, interval: 0.29, range: 300, special: "Water star burst" },
+  { id: "darmanitan", name: "Darmanitan", title: "The firecracker", description: "Fireballs that splash nearby challengers.", color: "#ff9c78", hp: 9, speed: 198, damage: 12, interval: 0.48, range: 280, special: "Firework bloom" }
+];
+export const ART: Record<ArtId, ArtSpec> = {
+  steelix: { file: "IMG_0713.jpeg", turn: false, crop: [0.286, 0.262, 0.583, 0.273] },
+  duskull: { file: "IMG_0714.jpeg", turn: true, crop: [0.192, 0.187, 0.558, 0.265] },
+  greninja: { file: "IMG_0712.jpeg", turn: false, crop: [0.199, 0.215, 0.614, 0.269] },
+  darmanitan: { file: "IMG_0718.jpeg", turn: true, crop: [0.206, 0.215, 0.587, 0.273] },
+  machamp: { file: "IMG_0717.jpeg", turn: true, crop: [0.16, 0.224, 0.558, 0.265] },
+  machoke: { file: "IMG_0719.jpeg", turn: true, crop: [0.158, 0.285, 0.575, 0.258] },
+  spewpa: { file: "IMG_0715.jpeg", turn: true, crop: [0.303, 0.309, 0.536, 0.249] }
+};
+export const hero = (id: HeroId): HeroSpec => HEROES.find(item => item.id === id)!;
