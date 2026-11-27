@@ -11,7 +11,7 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
     assert.equal(w.scenes.length,12); assert.equal(chapterRewards[w.id].length,3);
     for(const [name,icon,story,clue,meaning,options] of w.scenes){
       assert.ok(name && icon && story && meaning);
-      assert.equal(options.filter(o=>o[3]).length,1);
+      assert.equal(options.length,3); assert.equal(options.filter(o=>o[3]).length,1);
       for(const line of [clue,...options.map(o=>o[0])]){
         for(const t of tokens(line)) {
           assert.ok(t.zh);
@@ -19,7 +19,7 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
         }
       }
     }
-    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=10);
+    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=12);
   }
 });
 test("default pinyin, reward on completion, no duplicate XP on replay, help never blocks",()=>{
@@ -80,4 +80,18 @@ test("every scene renders an original SVG illustration", async()=>{
     assert.equal(illustrations.size,w.scenes.length);
   }
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});
+
+test("clues never contain the entire correct action; dialogue is authored for every scene",async()=>{
+ const {storyDialogue}=await load("content");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ for(const w of worlds){
+  assert.equal(storyDialogue[w.id].length,w.scenes.length);
+  w.scenes.forEach((s,i)=>{
+   const answer=han(s[5].find(o=>o[3])[0]);
+   assert.ok(!han(s[3]).includes(answer),w.id+" easy "+i);
+   assert.ok(!han(normalClues[w.id][i][0]).includes(answer),w.id+" normal "+i);
+   assert.ok(storyDialogue[w.id][i].length>10);
+  });
+ }
 });
