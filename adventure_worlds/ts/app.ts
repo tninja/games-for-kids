@@ -1,6 +1,7 @@
+import {forks} from "./forks.js";
 import {sceneArt} from "./art.js";
-import {worlds, normalClues, chapterRewards} from "./content.js";
-import {KEY, fresh, restore, complete, tokens, progressKey, heroLevel, heroRank} from "./engine.js";
+import {worlds, normalClues, chapterRewards, storyDialogue} from "./content.js";
+import {KEY, fresh, restore, complete, tokens, progressKey, heroLevel, heroRank, routeKey} from "./engine.js";
 import type {World} from "./content.js";
 import type {Mode, Difficulty} from "./engine.js";
 const root = document.querySelector<HTMLElement>("#game")!;
@@ -8,6 +9,8 @@ let save = fresh();
 try { save = restore(localStorage.getItem(KEY)); } catch { /* private browsing */ }
 let world: World | undefined;
 let index = 0, helped = false, firstTry = true, solved = false, english = false, feedback = "", points = 0, levelBefore = 1, audioStatus = "";
+let replaying = false;
+let replayRoutes: Record<string, number> = {};
 const revealed = new Set<string>();
 function el(tag: string, text = "", cls = "") {
   const e = document.createElement(tag); e.textContent = text; e.className = cls; return e;
@@ -53,7 +56,7 @@ function resetScene() {
   if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 function open(w: World, replay = false) {
-  world = w; index = replay ? 0 : Math.min(save.progress[progressKey(w.id, save.difficulty)] ?? 0, w.scenes.length); resetScene(); render();
+  world = w; replaying = replay; replayRoutes = {}; index = replay ? 0 : Math.min(save.progress[progressKey(w.id, save.difficulty)] ?? 0, w.scenes.length); resetScene(); render();
 }
 function modeControl() {
   const wrap = el("label","Pinyin / 拼音 ","setting");
@@ -91,7 +94,7 @@ function render() {
   if (!world) {
     root.append(difficultyControl());
     const intro = el("section","","intro");
-    intro.append(el("div","✧ YOUR ADVENTURE BEGINS ✧","eyebrow"),el("h1","Adventure Worlds"),el("h2","中文奇幻之旅"),el("p","Choose a world. Read the Chinese clues with pinyin, use English whenever you need help, and collect chapter treasures as your hero grows. Every four scenes is a good place to take a break. No timer!"));
+    intro.append(el("div","✧ YOUR ADVENTURE BEGINS ✧","eyebrow"),el("h1","Adventure Worlds"),el("h2","中文奇幻之旅"),el("p","Choose a world. Read Chinese clues, work out what they mean, choose your own routes, use English whenever you need help, and collect chapter treasures as your hero grows. Every four scenes is a good place to take a break. No timer!"));
     root.append(intro);
     const grid = el("div","","worlds");
     for (const w of worlds) {
@@ -108,18 +111,45 @@ function render() {
     journal.append(el("p",rewards.length ? rewards.join("  •  ") : "Your collection is waiting!"));
     const words = Object.entries(save.words).filter(([,n])=>n>=2).map(([word])=>word);
     journal.append(el("h3","Reading practice · 阅读练习"),el("p",words.length ? "Words seen in at least two unassisted first-try Tap words scenes (not a mastery test): "+words.join("、") : "Pinyin is on by default. Try Tap words mode when ready; Learning mode hides only words practiced twice without help."));
+    const routeNotes=worlds.flatMap(w=>Object.entries(forks[w.id]).flatMap(([at,f])=>{const choice=save.routes[routeKey(progressKey(w.id,save.difficulty),Number(at))];return choice===undefined?[]:[w.title+": "+f.paths[choice].title];}));
+    if(routeNotes.length)journal.append(el("h3","My route journal · 路线"),el("p",routeNotes.join(" • ")));
     root.append(journal); return;
   }
   const w = world;
   const title = el("section","","chapter"); title.style.setProperty("--accent",w.color);
   title.append(el("span",w.icon,"chapter-icon"),el("div",w.title+" · "+w.zh+" · "+(save.difficulty==="easy"?"Easy":"Normal"),"eyebrow"));
   if (index >= w.scenes.length) {
-    title.append(el("h1","Adventure complete!"),el("div",w.trophy,"world-icon"),el("h2",chapterRewards[w.id][2]),el("p","Replay the story or visit another world."));
-    root.append(title,btn("Play again",()=>open(w,true)),btn("Choose another world",()=>{world=undefined;resetScene();render();},"secondary")); return;
+    title.append(el("h1","Adventure complete!"),el("div",w.trophy,"world-icon"),el("h2",chapterRewards[w.id][2]),el("p","Replay the story and try the other routes, or visit another world."));
+    root.append(title,btn("Replay & choose new routes",()=>open(w,true)),btn("Choose another world",()=>{world=undefined;resetScene();render();},"secondary")); return;
   }
-  const [name,icon,story,easyLine,easyTranslation,options] = w.scenes[index];
-  const [line,translation] = save.difficulty === "normal" ? normalClues[w.id][index] : [easyLine,easyTranslation];
-  title.append(el("span","CHAPTER "+(Math.floor(index/4)+1)+" / 3 · SCENE "+(index+1)+" / "+w.scenes.length,"progress"),sceneArt(w.id,index,icon),el("h1",name),el("p",story));
+  const key=progressKey(w.id,save.difficulty);
+  const routes=replaying?replayRoutes:save.routes;
+  const fork=forks[w.id]?.[index];
+  const rk=routeKey(key,index);
+  if(fork && routes[rk]===undefined) {
+    title.append(el("h1","Choose your route · 选择路线"),sceneArt(w.id,index,w.scenes[index][1]),el("p","Both routes are real adventures. Neither is wrong; each has its own story and Chinese challenge."));
+    root.append(title);
+    const choices=el("section","","fork-grid");
+    fork.paths.forEach((path,i)=>{
+      const card=el("div","","panel fork-option");
+      const go=btn("",()=>{routes[rk]=i;if(!replaying)persist();resetScene();render();window.scrollTo(0,0);},"action");
+      go.append(reading(path.label,false));
+      card.append(el("p",path.title),go,btn("🔊 Listen",()=>speak(path.label,true),"word-help"));
+      choices.append(card);
+    });
+    root.append(choices);
+    const status=el("p","","translation");status.id="audio-status";status.setAttribute("role","status");root.append(status);
+    return;
+  }
+  const alternate=fork && routes[rk]===1;
+  const [name,icon,story,easyLine,easyTranslation,options]=alternate?fork.alternate:w.scenes[index];
+  const [line,translation]=save.difficulty==="normal"?(alternate?fork.normal:normalClues[w.id][index]):[easyLine,easyTranslation];
+  const dialogue=alternate?fork.dialogue:storyDialogue[w.id][index];
+  const previous=forks[w.id]?.[index-1];
+  const previousRoute=routes[routeKey(key,index-1)];
+  title.append(el("span","CHAPTER "+(Math.floor(index/4)+1)+" / 3 · SCENE "+(index+1)+" / "+w.scenes.length,"progress"),sceneArt(w.id,index,icon,alternate?1:0),el("h1",name),el("p",story));
+  if(previous && previousRoute!==undefined)title.append(el("p",previous.follow[previousRoute],"route-memory"));
+  title.append(el("p",dialogue,"dialogue"));
   root.append(title);
   const clue = el("section","","panel clue");
   clue.append(el("div","中文线索 · Chinese clue","eyebrow"),reading(line));

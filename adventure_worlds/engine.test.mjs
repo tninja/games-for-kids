@@ -95,3 +95,27 @@ test("clues never contain the entire correct action; dialogue is authored for ev
   });
  }
 });
+
+test("routes persist separately for each difficulty, old saves default to no routes",async()=>{
+ const {routeKey}=await load("engine");
+ const s=restore('{"xp":25,"progress":{"dragon":1},"mode":"all"}');
+ assert.deepEqual(s.routes,{});
+ s.routes[routeKey(progressKey("dragon","easy"),4)]=1;
+ s.routes[routeKey(progressKey("dragon","normal"),4)]=0;
+ assert.deepEqual(restore(JSON.stringify(s)),s);
+ assert.deepEqual(restore('{"routes":{"dragon:4":7}}').routes,{});
+});
+test("all eight alternate routes have valid independent reading challenges",async()=>{
+ const {forks}=await load("forks");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ for(const w of worlds){
+  assert.deepEqual(Object.keys(forks[w.id]),["4","8"]);
+  for(const fork of Object.values(forks[w.id])){
+   assert.equal(fork.paths.length,2);assert.equal(fork.follow.length,2);
+   const s=fork.alternate;assert.equal(s[5].length,3);assert.equal(s[5].filter(o=>o[3]).length,1);
+   const correct=han(s[5].find(o=>o[3])[0]);
+   assert.ok(!han(s[3]).includes(correct));assert.ok(!han(fork.normal[0]).includes(correct));
+   for(const line of [s[3],fork.normal[0],...s[5].map(o=>o[0]),...fork.paths.map(p=>p.label)])for(const t of tokens(line))if(/\p{Script=Han}/u.test(t.zh))assert.ok(t.py);
+  }
+ }
+});
