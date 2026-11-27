@@ -12,5 +12,13 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["battleship/ts/**/*.ts", "flappybird/ts/**/*.ts", "foosball/ts/**/*.ts", "thanksgiving/ts/**/*.ts", "thankful_jesus/ts/**/*.ts", "pokemon_fight/ts/**/*.ts"]
+  "include": [
+    "battleship/ts/**/*.ts",
+    "flappybird/ts/**/*.ts",
+    "foosball/ts/**/*.ts",
+    "thanksgiving/ts/**/*.ts",
+    "thankful_jesus/ts/**/*.ts",
+    "pokemon_fight/ts/**/*.ts",
+    "football_iq/ts/**/*.ts"
+  ]
 }
