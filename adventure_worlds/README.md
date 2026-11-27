@@ -1,0 +1,5 @@
+# Adventure Worlds
+
+A small, illustrated-by-icons, bilingual story adventure. Four worlds, four scenes each; beginner Chinese with tone-marked pinyin above words, English on request, optional Mandarin browser speech. Each world starts with short concrete instructions; later scenes introduce negation and sequencing. Wrong actions have funny consequences and never lock the player out. Pinyin defaults to always on; Tap words and Learning mode are optional. XP is awarded once per scene, and help never prevents treasure collection. Word counts reflect unassisted first-try Tap words scenes, not verified recognition. All original characters and local saves; no server.
+
+Run `npm ci`, `npm run typecheck:adventure_worlds`, `npm run build:adventure_worlds`, `npm run test:adventure_worlds`. Serve `docs/` over HTTP for browser play. Test Mandarin speech on the target device; voices depend on OS/browser. Add scenes in `ts/content.ts` using `汉字|pinyin/词语|pinyin` tokens; punctuation uses an empty pinyin field. The initial version uses emoji and color-themed cards, not free-roaming maps or full battle simulation.
