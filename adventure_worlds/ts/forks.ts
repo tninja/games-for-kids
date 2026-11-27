@@ -261,8 +261,8 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The referee's missing whistle",
         "🪈",
         "The referee dropped her whistle while carrying the sign-up sheet. She has checked everywhere except one place.",
-        "哨子|shào zi/不在|bú zài/桌上|zhuō shàng/。|",
-        "The whistle is not on the table.",
+        "椅子|yǐ zi/下面|xià miàn/有|yǒu/声音|shēng yīn/。|",
+        "There is a sound under the chair.",
         [
           [
             "看|kàn/椅子|yǐ zi/下面|xià miàn",

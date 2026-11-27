@@ -119,3 +119,16 @@ test("all eight alternate routes have valid independent reading challenges",asyn
   }
  }
 });
+
+test("alternate-route illustrations differ from the main route",async()=>{
+ const original=globalThis.document;
+ globalThis.document={createElement:()=>({className:"",innerHTML:""})};
+ try{
+  const {sceneArt}=await load("art");const {forks}=await load("forks");
+  for(const w of worlds)for(const i of [4,8]){
+   const a=sceneArt(w.id,i,w.scenes[i][1],0).innerHTML;
+   const b=sceneArt(w.id,i,forks[w.id][i].alternate[1],1).innerHTML;
+   assert.notEqual(a,b);assert.match(b,/data-variant="1"/);
+  }
+ }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});

@@ -99,7 +99,7 @@ function render() {
       const count = Math.min(save.progress[progressKey(w.id, save.difficulty)] ?? 0,w.scenes.length);
       const card = btn("",()=>open(w),"world");
       card.style.setProperty("--accent",w.color);
-      card.append(el("span",w.icon,"world-icon"),el("strong",w.title),el("span",w.zh,"zh"),el("span",w.subtitle),el("span",count+" / "+w.scenes.length+" scenes • "+Math.floor(count/4)+"/3 chapters","progress"));
+      card.append(sceneArt(w.id,0,w.scenes[0][1]),el("strong",w.title),el("span",w.zh,"zh"),el("span",w.subtitle),el("span",count+" / "+w.scenes.length+" scenes • "+Math.floor(count/4)+"/3 chapters","progress"));
       grid.append(card);
     }
     root.append(grid);
@@ -159,7 +159,9 @@ function render() {
   root.append(clue);
   const actions=el("section","","actions");
   actions.append(el("h2","What will you do?"));
-  for (const [label,meaning,outcome,correct] of options) {
+  const offset=(index+worlds.indexOf(w)+(alternate?1:0))%options.length;
+  const ordered=options.slice(offset).concat(options.slice(0,offset));
+  for (const [label,meaning,outcome,correct] of ordered) {
     const row=el("div","","choice");
     const b=btn("",()=>{
       if (solved) return;

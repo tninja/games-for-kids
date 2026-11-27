@@ -565,8 +565,8 @@ export const worlds = [
         "Underground party",
         "🍜",
         "Below the school, monsters are setting up a concert. The bell is hiding near a table.",
-        "桌子|zhuō zi/下面|xià miàn/没有|méi yǒu/铃|líng/。|",
-        "The bell is not under the table.",
+        "桌子|zhuō zi/上面|shàng miàn/有|yǒu/铃|líng/。|",
+        "The bell is on the table.",
         [
           [
             "看|kàn/门|mén/后|hòu",
@@ -847,8 +847,8 @@ export const worlds = [
         "Rock challenge",
         "🪨",
         "A rock creature challenges you to a friendly match before opening the cave. Moss Turtle knows its weakness.",
-        "石头|shí tou/怪|guài/不怕|bú pà/火|huǒ/。|",
-        "The rock creature isn't afraid of fire.",
+        "石头|shí tou/怪|guài/怕|pà/水|shuǐ/。|",
+        "The rock creature is afraid of water.",
         [
           [
             "用|yòng/水|shuǐ",
@@ -1601,7 +1601,7 @@ export const storyDialogue = {
     "Bell: “Thank you, thank you! My next song is called No More Monday Mornings.”"
   ],
   "creatures": [
-    "Trainer: “That yellow bird is definitely not a fox.” Bird: “I am trying my best.”",
+    "Bird: “Can I join your team?” Trainer: “Let's read the clue first.”",
     "Thunder Fox: “Can I practice my lightning on a toaster?” Trainer: “Absolutely not.”",
     "Fox: “I am not sleeping. I am practicing very advanced eye-closing.”",
     "Bird: “I would like to be rescued with all my feathers, please.”",
@@ -1615,7 +1615,7 @@ export const storyDialogue = {
     "Turtle: “This trophy is surprisingly comfortable.” Fox: “You cannot live in our award.”"
   ],
   "soccer": [
-    "Coach: “We need one defender back.” Mascot: “I volunteer!” Coach: “You are a banana in a costume.”",
+    "Mascot: “I volunteer!” Coach: “You are a banana in a costume.”",
     "Mascot: “I can see an opening!” Coach: “That's the snack bar.”",
     "Keeper: “Hello? Anybody back here?” Mascot: “I brought oranges!”",
     "Coach: “The ball moves faster than you.” Mascot: “Not faster than me at snack time.”",
