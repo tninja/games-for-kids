@@ -1242,3 +1242,356 @@ progress::-moz-progress-bar {
     white-space:normal
   }
 }
+
+/* The phone keeps a readable close-up instead of a miniature whole-arena view. */
+.characters {
+  position: relative;
+}
+.swipe-hint {
+  display: none;
+  color: var(--mint);
+  font-size: 14px;
+  font-weight: 600;
+}
+.hearts {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 210px;
+  gap: 0 1px;
+  letter-spacing: 0;
+}
+.hearts > span {
+  flex: none;
+  line-height: 1.15;
+}
+#powerup-status {
+  display: block;
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 12px;
+}
+.upgrade-dialog {
+  width: min(760px, 100%);
+  margin: auto 0;
+  padding: 30px;
+}
+.upgrade-dialog > p {
+  margin: 12px 0 22px;
+}
+.upgrade-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.upgrade-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 235px;
+  padding: 20px 14px;
+  border: 2px solid #b8f2d244;
+  border-radius: 17px;
+  background: #122d3a;
+  text-align: center;
+}
+.upgrade-choice:hover,
+.upgrade-choice:focus-visible {
+  border-color: var(--hero-color);
+  background: #294956;
+}
+.upgrade-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  color: var(--hero-color);
+  background: #ffffff09;
+  border-radius: 50%;
+  font-size: 42px;
+  line-height: 1;
+}
+.upgrade-choice strong {
+  font-size: 19px;
+}
+.upgrade-choice > span:not(.upgrade-symbol) {
+  color: #d4e1de;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.upgrade-choice small {
+  margin-top: auto;
+  color: var(--mint);
+  font-size: 12px;
+}
+.upgrade-key-hint {
+  display: block;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.dialog .result-powerups {
+  color: var(--mint);
+  font-size: 14px;
+  margin: 8px 0 16px;
+}
+@media (pointer: coarse), (max-width: 520px) {
+  .characters {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 4px 4px 12px;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #b8f2d266 transparent;
+  }
+  .character {
+    flex: 0 0 78%;
+    min-width: 240px;
+    max-width: 320px;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+  .portrait-frame {
+    aspect-ratio: 1.5;
+  }
+  .character-name {
+    font-size: 20px;
+  }
+  .character-title {
+    font-size: 14px;
+  }
+  .section-label > span {
+    display: none;
+  }
+  .swipe-hint {
+    display: block;
+  }
+  .selection-description {
+    font-size: 16px;
+  }
+}
+@media (max-width: 520px) {
+  .section-label {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .hearts {
+    max-width: 155px;
+  }
+  .upgrade-dialog {
+    padding: 22px;
+  }
+  .upgrade-choices {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .upgrade-choice {
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    gap: 5px 12px;
+    min-height: 98px;
+    padding: 13px;
+    text-align: left;
+  }
+  .upgrade-symbol {
+    grid-row: 1 / 4;
+    width: 50px;
+    height: 50px;
+    font-size: 34px;
+  }
+  .upgrade-choice strong {
+    font-size: 18px;
+  }
+  .upgrade-choice small {
+    display: none;
+  }
+  .boss-hud {
+    top: 48px;
+    width: 90%;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .character {
+    flex-basis: 31%;
+    min-width: 230px;
+  }
+  .upgrade-dialog {
+    width: min(760px, 100%);
+    padding: 17px;
+  }
+  .upgrade-dialog > p {
+    margin: 7px 0 12px;
+  }
+  .upgrade-choices {
+    gap: 10px;
+  }
+  .upgrade-choice {
+    min-height: 164px;
+    gap: 7px;
+    padding: 12px;
+  }
+  .upgrade-symbol {
+    width: 40px;
+    height: 40px;
+    font-size: 29px;
+  }
+  .upgrade-choice strong {
+    font-size: 17px;
+  }
+  .upgrade-choice > span:not(.upgrade-symbol) {
+    font-size: 14px;
+  }
+  .upgrade-key-hint {
+    margin-top: 9px;
+  }
+  #powerup-status {
+    font-size: 11px;
+  }
+}
+
+/* Keep the boss status out of the enlarged Pokemon portraits. */
+.boss-hud {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  flex: none;
+  width: min(600px, calc(100% - 36px));
+  max-width: none;
+  margin: 0 auto 8px;
+  padding: 7px 12px;
+}
+.boss-hud > div {
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .boss-hud {
+    width: min(500px, calc(100% - 224px));
+    margin-bottom: 5px;
+    padding: 5px 10px;
+  }
+  .boss-hud > div {
+    font-size: 12px;
+    gap: 3px 10px;
+  }
+}
+
+.adventure-label > span {
+  display: block;
+  color: var(--mint);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.stage-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.stage-card {
+  min-width: 0;
+  min-height: 125px;
+  padding: 14px;
+  border: 2px solid var(--line);
+  border-radius: 15px;
+  background: #203b49;
+  text-align: left;
+}
+.stage-card:hover,
+.stage-card[aria-pressed="true"] {
+  border-color: var(--stage-color);
+  background: #2c4654;
+}
+.stage-symbol {
+  float: right;
+  color: var(--stage-color);
+  font-size: 34px;
+  line-height: 1;
+  margin-left: 4px;
+}
+.stage-number {
+  display: block;
+  margin: 2px 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+.stage-card strong {
+  display: block;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.3;
+}
+.stage-card-status {
+  display: block;
+  margin-top: 7px;
+  color: var(--stage-color);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.stage-hint {
+  margin: 12px 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.mission-hud {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0 24px 9px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.mission-hud strong {
+  color: var(--gold);
+}
+.mission-hud > span {
+  color: var(--mint);
+}
+.dialog .buddy-upgrade-note {
+  padding: 8px 12px;
+  margin: -5px 0 15px;
+  border-radius: 9px;
+  background: #b8f2d211;
+  color: var(--mint);
+  font-size: 14px;
+  line-height: 1.4;
+}
+@media (max-width: 800px) {
+  .stage-list {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 3px 3px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #b8f2d266 transparent;
+  }
+  .stage-card {
+    flex: 0 0 205px;
+    scroll-snap-align: start;
+  }
+  .mission-hud {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .mission-hud {
+    padding-bottom: 5px;
+    font-size: 12px;
+    gap: 3px 12px;
+  }
+  .dialog .buddy-upgrade-note {
+    margin: 0 0 10px;
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+}

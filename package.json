@@ -6,7 +6,7 @@
   "scripts": {
     "typecheck:pokemon_fight": "tsc --noEmit -p pokemon_fight/tsconfig.json",
     "build:pokemon_fight": "node pokemon_fight/ts/build.mjs",
-    "test:pokemon_fight": "npm run build:pokemon_fight && node --test pokemon_fight/test_arena.mjs",
+    "test:pokemon_fight": "npm run build:pokemon_fight && node --test pokemon_fight/test_arena.mjs pokemon_fight/test_app.mjs",
     "typecheck:battleship": "tsc --noEmit",
     "build:battleship": "node battleship/ts/build.mjs",
     "typecheck:flappybird": "tsc --noEmit",

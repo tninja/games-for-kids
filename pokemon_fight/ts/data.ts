@@ -17,10 +17,10 @@ export const COVER: Rect[] = [
   { x: 618, y: 316, w: 112, h: 62 }
 ];
 export const HEROES: HeroSpec[] = [
-  { id: "steelix", name: "Radiant Steelix", title: "The golden guardian", description: "Sturdy armor and a mighty tail sweep.", color: "#ffd56a", hp: 10, speed: 188, damage: 11, interval: 0.39, range: 265, special: "Golden tail sweep" },
-  { id: "duskull", name: "Duskull", title: "The friendly phantom", description: "Ghostly orbs and a cozy spirit shield.", color: "#c6a0ff", hp: 8, speed: 201, damage: 8, interval: 0.34, range: 290, special: "Spirit shield" },
-  { id: "greninja", name: "Greninja", title: "The water ninja", description: "Quick feet and a splash of water stars.", color: "#71dbff", hp: 8, speed: 226, damage: 8, interval: 0.29, range: 300, special: "Water star burst" },
-  { id: "darmanitan", name: "Darmanitan", title: "The firecracker", description: "Fireballs that splash nearby challengers.", color: "#ff9c78", hp: 9, speed: 198, damage: 12, interval: 0.48, range: 280, special: "Firework bloom" }
+  { id: "steelix", name: "Radiant Steelix", title: "Sweep the whole crowd", description: "Golden tail waves sweep a fan and push challengers back.", color: "#ffd56a", hp: 10, speed: 188, damage: 20, interval: 0.8, range: 265, special: "Golden tail sweep" },
+  { id: "duskull", name: "Duskull", title: "Let the spirits chase", description: "Tracking ghost flames slip past cover, haunt and slow.", color: "#c6a0ff", hp: 8, speed: 201, damage: 10, interval: 0.65, range: 300, special: "Spirit shield" },
+  { id: "greninja", name: "Greninja", title: "Line them up", description: "Three quick water stars pierce through a line of targets.", color: "#71dbff", hp: 8, speed: 226, damage: 7, interval: 0.85, range: 320, special: "Water star burst" },
+  { id: "darmanitan", name: "Darmanitan", title: "Lead them into the fire", description: "Lob fireballs over cover and leave glowing flame patches.", color: "#ff9c78", hp: 9, speed: 198, damage: 19, interval: 1.1, range: 300, special: "Firework bloom" }
 ];
 export const ART: Record<ArtId, ArtSpec> = {
   steelix: { file: "IMG_0713.jpeg", turn: false, crop: [0.286, 0.262, 0.583, 0.273] },

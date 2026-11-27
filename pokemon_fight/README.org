@@ -8,14 +8,118 @@ thumbstick on iPhone. Targeting, basic attacks, pickup collection, and charged
 specials are automatic. The computer buddy is optional. All four are available
 immediately, and each is designed to work without a buddy.
 
-The first visit offers a safe movement practice. Clear two short waves and defeat
-Machamp. Three minutes is a pacing goal, not a failure deadline. Enemy stripes and
-circles warn of attacks. Stone shelters block projectiles in both directions.
+The first visit offers a safe movement practice. Pick an adventure, clear two
+short waves, and challenge its leader. Three minutes is a pacing goal, not a
+failure deadline. Enemy stripes and
+circles warn of attacks. Stone shelters block water stars, tail waves, and enemy
+projectiles. Ghost flames pass through cover and fireballs lob over it.
 Stand close to a downed buddy to help; a living buddy can rescue the player once.
+
+* Challenge levels
+
+Choose Easy, Normal, Hard, or Expert before an adventure. Normal is the default.
+All four settings work with every stage, hero, and optional computer buddy.
+The current level appears beside the battle phase. Your choice is remembered.
+Existing saves from the two-level version move to Normal once; selecting Easy
+in the new menu keeps that choice on later visits. Badges and hero choices remain.
+
+| Level  | Maximum enemies | Spawn interval | Shooter speed | Boss warning |
+|--------+-----------------+----------------+---------------+--------------|
+| Easy   |               5 | 3.40 seconds   |           125 | 1.9 seconds  |
+| Normal |               8 | 2.20 seconds   |           155 | 1.5 seconds  |
+| Hard   |              11 | 1.60 seconds   |           185 | 1.2 seconds  |
+| Expert |              14 | 1.15 seconds   |           215 | 1.0 seconds  |
+
+Speeds use arena units per second. Hard and Expert shooters fire three-shot fans.
+Higher settings also increase pursuit speed, shorten charging windups and leader
+rest periods, toughen enemies, and reduce healing supplies and hit protection.
+Every setting retains visible attack warnings, automatic attacks, the safe
+movement tutorial, and the same two upgrade breaks. Easy keeps the original
+relaxed battle tuning. Normal adds action without adding controls.
+
+* Five adventures
+
+All five stages are available from the start. Each has its own map, scenery,
+enemy mix, leader patterns, and optional bonus mission.
+
+| Stage          | Leader          | Bonus mission                |
+|----------------+-----------------+------------------------------|
+| Meadow Camp    | Machamp         | Clear 12 challengers         |
+| Moonlit Woods  | Duskull         | Help two lost friends        |
+| Crystal Quarry | Radiant Steelix | Gather four crystals         |
+| Ember Ruins    | Darmanitan      | Light three lanterns         |
+| Sky Temple     | Greninja        | Charge two sky beacons       |
+
+Walk onto crystals to collect them. Stand near friends or lanterns for a short
+moment, or remain by a sky beacon for two seconds. A filling ring shows progress.
+Completing a bonus restores two hearts and charges the special. The leader
+arrives even if the bonus is unfinished, so children can finish each adventure
+at their own pace. A mint pointer guides the player to an offscreen bonus.
+
+Victory awards a stage badge and offers a Next adventure button. Cleared-stage
+and bonus badges are saved locally when storage is available. Any stage can be
+replayed or selected directly. A new stage starts with fresh health and powers;
+the chosen Pokemon and buddy settings stay selected.
+
+The woodland leader creates haunting wisps, the quarry leader opens ground
+fissures, the ruins leader calls delayed eruptions, and the temple leader fires
+water-star fans. Each has a marked second phase. The safe tutorial uses its own
+simple obstacle layout before switching to the selected stage's map.
+
+* Four ways to battle
+
+| Pokemon           | Automatic basic attack                             |
+|-------------------+----------------------------------------------------|
+| Radiant Steelix   | A fan-shaped tail wave hits groups and pushes back |
+| Duskull           | Tracking flames attach, haunt, and slow             |
+| Greninja          | Three quick spinning water stars pierce a line     |
+| Darmanitan        | Lobbed fireballs explode and leave flame patches   |
+
+Each attack has its own shape, timing, sound, and collision behavior. Friendly
+flame patches have mint-colored borders and never damage the player or buddy.
+The original automatic specials remain available without another action button.
+
+At about 28 and 58 seconds of match time, combat pauses completely for a power-up
+choice. Tap one of three large cards, or press 1, 2, or 3 on a keyboard. Two
+options develop the selected Pokemon's attack; one offers health, movement, or
+energy help. Choices do not repeat within a round, and a new round starts fresh.
+Examples include a second tail wave, twin spirits, returning water stars, and
+longer-lasting fire patches. The buddy does not take the player's upgrades.
+
+At both power-up checkpoints, the computer buddy levels up automatically. It
+always chooses a non-repeating attack-related skill for its own Pokemon, with
+no extra dialog or input and no consumption of the player's three choices:
+
+| Buddy       | First attack upgrade | Second attack upgrade |
+|-------------+----------------------+-----------------------|
+| Steelix     | Double tail          | Wide sweep            |
+| Duskull     | Twin spirits         | Long haunt            |
+| Greninja    | Three ways           | Come back             |
+| Darmanitan  | Double fire          | Big bloom             |
+
+The player's upgrade panel reports the buddy's new skill. A downed buddy still
+learns its upgrade and uses it after being helped back up. Both characters'
+powers reset for the next stage while stage badge progress remains saved.
+
+Chargers mark an orange stripe before dashing in a locked direction. Shielded
+guards slowly turn their front shield: flank them, use haunting or fire, or break
+the shield with Steelix's special. Machamp changes attack combinations at half
+health, adding a cross punch and a slam at the player's previous position.
+
+* Phone view and controls
 
 Pause with the button, Escape, or P. Switching tabs or losing window focus also
 pauses the game. Use Relaxed for a gentler first round. Landscape gives more room
 on a phone; portrait is also supported. Settings are saved locally when available.
+
+On phones and narrow windows, a close-up camera follows the player and looks
+slightly toward the current target. The Pokemon's illustration is larger than in
+the original whole-arena view. Offscreen portrait pointers help find enemies and
+the buddy. Edge padding keeps the player's picture visible at the arena boundary.
+The desktop view still shows the whole arena. The boss health bar sits outside
+the arena rather than covering the Pokemon pictures. The phone selection screen uses
+large, horizontally scrollable cards; swipe to choose a Pokemon. Camera zoom does
+not change the character's game-world collision size, which the ground ring marks.
 
 * Build and verify
 
@@ -65,8 +169,15 @@ multiplayer or networking; future cooperation is intended for the same device.
 
 * Verification limits
 
-Automated tests exercise the deterministic game simulation, including cover,
-damage protection, warnings, partner rescue, and complete solo rounds. They are
+Automated tests exercise the deterministic game simulation, including distinct
+weapons, cover exceptions, lingering damage, power-up pauses and effects, guards,
+charges, boss phases, partner rescue, and complete solo rounds. Phone camera
+geometry checks cover both orientations and arena edges. Stage tests cover all
+maps, leader patterns, reachable bonuses, isolated collision geometry, and
+complete solo runs with every hero. Companion tests verify automatic offensive
+choices and their projectile effects. The published-app test
+runs real input handlers, upgrades, rendering calls, and audio profiles with DOM,
+canvas, and audio stubs. These checks are
 not a substitute for browser rendering, real iPhone touch/audio checks, or John
 and Luke playtests. Actual device usability, performance, and final difficulty
 still require those checks.

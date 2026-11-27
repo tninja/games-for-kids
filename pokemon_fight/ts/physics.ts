@@ -9,18 +9,18 @@ export function unit(x: number, y: number): Point {
 export function circleRect(point: Point, radius: number, rect: Rect): boolean {
   return Math.hypot(point.x - clamp(point.x, rect.x, rect.x + rect.w), point.y - clamp(point.y, rect.y, rect.y + rect.h)) < radius;
 }
-export function walkable(point: Point, radius: number): boolean {
+export function walkable(point: Point, radius: number, cover: readonly Rect[] = COVER): boolean {
   return point.x >= radius + 24 && point.x <= WIDTH - radius - 24 &&
     point.y >= radius + 24 && point.y <= HEIGHT - radius - 24 &&
-    !COVER.some(rect => circleRect(point, radius, rect));
+    !cover.some(rect => circleRect(point, radius, rect));
 }
-export function move(point: Point, dx: number, dy: number, radius: number): void {
+export function move(point: Point, dx: number, dy: number, radius: number, cover: readonly Rect[] = COVER): void {
   const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (radius * 0.5)));
   for (let step = 0; step < steps; step++) {
     const x = clamp(point.x + dx / steps, 24 + radius, WIDTH - 24 - radius);
     const y = clamp(point.y + dy / steps, 24 + radius, HEIGHT - 24 - radius);
-    if (walkable({ x, y: point.y }, radius)) point.x = x;
-    if (walkable({ x: point.x, y }, radius)) point.y = y;
+    if (walkable({ x, y: point.y }, radius, cover)) point.x = x;
+    if (walkable({ x: point.x, y }, radius, cover)) point.y = y;
   }
 }
 // Slab intersection catches cover even when a projectile crosses it in one step.
@@ -44,18 +44,26 @@ export function segmentRect(a: Point, b: Point, rect: Rect, padding = 0): boolea
   }
   return true;
 }
-export const blocked = (a: Point, b: Point, padding = 3): boolean => COVER.some(rect => segmentRect(a, b, rect, padding));
+export const blocked = (a: Point, b: Point, padding = 3, cover: readonly Rect[] = COVER): boolean => cover.some(rect => segmentRect(a, b, rect, padding));
 export function segmentDistance(point: Point, start: Point, end: Point): number {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const t = clamp(((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy || 1), 0, 1);
   return Math.hypot(point.x - start.x - t * dx, point.y - start.y - t * dy);
 }
-export function navigate(point: Point, goal: Point, radius: number): Point {
-  if (!blocked(point, goal, radius + 2)) return unit(goal.x - point.x, goal.y - point.y);
+export function navigate(point: Point, goal: Point, radius: number, cover: readonly Rect[] = COVER): Point {
+  if (!blocked(point, goal, radius + 2, cover)) return unit(goal.x - point.x, goal.y - point.y);
+  // Physical circles can round a corner more closely than the visibility graph's
+  // padded rectangles. Step out of that small border before asking for a route.
+  const touching = cover.find(rect => point.x > rect.x - radius - 4 && point.x < rect.x + rect.w + radius + 4 &&
+    point.y > rect.y - radius - 4 && point.y < rect.y + rect.h + radius + 4);
+  if (touching) {
+    const away = unit(point.x - clamp(point.x, touching.x, touching.x + touching.w), point.y - clamp(point.y, touching.y, touching.y + touching.h));
+    if (Math.hypot(away.x, away.y) > 0) return away;
+  }
   // A tiny visibility graph avoids the back-and-forth produced by greedy corners.
   const gap = radius + 12;
-  const nodes = [point, ...COVER.flatMap(rect => [
+  const nodes = [point, ...cover.flatMap(rect => [
     { x: rect.x - gap, y: rect.y - gap },
     { x: rect.x + rect.w + gap, y: rect.y - gap },
     { x: rect.x - gap, y: rect.y + rect.h + gap },
@@ -71,7 +79,7 @@ export function navigate(point: Point, goal: Point, radius: number): Point {
     if (best < 0 || !Number.isFinite(costs[best])) break;
     visited.add(best);
     for (let i = 0; i < nodes.length; i++) {
-      if (visited.has(i) || blocked(nodes[i], nodes[best], radius + 2)) continue;
+      if (visited.has(i) || blocked(nodes[i], nodes[best], radius + 2, cover)) continue;
       const cost = costs[best] + distance(nodes[i], nodes[best]);
       if (cost < costs[i]) { costs[i] = cost; next[i] = best; }
     }
