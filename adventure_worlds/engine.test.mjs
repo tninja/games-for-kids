@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 // Published JavaScript modules are ordinary browser ESM, even in this CommonJS repo.
 const load = async name => import("data:text/javascript;base64," + Buffer.from(readFileSync(new URL("../docs/adventure_worlds/"+name+".js",import.meta.url))).toString("base64"));
-const {worlds,normalClues} = await load("content");
-const {fresh,restore,tokens,complete,progressKey} = await load("engine");
+const {worlds,normalClues,chapterRewards} = await load("content");
+const {fresh,restore,tokens,complete,progressKey,heroLevel,heroRank} = await load("engine");
 test("all worlds have twelve reachable scenes, one correct choice, translations and pinyin",()=>{
   assert.equal(worlds.length,4);
   for(const w of worlds) {
-    assert.equal(w.scenes.length,12);
+    assert.equal(w.scenes.length,12); assert.equal(chapterRewards[w.id].length,3);
     for(const [name,icon,story,clue,meaning,options] of w.scenes){
       assert.ok(name && icon && story && meaning);
       assert.equal(options.filter(o=>o[3]).length,1);
@@ -25,10 +25,10 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
 test("default pinyin, reward on completion, no duplicate XP on replay, help never blocks",()=>{
   const s=fresh();assert.equal(s.mode,"all");
   for(const w of worlds) {
-    w.scenes.forEach((scene,i)=>{assert.equal(complete(s,w.id,i,scene[3],true,false),20);assert.equal(complete(s,w.id,i,scene[3],false,true),0);});
+    w.scenes.forEach((scene,i)=>{assert.equal(complete(s,w.id,i,scene[3],true,false),25);assert.equal(complete(s,w.id,i,scene[3],false,true),0);});
     assert.equal(s.progress[w.id],12);
   }
-  assert.equal(s.xp,960);assert.deepEqual(restore(JSON.stringify(s)),s);
+  assert.equal(s.xp,1200);assert.deepEqual(restore(JSON.stringify(s)),s);
 });
 test("only unassisted first-try hidden pinyin practice counts; invalid save is safe",()=>{
   const s=fresh();s.mode="tap";
@@ -60,3 +60,5 @@ test("Easy defaults, Normal is longer, and both difficulties save independently"
  assert.equal(s.progress["dragon:normal"],1);
  assert.equal(restore(JSON.stringify(s)).difficulty,"normal");
 });
+
+test('help and retries earn equal XP; level increases each 100 XP',()=>{const s=fresh();for(let i=0;i<4;i++)assert.equal(complete(s,'dragon',i,'水|shuǐ',i%2===0,i%2!==0),25);assert.equal(heroLevel(s.xp),2);assert.equal(heroRank(3),'Pathfinder');assert.equal(complete(s,'dragon',3,'水|shuǐ',false,true),0);});

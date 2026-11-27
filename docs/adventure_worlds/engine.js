@@ -25,7 +25,7 @@ export function restore(raw) {
 }
 export function complete(s, world, index, line, helped, firstTry) {
   if ((s.progress[world] ?? 0) !== index) return 0;
-  const points = 20 + (!helped && firstTry ? 10 : 0);
+  const points = 25;
   s.xp += points;
   s.progress[world] = index + 1;
   if (!helped && firstTry && s.mode === "tap") {
@@ -35,3 +35,6 @@ export function complete(s, world, index, line, helped, firstTry) {
 }
 
 export function progressKey(world, difficulty) { return difficulty === "easy" ? world : world + ":normal"; }
+
+export function heroLevel(xp) { return 1 + Math.floor(Math.max(0,xp)/100); }
+export function heroRank(level) { return level >= 20 ? 'World Guardian' : level >= 12 ? 'Master Explorer' : level >= 6 ? 'Adventure Knight' : level >= 3 ? 'Pathfinder' : 'Young Explorer'; }
