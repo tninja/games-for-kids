@@ -8,7 +8,7 @@ export const worlds: World[] = [
     "zh": "龙族世界",
     "icon": "🐉",
     "color": "#934c58",
-    "subtitle": "The egg that ordered breakfast",
+    "subtitle": "The stolen moon lantern",
     "reward": "Moon Dragon Egg",
     "trophy": "🥚",
     "scenes": [
@@ -119,6 +119,174 @@ export const worlds: World[] = [
             true
           ]
         ]
+      ],
+      [
+        "The singing egg",
+        "🎵",
+        "At midnight the egg sings so loudly that the castle windows dance. A message appears: the moon lantern has vanished! Noodle follows a glowing feather to two paths.",
+        "走|zǒu/小路|xiǎo lù/。|",
+        "Take the small path",
+        [
+          [
+            "走|zǒu/小路|xiǎo lù",
+            "Take the small path",
+            "The feather glows and leads toward the mountain.",
+            true
+          ],
+          [
+            "走|zǒu/大路|dà lù",
+            "Take the main road",
+            "A guard asks Noodle for a driver's license.",
+            false
+          ]
+        ]
+      ],
+      [
+        "The cold ice dragon",
+        "🧣",
+        "An ice dragon shivers under seven blankets. ‘I am a dragon, not a refrigerator!’ She saw the thief fly past.",
+        "我|wǒ/要|yào/热水|rè shuǐ/。|",
+        "I want hot water",
+        [
+          [
+            "给|gěi/她|tā/冰水|bīng shuǐ",
+            "Give her ice water",
+            "She adds an eighth blanket.",
+            false
+          ],
+          [
+            "给|gěi/她|tā/热水|rè shuǐ",
+            "Give her hot water",
+            "She warms up and reveals a secret tunnel.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Three tunnels",
+        "🪶",
+        "The feather floats above three tunnels. A talking sign whispers a direction. Noodle puts on a very small detective hat.",
+        "走|zǒu/中间|zhōng jiān/。|",
+        "Go through the middle",
+        [
+          [
+            "走|zǒu/中间|zhōng jiān",
+            "Go through the middle",
+            "A passage opens into a cloud palace.",
+            true
+          ],
+          [
+            "走|zǒu/左边|zuǒ biān",
+            "Go left",
+            "A stone wall gives Noodle a very firm handshake.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Dragon in a jar",
+        "☁️",
+        "A tiny cloud dragon is trapped in a jar. ‘I have never met a dragon in a pickle jar,’ says Noodle.",
+        "打开|dǎ kāi/盖子|gài zi/。|",
+        "Open the lid",
+        [
+          [
+            "关上|guān shàng/盖子|gài zi",
+            "Close the lid",
+            "The dragon draws an unhappy face in the fog.",
+            false
+          ],
+          [
+            "打开|dǎ kāi/盖子|gài zi",
+            "Open the lid",
+            "The freed dragon gives you a cloud compass pointing to a secret library.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Upside-down library",
+        "📚",
+        "The librarian insists books are best read upside down. Noodle tries and falls off a chair. A magic map is hidden in a book.",
+        "找|zhǎo/蓝色|lán sè/的|de/书|shū/。|",
+        "Find the blue book",
+        [
+          [
+            "找|zhǎo/蓝色|lán sè/的|de/书|shū",
+            "Find the blue book",
+            "The map unfolds into a paper staircase to a tower.",
+            true
+          ],
+          [
+            "找|zhǎo/红色|hóng sè/的|de/书|shū",
+            "Find the red book",
+            "Why did the dragon cross the road? It couldn't fly with its mouth full!",
+            false
+          ]
+        ]
+      ],
+      [
+        "Tower of shadows",
+        "🗼",
+        "A shadow dragon guards a dark tower. It will help if you light the working lamp. Something inside the tower is crying.",
+        "点亮|diǎn liàng/左边|zuǒ biān/的|de/灯|dēng/。|",
+        "Light the left lamp",
+        [
+          [
+            "点亮|diǎn liàng/右边|yòu biān/的|de/灯|dēng",
+            "Light the right lamp",
+            "The broken lamp makes a sad squeak.",
+            false
+          ],
+          [
+            "点亮|diǎn liàng/左边|zuǒ biān/的|de/灯|dēng",
+            "Light the left lamp",
+            "A frightened baby bird appears holding the missing lantern.",
+            true
+          ]
+        ]
+      ],
+      [
+        "The little thief",
+        "🐦",
+        "The bird took the lantern because its nest was dark. Noodle wants to help, not fight.",
+        "帮|bāng/小鸟|xiǎo niǎo/。|",
+        "Help the little bird",
+        [
+          [
+            "帮|bāng/小鸟|xiǎo niǎo",
+            "Help the little bird",
+            "You make a glowing nest light. The bird returns the lantern.",
+            true
+          ],
+          [
+            "赶走|gǎn zǒu/小鸟|xiǎo niǎo",
+            "Chase away the bird",
+            "It hides behind its wings.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Moon festival",
+        "🏮",
+        "The queen invites everyone to a festival. Noodle has baked a cake shaped like a potato. One last task will bring back the moonlight.",
+        "把|bǎ/灯|dēng/放在|fàng zài/塔上|tǎ shàng/。|",
+        "Put the lamp on the tower",
+        [
+          [
+            "先|xiān/吃|chī/蛋糕|dàn gāo",
+            "Eat cake first",
+            "Noodle says, ‘Tempting, but the sky is still dark.’",
+            false
+          ],
+          [
+            "把|bǎ/灯|dēng/放在|fàng zài/塔上|tǎ shàng",
+            "Put the lamp on the tower",
+            "Moonlight returns! You become Guardian of the Moon.",
+            true
+          ]
+        ]
       ]
     ]
   },
@@ -128,7 +296,7 @@ export const worlds: World[] = [
     "zh": "怪兽小镇",
     "icon": "👾",
     "color": "#7853a7",
-    "subtitle": "The case of the missing lunches",
+    "subtitle": "The runaway school bell",
     "reward": "Monster Detective Notebook",
     "trophy": "📓",
     "scenes": [
@@ -239,6 +407,174 @@ export const worlds: World[] = [
             false
           ]
         ]
+      ],
+      [
+        "A new case",
+        "📓",
+        "Your notebook writes by itself: THE SCHOOL BELL IS MISSING. Pip suspects the math teacher because she likes homework. A crumb-covered note points to a room.",
+        "去|qù/厨房|chú fáng/。|",
+        "Go to the kitchen",
+        [
+          [
+            "去|qù/厨房|chú fáng",
+            "Go to the kitchen",
+            "Crumbs lead to a talking refrigerator.",
+            true
+          ],
+          [
+            "去|qù/教室|jiào shì",
+            "Go to the classroom",
+            "The teacher hands Pip a worksheet. He screams silently.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Talking fridge",
+        "🧊",
+        "The fridge promises a clue if you fill its empty shelf. It complains that somebody stole its breakfast.",
+        "我|wǒ/要|yào/牛奶|niú nǎi/。|",
+        "I want milk",
+        [
+          [
+            "给|gěi/它|tā/袜子|wà zi",
+            "Give it socks",
+            "‘I am a fridge, not a washing machine!’",
+            false
+          ],
+          [
+            "给|gěi/它|tā/牛奶|niú nǎi",
+            "Give it milk",
+            "The fridge saw the bell roll away on two feet.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Triangle footprints",
+        "👣",
+        "Strange footprints lead to two doors. Pip tries to measure them with a banana. Your notebook offers a clue.",
+        "找|zhǎo/三角形|sān jiǎo xíng/的|de/门|mén/。|",
+        "Find the triangle door",
+        [
+          [
+            "找|zhǎo/三角形|sān jiǎo xíng/的|de/门|mén",
+            "Find the triangle door",
+            "You discover a monster clubhouse.",
+            true
+          ],
+          [
+            "找|zhǎo/圆形|yuán xíng/的|de/门|mén",
+            "Find the circle door",
+            "Round cookies roll out.",
+            false
+          ]
+        ]
+      ],
+      [
+        "The sneeze monster",
+        "🤧",
+        "A sneeze monster guards a box. Each sneeze sends Pip's hat flying. It asks for help.",
+        "给|gěi/它|tā/纸巾|zhǐ jīn/。|",
+        "Give it a tissue",
+        [
+          [
+            "给|gěi/它|tā/胡椒|hú jiāo",
+            "Give it pepper",
+            "ACHOO! Pip's hat lands on a ceiling fan.",
+            false
+          ],
+          [
+            "给|gěi/它|tā/纸巾|zhǐ jīn",
+            "Give it a tissue",
+            "It gives you a magnifying glass and a key to a secret elevator.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Underground party",
+        "🍜",
+        "Below the school, monsters are setting up a concert. The bell is hiding near a table.",
+        "铃|líng/在|zài/桌子|zhuō zi/上面|shàng miàn/。|",
+        "The bell is on the table",
+        [
+          [
+            "看|kàn/桌子|zhuō zi/上面|shàng miàn",
+            "Look on the table",
+            "A bell with tiny feet waves hello.",
+            true
+          ],
+          [
+            "看|kàn/桌子|zhuō zi/下面|xià miàn",
+            "Look under the table",
+            "A spider asks if you have a reservation.",
+            false
+          ]
+        ]
+      ],
+      [
+        "The bell's secret",
+        "🔔",
+        "The bell ran away because it wants to perform music instead of ringing all day. It has written its own song.",
+        "我|wǒ/想|xiǎng/唱歌|chàng gē/。|",
+        "I want to sing",
+        [
+          [
+            "让|ràng/它|tā/睡觉|shuì jiào",
+            "Let it sleep",
+            "It says it isn't sleepy.",
+            false
+          ],
+          [
+            "让|ràng/它|tā/唱歌|chàng gē",
+            "Let it sing",
+            "The bell sings beautifully. Even Pip stops talking.",
+            true
+          ]
+        ]
+      ],
+      [
+        "A messy party",
+        "🎈",
+        "The principal is coming. The cake monster has eaten all the plates. The bell offers to return if you help tidy up.",
+        "先|xiān/收拾|shōu shi/桌子|zhuō zi/。|",
+        "Clean the tables first",
+        [
+          [
+            "先|xiān/收拾|shōu shi/桌子|zhuō zi",
+            "Clean the tables first",
+            "Everyone helps; the cake monster returns the plates, washed.",
+            true
+          ],
+          [
+            "先|xiān/回家|huí jiā",
+            "Go home first",
+            "Pip points at a mountain of crumbs.",
+            false
+          ]
+        ]
+      ],
+      [
+        "The Friday concert",
+        "🎤",
+        "The principal loves the monster band and invites it to play every Friday. The bell finishes its first official song.",
+        "请|qǐng/大家|dà jiā/鼓掌|gǔ zhǎng/。|",
+        "Everyone, please clap",
+        [
+          [
+            "请|qǐng/大家|dà jiā/睡觉|shuì jiào",
+            "Everyone, please sleep",
+            "Pip asks if you are secretly the nap monster.",
+            false
+          ],
+          [
+            "鼓掌|gǔ zhǎng",
+            "Clap",
+            "The principal stamps your notebook: Master Monster Detective!",
+            true
+          ]
+        ]
       ]
     ]
   },
@@ -248,7 +584,7 @@ export const worlds: World[] = [
     "zh": "精灵大陆",
     "icon": "⚡",
     "color": "#227e72",
-    "subtitle": "A tiny fox with a big spark",
+    "subtitle": "The Mountain League",
     "reward": "Thunder Fox Companion",
     "trophy": "🦊",
     "scenes": [
@@ -359,6 +695,174 @@ export const worlds: World[] = [
             false
           ]
         ]
+      ],
+      [
+        "A missing spark",
+        "⚡",
+        "Thunder Fox's tail stops glowing. The Mountain League's power crystal is missing! You set out before the tournament.",
+        "去|qù/山上|shān shàng/。|",
+        "Go up the mountain",
+        [
+          [
+            "去|qù/山上|shān shàng",
+            "Go up the mountain",
+            "You meet a moss turtle who knows the way.",
+            true
+          ],
+          [
+            "去|qù/海边|hǎi biān",
+            "Go to the beach",
+            "Thunder Fox builds a sandcastle.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Hungry turtle",
+        "🐢",
+        "Moss Turtle will not move until lunch. Its belly sounds like a tiny drum.",
+        "我|wǒ/想|xiǎng/吃|chī/菜|cài/。|",
+        "I want vegetables",
+        [
+          [
+            "给|gěi/它|tā/肉|ròu",
+            "Give it meat",
+            "It shakes its head politely.",
+            false
+          ],
+          [
+            "给|gěi/它|tā/菜|cài",
+            "Give it vegetables",
+            "Moss Turtle joins your team.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Rock challenge",
+        "🪨",
+        "A rock creature challenges you to a friendly match before opening the cave. Moss Turtle knows its weakness.",
+        "它|tā/怕|pà/水|shuǐ/。|",
+        "It is weak against water",
+        [
+          [
+            "用|yòng/水|shuǐ",
+            "Use water",
+            "Moss Turtle wins the practice match and the cave opens.",
+            true
+          ],
+          [
+            "用|yòng/火|huǒ",
+            "Use fire",
+            "It warms its feet and thanks you.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Crystal cave",
+        "💎",
+        "Crystals float over a pool. Thunder Fox's tail points at one, but its light is too weak to see clearly.",
+        "拿|ná/绿色|lǜ sè/的|de/水晶|shuǐ jīng/。|",
+        "Take the green crystal",
+        [
+          [
+            "拿|ná/红色|hóng sè/的|de/水晶|shuǐ jīng",
+            "Take the red crystal",
+            "It smells like toast.",
+            false
+          ],
+          [
+            "拿|ná/绿色|lǜ sè/的|de/水晶|shuǐ jīng",
+            "Take the green crystal",
+            "Thunder Fox learns Spark Shield, and the team heads to the league.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Tournament sign-up",
+        "🏟️",
+        "The referee is a tiny bird with an enormous whistle. Thunder Fox cannot wait for the first match.",
+        "先|xiān/报名|bào míng/。|",
+        "Sign up first",
+        [
+          [
+            "先|xiān/报名|bào míng",
+            "Sign up first",
+            "You receive a league badge and enter the arena.",
+            true
+          ],
+          [
+            "先|xiān/比赛|bǐ sài",
+            "Compete first",
+            "The referee blows her whistle so hard she spins.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Spark Shield",
+        "🛡️",
+        "A wind creature prepares a strong attack. Thunder Fox can use its new skill, but timing matters.",
+        "先|xiān/保护|bǎo hù/自己|zì jǐ/。|",
+        "Protect yourself first",
+        [
+          [
+            "先|xiān/攻击|gōng jī",
+            "Attack first",
+            "The wind creature blocks the attack.",
+            false
+          ],
+          [
+            "先|xiān/保护|bǎo hù/自己|zì jǐ",
+            "Protect yourself first",
+            "Spark Shield holds, and Thunder Fox wins the round.",
+            true
+          ]
+        ]
+      ],
+      [
+        "The final challenger",
+        "🐉",
+        "A baby dragon's wings are tangled in a ribbon. The referee pauses the match. It looks embarrassed.",
+        "帮助|bāng zhù/小龙|xiǎo lóng/。|",
+        "Help the little dragon",
+        [
+          [
+            "帮助|bāng zhù/小龙|xiǎo lóng",
+            "Help the little dragon",
+            "You free its wings and have a fair final match.",
+            true
+          ],
+          [
+            "继续|jì xù/攻击|gōng jī",
+            "Keep attacking",
+            "The referee reminds you that the match is paused.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Friendship champions",
+        "🏆",
+        "Both teams shake paws after the match. Moss Turtle has fallen asleep inside the trophy. The referee invites everyone to celebrate.",
+        "和|hé/朋友|péng you/一起|yì qǐ/庆祝|qìng zhù/。|",
+        "Celebrate with friends",
+        [
+          [
+            "自己|zì jǐ/回家|huí jiā",
+            "Go home alone",
+            "Your companions ask you to stay for a group photo.",
+            false
+          ],
+          [
+            "和|hé/朋友|péng you/一起|yì qǐ/庆祝|qìng zhù",
+            "Celebrate with friends",
+            "Thunder Fox evolves into radiant Storm Fox!",
+            true
+          ]
+        ]
       ]
     ]
   },
@@ -368,7 +872,7 @@ export const worlds: World[] = [
     "zh": "足球冠军之路",
     "icon": "⚽",
     "color": "#287451",
-    "subtitle": "The cup final",
+    "subtitle": "The Mountain Youth League",
     "reward": "Teamwork Cup",
     "trophy": "🏆",
     "scenes": [
@@ -479,6 +983,174 @@ export const worlds: World[] = [
             false
           ]
         ]
+      ],
+      [
+        "A new league",
+        "✉️",
+        "Your team is invited to the Mountain Youth League. The mascot packs twelve bananas and no shoes. At practice, the coach calls:",
+        "先|xiān/热身|rè shēn/。|",
+        "Warm up first",
+        [
+          [
+            "先|xiān/热身|rè shēn",
+            "Warm up first",
+            "You lead the warm-up and earn the captain's trust.",
+            true
+          ],
+          [
+            "先|xiān/射门|shè mén",
+            "Shoot first",
+            "The coach puts away the balls until warm-up is done.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Fast winger",
+        "🏃",
+        "A fast winger runs at you. You are the left back. Your coach wants you to delay the attacker and protect the middle.",
+        "不要|bú yào/冲|chōng/上去|shàng qu/。|",
+        "Don't rush in",
+        [
+          [
+            "冲|chōng/上去|shàng qu",
+            "Rush in",
+            "The winger goes around you. Try staying balanced.",
+            false
+          ],
+          [
+            "慢慢|màn màn/后退|hòu tuì",
+            "Back off carefully",
+            "You stay balanced and delay the winger.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Keeper's pass",
+        "🧤",
+        "Your keeper has the ball. An opponent is marking you closely. Find a safe passing lane.",
+        "去|qù/空地|kòng dì/。|",
+        "Move into open space",
+        [
+          [
+            "去|qù/空地|kòng dì",
+            "Move into open space",
+            "The keeper passes safely to you; you break the press.",
+            true
+          ],
+          [
+            "站着|zhàn zhe/不动|bú dòng",
+            "Stand still",
+            "The striker stays close and the keeper waits.",
+            false
+          ]
+        ]
+      ],
+      [
+        "A teammate's mistake",
+        "🤝",
+        "A teammate misses your pass and looks upset. Your coach explains what a captain does.",
+        "鼓励|gǔ lì/队友|duì yǒu/。|",
+        "Encourage your teammate",
+        [
+          [
+            "批评|pī píng/队友|duì yǒu",
+            "Criticize your teammate",
+            "He looks more nervous. Help him recover.",
+            false
+          ],
+          [
+            "鼓励|gǔ lì/队友|duì yǒu",
+            "Encourage your teammate",
+            "He smiles and plays a great pass. You earn the captain's armband.",
+            true
+          ]
+        ]
+      ],
+      [
+        "Corner kick",
+        "🚩",
+        "In the semifinal, a tall striker waits near your goal as the opponent takes a corner. The coach points to the danger.",
+        "保护|bǎo hù/中间|zhōng jiān/。|",
+        "Protect the middle",
+        [
+          [
+            "保护|bǎo hù/中间|zhōng jiān",
+            "Protect the middle",
+            "You intercept the cross and start a counterattack.",
+            true
+          ],
+          [
+            "跑向|pǎo xiàng/角旗|jiǎo qí",
+            "Run toward the corner flag",
+            "The striker is left open.",
+            false
+          ]
+        ]
+      ],
+      [
+        "Rain game",
+        "🌧️",
+        "The final begins in heavy rain. The field is slippery and a teammate is open nearby. The coach wants a safe pass.",
+        "传|chuán/短球|duǎn qiú/。|",
+        "Play a short pass",
+        [
+          [
+            "自己|zì jǐ/带球|dài qiú",
+            "Dribble yourself",
+            "You slip, but the game rewinds.",
+            false
+          ],
+          [
+            "传|chuán/短球|duǎn qiú",
+            "Play a short pass",
+            "Your teammate receives the ball cleanly and starts an attack.",
+            true
+          ]
+        ]
+      ],
+      [
+        "One last recovery",
+        "⏱️",
+        "The score is tied. Your team loses the ball and a striker sprints toward your goal. You are the nearest defender.",
+        "快|kuài/回防|huí fáng/。|",
+        "Recover quickly",
+        [
+          [
+            "快|kuài/回防|huí fáng",
+            "Recover quickly",
+            "You cut off the passing lane and win possession.",
+            true
+          ],
+          [
+            "留在|liú zài/前面|qián miàn",
+            "Stay forward",
+            "Your keeper faces a striker alone.",
+            false
+          ]
+        ]
+      ],
+      [
+        "The captain's pass",
+        "🥅",
+        "Two opponents close you down in the last minute. A teammate runs into open space. The crowd goes quiet.",
+        "传给|chuán gěi/队友|duì yǒu/。|",
+        "Pass to your teammate",
+        [
+          [
+            "自己|zì jǐ/射门|shè mén",
+            "Shoot yourself",
+            "Two defenders block your shot.",
+            false
+          ],
+          [
+            "传给|chuán gěi/队友|duì yǒu",
+            "Pass to your teammate",
+            "GOAL! Your team wins the league. The mascot finally finds its shoes.",
+            true
+          ]
+        ]
       ]
     ]
   }
@@ -501,6 +1173,38 @@ export const normalClues: Record<string, [string, string][]> = {
     [
       "先|xiān/给|gěi/小龙|xiǎo lóng/一杯|yì bēi/水|shuǐ/，|/等|děng/它|tā/喝完|hē wán/，|/再|zài/拿|ná/龙蛋|lóng dàn/。|",
       "First give the little dragon a cup of water. Wait until it finishes, then take the egg."
+    ],
+    [
+      "大路|dà lù/上|shàng/有人|yǒu rén/，|/我们|wǒ men/走|zǒu/小路|xiǎo lù/吧|ba/。|",
+      "People are on the main road; let's take the small path."
+    ],
+    [
+      "我|wǒ/很|hěn/冷|lěng/，|/请|qǐng/给|gěi/我|wǒ/一杯|yì bēi/热水|rè shuǐ/。|",
+      "I am cold; please give me a cup of hot water."
+    ],
+    [
+      "左边|zuǒ biān/没有|méi yǒu/路|lù/，|/请|qǐng/走|zǒu/中间|zhōng jiān/。|",
+      "There is no path on the left; go through the middle."
+    ],
+    [
+      "小龙|xiǎo lóng/出不来|chū bu lái/，|/请|qǐng/帮|bāng/它|tā/打开|dǎ kāi/盖子|gài zi/。|",
+      "The little dragon cannot get out; help it open the lid."
+    ],
+    [
+      "红色|hóng sè/的|de/书|shū/是|shì/笑话|xiào hua/，|/蓝色|lán sè/的|de/书|shū/里|lǐ/有|yǒu/地图|dì tú/。|",
+      "The red book contains jokes; the blue book has a map."
+    ],
+    [
+      "右边|yòu biān/的|de/灯|dēng/坏|huài/了|le/，|/请|qǐng/点亮|diǎn liàng/左边|zuǒ biān/的|de/灯|dēng/。|",
+      "The right lamp is broken; light the left lamp."
+    ],
+    [
+      "小鸟|xiǎo niǎo/怕|pà/黑|hēi/，|/我们|wǒ men/帮|bāng/它|tā/做|zuò/一盏|yì zhǎn/灯|dēng/吧|ba/。|",
+      "The bird is afraid of the dark; let's make it a lamp."
+    ],
+    [
+      "先|xiān/把|bǎ/灯|dēng/放在|fàng zài/塔上|tǎ shàng/，|/再|zài/和|hé/朋友|péng you/吃|chī/蛋糕|dàn gāo/。|",
+      "Put the lamp on the tower first, then eat cake with friends."
     ]
   ],
   "mystery": [
@@ -519,6 +1223,38 @@ export const normalClues: Record<string, [string, string][]> = {
     [
       "如果|rú guǒ/你|nǐ/想|xiǎng/吃|chī/苹果|píng guǒ/，|/就|jiù/先|xiān/把|bǎ/午饭|wǔ fàn/还给|huán gěi/大家|dà jiā/。|",
       "If you want an apple, first return everyone's lunches."
+    ],
+    [
+      "第一|dì yī/个|ge/线索|xiàn suǒ/在|zài/厨房|chú fáng/，|/不在|bú zài/教室|jiào shì/。|",
+      "The first clue is in the kitchen, not the classroom."
+    ],
+    [
+      "冰箱|bīng xiāng/里|lǐ/没有|méi yǒu/牛奶|niú nǎi/了|le/，|/请|qǐng/给|gěi/我|wǒ/牛奶|niú nǎi/。|",
+      "There is no milk in the fridge; please give me milk."
+    ],
+    [
+      "地上|dì shàng/的|de/脚印|jiǎo yìn/是|shì/三角形|sān jiǎo xíng/，|/所以|suǒ yǐ/要|yào/找|zhǎo/三角形|sān jiǎo xíng/的|de/门|mén/。|",
+      "The footprints are triangles, so find the triangle door."
+    ],
+    [
+      "它|tā/一直|yì zhí/打喷嚏|dǎ pēn tì/，|/需要|xū yào/一张|yì zhāng/纸巾|zhǐ jīn/。|",
+      "It keeps sneezing and needs a tissue."
+    ],
+    [
+      "铃|líng/不在|bú zài/桌子|zhuō zi/下面|xià miàn/，|/而是|ér shì/在|zài/桌子|zhuō zi/上面|shàng miàn/。|",
+      "The bell is not under the table, but on it."
+    ],
+    [
+      "我|wǒ/每天|měi tiān/都|dōu/响|xiǎng/，|/今天|jīn tiān/只|zhǐ/想|xiǎng/唱|chàng/一首|yì shǒu/歌|gē/。|",
+      "I ring every day; today I just want to sing a song."
+    ],
+    [
+      "先|xiān/收拾|shōu shi/桌子|zhuō zi/，|/再|zài/把|bǎ/铃|líng/带回|dài huí/学校|xué xiào/。|",
+      "Clean the tables first, then take the bell back to school."
+    ],
+    [
+      "铃|líng/已经|yǐ jīng/唱完|chàng wán/歌|gē/了|le/，|/请|qǐng/大家|dà jiā/一起|yì qǐ/鼓掌|gǔ zhǎng/。|",
+      "The bell has finished singing; everyone, please clap together."
     ]
   ],
   "creatures": [
@@ -537,6 +1273,38 @@ export const normalClues: Record<string, [string, string][]> = {
     [
       "先|xiān/保护|bǎo hù/门|mén/后面|hòu miàn/的|de/小鸟|xiǎo niǎo/，|/再|zài/想办法|xiǎng bàn fǎ/打开|dǎ kāi/门|mén/。|",
       "First protect the little bird behind the gate, then find a way to open it."
+    ],
+    [
+      "力量|lì liàng/水晶|shuǐ jīng/在|zài/山上|shān shàng/，|/我们|wǒ men/去|qù/那里|nà lǐ/找|zhǎo/。|",
+      "The power crystal is up the mountain; let's look there."
+    ],
+    [
+      "我|wǒ/不|bù/吃|chī/肉|ròu/，|/只|zhǐ/想|xiǎng/吃|chī/绿色|lǜ sè/的|de/菜|cài/。|",
+      "I don't eat meat; I only want green vegetables."
+    ],
+    [
+      "石头|shí tou/怪|guài/不怕|bú pà/火|huǒ/，|/但是|dàn shì/怕|pà/水|shuǐ/。|",
+      "The rock creature isn't afraid of fire, but is weak against water."
+    ],
+    [
+      "红色|hóng sè/的|de/水晶|shuǐ jīng/不对|bú duì/，|/请|qǐng/拿|ná/绿色|lǜ sè/的|de/水晶|shuǐ jīng/。|",
+      "The red crystal is wrong; take the green crystal."
+    ],
+    [
+      "先|xiān/报名|bào míng/，|/再|zài/进入|jìn rù/比赛|bǐ sài/场地|chǎng dì/。|",
+      "Sign up first, then enter the competition area."
+    ],
+    [
+      "对手|duì shǒu/的|de/攻击|gōng jī/很|hěn/强|qiáng/，|/所以|suǒ yǐ/先|xiān/保护|bǎo hù/自己|zì jǐ/。|",
+      "The opponent's attack is strong, so protect yourself first."
+    ],
+    [
+      "小龙|xiǎo lóng/需要|xū yào/帮助|bāng zhù/，|/我们|wǒ men/先|xiān/帮|bāng/它|tā/，|/再|zài/比赛|bǐ sài/。|",
+      "The little dragon needs help; help it first, then compete."
+    ],
+    [
+      "不管|bù guǎn/谁|shéi/赢|yíng/了|le/，|/都|dōu/可以|kě yǐ/和|hé/朋友|péng you/一起|yì qǐ/庆祝|qìng zhù/。|",
+      "Whoever wins, you can celebrate with friends."
     ]
   ],
   "soccer": [
@@ -555,6 +1323,61 @@ export const normalClues: Record<string, [string, string][]> = {
     [
       "如果|rú guǒ/不能|bù néng/射门|shè mén/，|/就|jiù/把|bǎ/球|qiú/传给|chuán gěi/有|yǒu/机会|jī huì/的|de/队友|duì yǒu/。|",
       "If you cannot shoot, pass to a teammate who has a chance."
+    ],
+    [
+      "比赛|bǐ sài/还|hái/没|méi/开始|kāi shǐ/，|/大家|dà jiā/要|yào/先|xiān/热身|rè shēn/。|",
+      "The match has not begun; everyone needs to warm up first."
+    ],
+    [
+      "对手|duì shǒu/速度|sù dù/很|hěn/快|kuài/，|/不要|bú yào/急着|jí zhe/冲|chōng/上去|shàng qu/抢球|qiǎng qiú/。|",
+      "The opponent is fast; don't rush in to tackle."
+    ],
+    [
+      "对手|duì shǒu/在|zài/你|nǐ/旁边|páng biān/，|/请|qǐng/跑到|pǎo dào/没有|méi yǒu/人|rén/的|de/空地|kòng dì/。|",
+      "The opponent is beside you; move into open space."
+    ],
+    [
+      "队友|duì yǒu/刚才|gāng cái/失误|shī wù/了|le/，|/不要|bú yào/生气|shēng qì/，|/要|yào/鼓励|gǔ lì/他|tā/。|",
+      "Your teammate made a mistake; don't get angry, encourage him."
+    ],
+    [
+      "对手|duì shǒu/在|zài/球门|qiú mén/前面|qián miàn/等|děng/球|qiú/，|/你|nǐ/要|yào/保护|bǎo hù/中间|zhōng jiān/。|",
+      "The opponent waits in front of goal; protect the middle."
+    ],
+    [
+      "下雨|xià yǔ/了|le/，|/地上|dì shàng/很|hěn/滑|huá/，|/请|qǐng/传|chuán/一个|yí ge/安全|ān quán/的|de/短球|duǎn qiú/。|",
+      "It's raining and the ground is slippery; play a safe short pass."
+    ],
+    [
+      "我们|wǒ men/丢球|diū qiú/了|le/，|/对手|duì shǒu/正在|zhèng zài/进攻|jìn gōng/，|/快|kuài/回防|huí fáng/。|",
+      "We lost the ball and the opponent is attacking; recover quickly."
+    ],
+    [
+      "如果|rú guǒ/没有|méi yǒu/射门|shè mén/机会|jī huì/，|/就|jiù/把|bǎ/球|qiú/传给|chuán gěi/空位|kòng wèi/的|de/队友|duì yǒu/。|",
+      "If you cannot shoot, pass to the teammate in open space."
     ]
+  ]
+};
+
+export const chapterRewards: Record<string, string[]> = {
+  "dragon": [
+    "🥚 Moon Egg",
+    "🧭 Cloud Compass",
+    "🌙 Moon Guardian"
+  ],
+  "mystery": [
+    "📓 Detective Notebook",
+    "🔎 Magnifying Glass",
+    "🎤 Master Detective"
+  ],
+  "creatures": [
+    "🦊 Thunder Fox",
+    "🐢 Moss Turtle",
+    "⚡ Storm Fox"
+  ],
+  "soccer": [
+    "🏆 Teamwork Cup",
+    "🎽 Captain's Armband",
+    "🥇 Mountain League Champion"
   ]
 };

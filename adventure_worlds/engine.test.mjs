@@ -5,10 +5,10 @@ import {readFileSync} from "node:fs";
 const load = async name => import("data:text/javascript;base64," + Buffer.from(readFileSync(new URL("../docs/adventure_worlds/"+name+".js",import.meta.url))).toString("base64"));
 const {worlds,normalClues} = await load("content");
 const {fresh,restore,tokens,complete,progressKey} = await load("engine");
-test("all worlds have four reachable scenes, one correct choice, translations and pinyin",()=>{
+test("all worlds have twelve reachable scenes, one correct choice, translations and pinyin",()=>{
   assert.equal(worlds.length,4);
   for(const w of worlds) {
-    assert.equal(w.scenes.length,4);
+    assert.equal(w.scenes.length,12);
     for(const [name,icon,story,clue,meaning,options] of w.scenes){
       assert.ok(name && icon && story && meaning);
       assert.equal(options.filter(o=>o[3]).length,1);
@@ -26,9 +26,9 @@ test("default pinyin, reward on completion, no duplicate XP on replay, help neve
   const s=fresh();assert.equal(s.mode,"all");
   for(const w of worlds) {
     w.scenes.forEach((scene,i)=>{assert.equal(complete(s,w.id,i,scene[3],true,false),20);assert.equal(complete(s,w.id,i,scene[3],false,true),0);});
-    assert.equal(s.progress[w.id],4);
+    assert.equal(s.progress[w.id],12);
   }
-  assert.equal(s.xp,320);assert.deepEqual(restore(JSON.stringify(s)),s);
+  assert.equal(s.xp,960);assert.deepEqual(restore(JSON.stringify(s)),s);
 });
 test("only unassisted first-try hidden pinyin practice counts; invalid save is safe",()=>{
   const s=fresh();s.mode="tap";
