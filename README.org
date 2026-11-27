@@ -1,2 +1,4 @@
 
-https://tninja.github.io/games-for-kids
+start game at https://tninja.github.io/games-for-kids
+
+[[file:./screenshot.png]]
