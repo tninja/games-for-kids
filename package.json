@@ -14,7 +14,10 @@
     "typecheck:thanksgiving": "tsc --noEmit",
     "build:thanksgiving": "node thanksgiving/ts/build.mjs",
     "typecheck:thankful_jesus": "tsc --noEmit",
-    "build:thankful_jesus": "node thankful_jesus/ts/build.mjs"
+    "build:thankful_jesus": "node thankful_jesus/ts/build.mjs",
+    "typecheck:football_iq": "tsc --noEmit --target ES2020 --module ES2020 --moduleResolution bundler --lib ES2020,DOM --strict --noUnusedLocals --noUnusedParameters --skipLibCheck football_iq/ts/app.ts",
+    "build:football_iq": "tsc --target ES2020 --module ES2020 --moduleResolution bundler --lib ES2020,DOM --strict --noUnusedLocals --noUnusedParameters --outDir docs/football_iq football_iq/ts/app.ts",
+    "test:football_iq": "node football_iq/engine.test.mjs && node football_iq/visual.test.mjs && node football_iq/keyboard.test.mjs && node football_iq/sound.test.mjs"
   },
   "devDependencies": {
     "@types/three": "^0.187.0",

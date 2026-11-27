@@ -1,0 +1,53 @@
+// Headless contract checks for both renderers (no browser or CDN required).
+import { readFile } from "node:fs/promises";
+const engine = await readFile(new URL("../docs/football_iq/engine.js", import.meta.url), "utf8");
+const visual = await readFile(new URL("../docs/football_iq/visual.js", import.meta.url), "utf8");
+const E = await import("data:text/javascript;base64," + Buffer.from(engine).toString("base64"));
+
+const check=(ok,msg)=>{if(!ok)throw Error(msg)};
+let draws=0,frames=0,sprites=0;
+const ctx=new Proxy({}, {get:(_t,k)=>k==="drawImage"?()=>{draws++}:()=>{},set:()=>true});
+function canvas(){return {width:672,height:440,getContext:()=>ctx,cloneNode:()=>canvas(),replaceWith:()=>{}};}
+const document={createElement:tag=>tag==="canvas"?canvas():{},head:{appendChild:s=>s.onerror()}};
+const window={Phaser:null,setTimeout:()=>1,clearTimeout:()=>{}};
+const d=()=>{const item={};for(const k of ["setOrigin","setDepth","setPosition","setFrame","setVisible","setText","setScale","clear","fillStyle","fillEllipse","fillCircle","lineStyle","strokeCircle","lineBetween"])item[k]=()=>item;return item;};
+const scene={textures:{addCanvas:(_key,_c)=>({add:()=>{frames++;}})},add:{image:d,sprite:()=>{sprites++;return d();},graphics:d,text:d}};
+const mock={AUTO:0,Game:class{constructor(config){Promise.resolve().then(()=>config.scene.create.call(scene));}destroy(){}}};
+async function exercise(make,E){
+ const V=make(document,window,E);
+ const s=E.createMatch(),before=JSON.stringify(s),tip={id:"cover",text:"Cover!",target:{x:100,y:150},freeze:true};
+ for(const p of s.players)for(let a=0;a<8;a++)for(let t=0;t<20;t+=5){
+   const f=V.spriteIndex({...p,heading:a*Math.PI/4,vx:Math.cos(a*Math.PI/4)*90,vy:Math.sin(a*Math.PI/4)*90},t);
+   check(f.x>=0&&f.x+f.w<=1584&&f.y>=0&&f.y+f.h<=1360,"atlas bounds");
+   check(Math.floor(f.x/f.w/9)===a%4&&Math.floor(f.y/f.h)%2===Math.floor(a/4),"heading frame");
+ }
+ const u=s.players[s.user], kick=E.copyState(s), p=kick.players[s.user];
+ p.action={kind:"shoot",elapsed:0,receiver:null,dx:1,dy:0};
+ check(V.spriteIndex(p,kick.tick).x===7*V.spriteIndex(p,kick.tick).w,"windup frame");
+ p.action.elapsed=E.ACTION_TIMING.shoot[0];
+ const k=V.spriteIndex(p,kick.tick);check(k.x===5*k.w,"kick frame");
+ p.action.kind="tackle";p.action.elapsed=E.ACTION_TIMING.tackle[0];
+ const t=V.spriteIndex(p,kick.tick);check(t.x===6*t.w,"tackle frame");
+ p.action.kind="receive";p.action.elapsed=0;
+ check(V.spriteIndex(p,kick.tick).x===8*t.w,"receive frame");
+ check(u.action===null,"copy action isolation");
+ p.action.total=25;p.action.elapsed=15;
+ check(V.marks(kick,null,false).every(m=>Number.isFinite(m.x)&&Number.isFinite(m.a)),"variable receive recovery bar");
+ const fallback=await V.createVisual(canvas());check(fallback.name==="Canvas fallback","fallback renderer");
+ fallback.draw(s,tip,true);check(draws>=12,"canvas draws");check(JSON.stringify(s)===before,"fallback mutated state");
+ window.Phaser=mock;const phaser=await V.createVisual(canvas());check(phaser.name==="Phaser 3.90","Phaser renderer");
+ phaser.draw(s,tip,true);check(frames===720&&sprites===10,"Phaser atlas/sprite count");check(JSON.stringify(s)===before,"Phaser mutated state");
+ window.Phaser={AUTO:0,CANVAS:1,Game:class{
+   constructor(config){if(config.type===0)throw Error("mock WebGL unavailable");Promise.resolve().then(()=>config.scene.create.call(scene));}
+   destroy(){}
+ }};
+ const retry=await V.createVisual(canvas());check(retry.name==="Phaser 3.90","Phaser Canvas retry");
+ retry.draw(s,null,false);
+ window.Phaser={AUTO:0,CANVAS:1,Game:class{constructor(){throw Error("boot failed");}}};
+ const failed=await V.createVisual(canvas());check(failed.name==="Canvas fallback","boot failure fallback");failed.draw(s,null,false);
+ const goal={...s,restart:.6};check(V.marks(goal,null,false).length>V.marks(s,null,false).length,"goal effect");
+ return {frames,sprites,draws};
+}
+
+const make = new Function("document","window","E","const {W,H,GOAL,ACTION_TIMING,actionDuration}=E;\n"+visual.replace(/^import .*;\n/m,"").replace(/export /g,"")+"\nreturn {spriteIndex,marks,createVisual};");
+console.log("Football IQ visual contracts:", await exercise(make,E));
