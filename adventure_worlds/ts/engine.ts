@@ -1,8 +1,9 @@
 export type Mode = "all" | "tap" | "adaptive";
-export interface Save { xp: number; progress: Record<string, number>; words: Record<string, number>; mode: Mode; }
+export type Difficulty = "easy" | "normal";
+export interface Save { difficulty: Difficulty; xp: number; progress: Record<string, number>; words: Record<string, number>; mode: Mode; }
 export const KEY = "adventure-worlds-v1";
 export function fresh(): Save {
-  return {xp: 0, progress: {}, words: {}, mode: "all"};
+  return {difficulty: "easy", xp: 0, progress: {}, words: {}, mode: "all"};
 }
 export function tokens(line: string) {
   return line.split("/").map(piece => { const [zh, py = ""] = piece.split("|"); return {zh, py}; });
@@ -13,7 +14,8 @@ export function restore(raw: string | null) {
     const v = JSON.parse(raw || "null");
     if (!v || typeof v !== "object") return s;
     if (Number.isSafeInteger(v.xp) && v.xp >= 0) s.xp = v.xp;
-    if (["all","tap","adaptive"].includes(v.mode)) s.mode = v.mode;
+    if (v.difficulty === "easy" || v.difficulty === "normal") s.difficulty = v.difficulty;
+  if (["all","tap","adaptive"].includes(v.mode)) s.mode = v.mode;
     for (const field of ["progress", "words"] as const) {
       if (v[field] && typeof v[field] === "object") {
         for (const [k,n] of Object.entries(v[field])) {
@@ -34,3 +36,5 @@ export function complete(s: Save, world: string, index: number, line: string, he
   }
   return points;
 }
+
+export function progressKey(world: string, difficulty: Difficulty) { return difficulty === "easy" ? world : world + ":normal"; }

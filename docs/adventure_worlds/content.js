@@ -480,3 +480,78 @@ export const worlds = [
     ]
   }
 ];
+
+export const normalClues = {
+  "dragon": [
+    [
+      "我|wǒ/现在|xiàn zài/很|hěn/饿|è/，|/想|xiǎng/吃|chī/一个|yí ge/苹果|píng guǒ/。|",
+      "I am hungry now and want to eat an apple."
+    ],
+    [
+      "钥匙|yào shi/在|zài/桥|qiáo/的|de/左边|zuǒ biān/，|/不在|bú zài/右边|yòu biān/。|",
+      "The key is on the left side of the bridge, not the right."
+    ],
+    [
+      "红色|hóng sè/的|de/门|mén/很|hěn/危险|wēi xiǎn/，|/请|qǐng/打开|dǎ kāi/蓝色|lán sè/的|de/门|mén/。|",
+      "The red door is dangerous. Please open the blue door."
+    ],
+    [
+      "先|xiān/给|gěi/小龙|xiǎo lóng/一杯|yì bēi/水|shuǐ/，|/等|děng/它|tā/喝完|hē wán/，|/再|zài/拿|ná/龙蛋|lóng dàn/。|",
+      "First give the little dragon a cup of water. Wait until it finishes, then take the egg."
+    ]
+  ],
+  "mystery": [
+    [
+      "怪兽|guài shòu/不在|bú zài/门|mén/后面|hòu miàn/，|/它|tā/藏在|cáng zài/桌子|zhuō zi/下面|xià miàn/。|",
+      "The monster is not behind the door. It is hiding under the table."
+    ],
+    [
+      "怪兽|guài shòu/喜欢|xǐ huan/袜子|wà zi/，|/但是|dàn shì/很|hěn/怕|pà/水|shuǐ/。|",
+      "The monster likes socks, but is very afraid of water."
+    ],
+    [
+      "不要|bú yào/打开|dǎ kāi/大的|dà de/柜子|guì zi/，|/声音|shēng yīn/是|shì/从|cóng/小|xiǎo/柜子|guì zi/里|lǐ/传来|chuán lái/的|de/。|",
+      "Don't open the big locker. The sound is coming from the small locker."
+    ],
+    [
+      "如果|rú guǒ/你|nǐ/想|xiǎng/吃|chī/苹果|píng guǒ/，|/就|jiù/先|xiān/把|bǎ/午饭|wǔ fàn/还给|huán gěi/大家|dà jiā/。|",
+      "If you want an apple, first return everyone's lunches."
+    ]
+  ],
+  "creatures": [
+    [
+      "我们|wǒ men/要|yào/找|zhǎo/一只|yì zhī/黄色|huáng sè/的|de/狐狸|hú li/，|/不是|bú shì/蓝色|lán sè/的|de/。|",
+      "We want to find a yellow fox, not a blue one."
+    ],
+    [
+      "这个|zhè ge/对手|duì shǒu/不怕|bú pà/水|shuǐ/，|/但是|dàn shì/闪电|shǎn diàn/是|shì/它|tā/的|de/弱点|ruò diǎn/。|",
+      "This opponent is not afraid of water, but lightning is its weakness."
+    ],
+    [
+      "小狐狸|xiǎo hú li/已经|yǐ jīng/很|hěn/累|lèi/了|le/，|/需要|xū yào/休息|xiū xi/，|/不能|bù néng/再|zài/战斗|zhàn dòu/。|",
+      "The little fox is already very tired. It needs rest and cannot battle again."
+    ],
+    [
+      "先|xiān/保护|bǎo hù/门|mén/后面|hòu miàn/的|de/小鸟|xiǎo niǎo/，|/再|zài/想办法|xiǎng bàn fǎ/打开|dǎ kāi/门|mén/。|",
+      "First protect the little bird behind the gate, then find a way to open it."
+    ]
+  ],
+  "soccer": [
+    [
+      "队友|duì yǒu/已经|yǐ jīng/跑到|pǎo dào/前面|qián miàn/了|le/，|/你|nǐ/要|yào/留在|liú zài/后面|hòu miàn/保护|bǎo hù/球门|qiú mén/。|",
+      "Your teammate has already run forward; you need to stay back and protect the goal."
+    ],
+    [
+      "对手|duì shǒu/在|zài/你|nǐ/前面|qián miàn/，|/不要|bú yào/带球|dài qiú/，|/把|bǎ/球|qiú/传给|chuán gěi/右边|yòu biān/的|de/队友|duì yǒu/。|",
+      "The opponent is in front of you. Don't dribble; pass to the teammate on your right."
+    ],
+    [
+      "因为|yīn wèi/对手|duì shǒu/正在|zhèng zài/跑向|pǎo xiàng/球门|qiú mén/，|/所以|suǒ yǐ/你|nǐ/要|yào/先|xiān/回防|huí fáng/，|/再|zài/帮助|bāng zhù/队友|duì yǒu/。|",
+      "Because the opponent is running toward goal, recover on defense first, then help your teammate."
+    ],
+    [
+      "如果|rú guǒ/不能|bù néng/射门|shè mén/，|/就|jiù/把|bǎ/球|qiú/传给|chuán gěi/有|yǒu/机会|jī huì/的|de/队友|duì yǒu/。|",
+      "If you cannot shoot, pass to a teammate who has a chance."
+    ]
+  ]
+};

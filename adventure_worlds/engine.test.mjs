@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 // Published JavaScript modules are ordinary browser ESM, even in this CommonJS repo.
 const load = async name => import("data:text/javascript;base64," + Buffer.from(readFileSync(new URL("../docs/adventure_worlds/"+name+".js",import.meta.url))).toString("base64"));
-const {worlds} = await load("content");
-const {fresh,restore,tokens,complete} = await load("engine");
+const {worlds,normalClues} = await load("content");
+const {fresh,restore,tokens,complete,progressKey} = await load("engine");
 test("all worlds have four reachable scenes, one correct choice, translations and pinyin",()=>{
   assert.equal(worlds.length,4);
   for(const w of worlds) {
@@ -39,4 +39,24 @@ test("only unassisted first-try hidden pinyin practice counts; invalid save is s
   assert.equal(s.words["保护"],2);
   assert.deepEqual(restore("{broken"),fresh());
   assert.equal(restore('{"xp":-1,"mode":"bad"}').xp,0);
+});
+
+test("Easy defaults, Normal is longer, and both difficulties save independently",()=>{
+ const s=fresh(); assert.equal(s.difficulty,"easy");
+ for(const w of worlds) {
+   assert.equal(normalClues[w.id].length,w.scenes.length);
+   for(let i=0;i<w.scenes.length;i++){
+     const [line,meaning]=normalClues[w.id][i];
+     assert.ok(meaning);
+     assert.ok(tokens(line).map(t=>t.zh).join("").length>tokens(w.scenes[i][3]).map(t=>t.zh).join("").length);
+     for(const t of tokens(line)) if(/\p{Script=Han}/u.test(t.zh)) assert.ok(t.py);
+   }
+ }
+ complete(s,progressKey("dragon","easy"),0,"水|shuǐ",false,true);
+ s.difficulty="normal";
+ assert.equal(s.progress[progressKey("dragon","normal")],undefined);
+ complete(s,progressKey("dragon","normal"),0,"水|shuǐ",true,false);
+ assert.equal(s.progress.dragon,1);
+ assert.equal(s.progress["dragon:normal"],1);
+ assert.equal(restore(JSON.stringify(s)).difficulty,"normal");
 });

@@ -1,5 +1,5 @@
-import {worlds} from "./content.js";
-import {KEY, fresh, restore, complete, tokens} from "./engine.js";
+import {worlds, normalClues} from "./content.js";
+import {KEY, fresh, restore, complete, tokens, progressKey} from "./engine.js";
 const root = document.querySelector("#game");
 let save = fresh();
 try { save = restore(localStorage.getItem(KEY)); } catch { /* private browsing */ }
@@ -44,7 +44,7 @@ function resetScene() {
   if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
 function open(w, replay = false) {
-  world = w; index = replay ? 0 : Math.min(save.progress[w.id] ?? 0, w.scenes.length); resetScene(); render();
+  world = w; index = replay ? 0 : Math.min(save.progress[progressKey(w.id, save.difficulty)] ?? 0, w.scenes.length); resetScene(); render();
 }
 function modeControl() {
   const wrap = el("label","Pinyin / 拼音 ","setting");
@@ -56,18 +56,29 @@ function modeControl() {
   select.onchange = () => { if (world && !solved) helped = true; save.mode = select.value; persist(); render(); };
   wrap.append(select); return wrap;
 }
+function difficultyControl() {
+  const wrap = el("label","Difficulty / 难度 ","setting");
+  const select = document.createElement("select");
+  for (const [value,label] of [["easy","Easy · 简单"],["normal","Normal · 普通"]]) {
+    const opt = document.createElement("option"); opt.value = value; opt.textContent = label; select.append(opt);
+  }
+  select.value = save.difficulty;
+  select.onchange = () => { save.difficulty = select.value; persist(); render(); };
+  wrap.append(select); return wrap;
+}
 function render() {
   root.replaceChildren();
   const bar = el("div","","bar");
   bar.append(btn("← Worlds",()=>{world=undefined; resetScene();render();},"secondary"),el("strong","✦ "+save.xp+" XP"),modeControl());
   root.append(bar);
   if (!world) {
+    root.append(difficultyControl());
     const intro = el("section","","intro");
     intro.append(el("div","✧ YOUR ADVENTURE BEGINS ✧","eyebrow"),el("h1","Adventure Worlds"),el("h2","中文奇幻之旅"),el("p","Choose a world. Read the Chinese clues with pinyin, use English whenever you need help, and collect four treasures. No timer!"));
     root.append(intro);
     const grid = el("div","","worlds");
     for (const w of worlds) {
-      const count = Math.min(save.progress[w.id] ?? 0,w.scenes.length);
+      const count = Math.min(save.progress[progressKey(w.id, save.difficulty)] ?? 0,w.scenes.length);
       const card = btn("",()=>open(w),"world");
       card.style.setProperty("--accent",w.color);
       card.append(el("span",w.icon,"world-icon"),el("strong",w.title),el("span",w.zh,"zh"),el("span",w.subtitle),el("span",count+" / "+w.scenes.length+" scenes "+(count===w.scenes.length ? " • "+w.trophy : ""),"progress"));
@@ -75,8 +86,8 @@ function render() {
     }
     root.append(grid);
     const journal = el("section","","panel");
-    journal.append(el("h2","My treasure journal · 宝物"),el("p","Earn treasures by finishing each world. Replays never award duplicate XP."));
-    const rewards = worlds.filter(w=>(save.progress[w.id] ?? 0)>=w.scenes.length);
+    journal.append(el("h2","My treasure journal · 宝物"),el("p","Treasure collection for this difficulty. Easy and Normal have separate progress; replays never award duplicate XP."));
+    const rewards = worlds.filter(w=>(save.progress[progressKey(w.id, save.difficulty)] ?? 0)>=w.scenes.length);
     journal.append(el("p",rewards.length ? rewards.map(w=>w.trophy+" "+w.reward).join("  •  ") : "Your collection is waiting!"));
     const words = Object.entries(save.words).filter(([,n])=>n>=2).map(([word])=>word);
     journal.append(el("h3","Reading practice · 阅读练习"),el("p",words.length ? "Words seen in at least two unassisted first-try Tap words scenes (not a mastery test): "+words.join("、") : "Pinyin is on by default. Try Tap words mode when ready; Learning mode hides only words practiced twice without help."));
@@ -84,12 +95,13 @@ function render() {
   }
   const w = world;
   const title = el("section","","chapter"); title.style.setProperty("--accent",w.color);
-  title.append(el("span",w.icon,"chapter-icon"),el("div",w.title+" · "+w.zh,"eyebrow"));
+  title.append(el("span",w.icon,"chapter-icon"),el("div",w.title+" · "+w.zh+" · "+(save.difficulty==="easy"?"Easy":"Normal"),"eyebrow"));
   if (index >= w.scenes.length) {
     title.append(el("h1","Adventure complete!"),el("div",w.trophy,"world-icon"),el("h2",w.reward),el("p","Replay the story or visit another world."));
     root.append(title,btn("Play again",()=>open(w,true)),btn("Choose another world",()=>{world=undefined;resetScene();render();},"secondary")); return;
   }
-  const [name,icon,story,line,translation,options] = w.scenes[index];
+  const [name,icon,story,easyLine,easyTranslation,options] = w.scenes[index];
+  const [line,translation] = save.difficulty === "normal" ? normalClues[w.id][index] : [easyLine,easyTranslation];
   title.append(el("span","SCENE "+(index+1)+" / "+w.scenes.length,"progress"),el("div",icon,"scene-icon"),el("h1",name),el("p",story));
   root.append(title);
   const clue = el("section","","panel clue");
@@ -106,7 +118,7 @@ function render() {
     const b=btn("",()=>{
       if (solved) return;
       feedback=outcome;
-      if (correct) { solved=true; points=complete(save,w.id,index,line,helped,firstTry);persist(); }
+      if (correct) { solved=true; points=complete(save,progressKey(w.id, save.difficulty),index,line,helped,firstTry);persist(); }
       else firstTry=false;
       render();
     },"action");
