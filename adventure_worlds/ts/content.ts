@@ -1632,3 +1632,255 @@ export const storyDialogue: Record<string, string[]> = {
     "Coach: “Make the team stronger, not just yourself.” Mascot: “Does that mean we share the oranges?”"
   ]
 };
+
+// Normal mode can change actions, not just lengthen the clue.
+export const normalOptions: Record<string, Record<number, Option[]>> = {
+  "dragon": {
+    "0": [
+      [
+        "只|zhǐ/给|gěi/它|tā/苹果|píng guǒ",
+        "Give it only an apple",
+        "The egg burps a tiny rainbow. ‘Excellent service!’",
+        true
+      ],
+      [
+        "先|xiān/给|gěi/它|tā/鱼|yú/，|/再|zài/给|gěi/苹果|píng guǒ",
+        "Give fish first, then an apple",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "只|zhǐ/给|gěi/它|tā/鱼|yú",
+        "Give it only fish",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "2": [
+      [
+        "关着|guān zhe/红门|hóng mén/，|/打开|dǎ kāi/蓝门|lán mén",
+        "Keep the red door closed and open the blue door",
+        "You find a map to a lost moon egg.",
+        true
+      ],
+      [
+        "关着|guān zhe/蓝门|lán mén/，|/打开|dǎ kāi/红门|hóng mén",
+        "Keep the blue door closed and open the red door",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "两扇|liǎng shàn/门|mén/都|dōu/打开|dǎ kāi",
+        "Open both doors",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "3": [
+      [
+        "等|děng/小龙|xiǎo lóng/喝完|hē wán/再|zài/拿|ná/蛋|dàn",
+        "Wait until the dragon finishes drinking, then take the egg",
+        "You give it water and then take the egg. The queen awards you a Moon Dragon Egg!",
+        true
+      ],
+      [
+        "先|xiān/拿|ná/蛋|dàn/再|zài/给|gěi/它|tā/喝水|hē shuǐ",
+        "Take the egg first, then give it water",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "一边|yì biān/给|gěi/它|tā/水|shuǐ/一边|yì biān/拿|ná/蛋|dàn",
+        "Give it water while taking the egg",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ]
+  },
+  "mystery": {
+    "1": [
+      [
+        "把|bǎ/袜子|wà zi/拿走|ná zǒu/，|/给|gěi/它|tā/水|shuǐ",
+        "Take away the socks and offer it water",
+        "It squeaks and runs away. A trail leads to the gym!",
+        true
+      ],
+      [
+        "把|bǎ/水|shuǐ/拿走|ná zǒu/，|/给|gěi/它|tā/袜子|wà zi",
+        "Take away the water and give it socks",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "给|gěi/它|tā/更多|gèng duō/袜子|wà zi",
+        "Give it more socks",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "2": [
+      [
+        "去|qù/有|yǒu/声音|shēng yīn/的|de/门|mén/后面|hòu miàn/看看|kàn kan",
+        "Check behind the door where the sound comes from",
+        "You find a lunch monster with a gigantic sandwich!",
+        true
+      ],
+      [
+        "去|qù/有|yǒu/球|qiú/的|de/门|mén/后面|hòu miàn/看看|kàn kan",
+        "Check behind the door with the balls",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "把|bǎ/有|yǒu/声音|shēng yīn/的|de/门|mén/锁上|suǒ shàng",
+        "Lock the door where the sound comes from",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "10": [
+      [
+        "把|bǎ/垃圾|lā jī/收好|shōu hǎo/再|zài/离开|lí kāi",
+        "Put the trash away before leaving",
+        "Everyone helps; the cake monster returns the plates, washed.",
+        true
+      ],
+      [
+        "先|xiān/离开|lí kāi/，|/明天|míng tiān/再|zài/收拾|shōu shi",
+        "Leave first and clean tomorrow",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "把|bǎ/垃圾|lā jī/放在|fàng zài/桌上|zhuō shàng/就|jiù/走|zǒu",
+        "Leave the trash on the table and go",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ]
+  },
+  "creatures": {
+    "1": [
+      [
+        "不用|bú yòng/水|shuǐ/，|/改用|gǎi yòng/闪电|shǎn diàn",
+        "Skip water and use lightning instead",
+        "A harmless practice spark wins the round.",
+        true
+      ],
+      [
+        "不用|bú yòng/闪电|shǎn diàn/，|/改用|gǎi yòng/水|shuǐ",
+        "Skip lightning and use water instead",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "只|zhǐ/用|yòng/水|shuǐ/攻击|gōng jī",
+        "Attack using only water",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "3": [
+      [
+        "先|xiān/让|ràng/小鸟|xiǎo niǎo/离开|lí kāi/危险|wēi xiǎn/的|de/地方|dì fang",
+        "First move the bird away from danger",
+        "You shield the bird, then open the gate. Thunder Fox joins your team!",
+        true
+      ],
+      [
+        "先|xiān/打开|dǎ kāi/门|mén/，|/再|zài/找|zhǎo/小鸟|xiǎo niǎo",
+        "Open the gate first, then find the bird",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "打开|dǎ kāi/门|mén/时|shí/让|ràng/小鸟|xiǎo niǎo/站在|zhàn zài/门边|mén biān",
+        "Have the bird stand by the gate while opening it",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "8": [
+      [
+        "先|xiān/把|bǎ/队名|duì míng/写进|xiě jìn/名单|míng dān",
+        "Write the team name on the list first",
+        "You receive a league badge and enter the arena.",
+        true
+      ],
+      [
+        "先|xiān/进入|jìn rù/赛场|sài chǎng/再|zài/写|xiě/队名|duì míng",
+        "Enter the arena first, then write the team name",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "把|bǎ/队名|duì míng/从|cóng/名单|míng dān/上|shàng/擦掉|cā diào",
+        "Erase the team name from the list",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ]
+  },
+  "soccer": {
+    "1": [
+      [
+        "把|bǎ/球|qiú/传到|chuán dào/右边|yòu biān/的|de/空位|kòng wèi",
+        "Pass into open space on the right",
+        "Your pass breaks the press!",
+        true
+      ],
+      [
+        "把|bǎ/球|qiú/传到|chuán dào/左边|zuǒ biān/的|de/队友|duì yǒu",
+        "Pass to the teammate on the left",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "先|xiān/向前|xiàng qián/带球|dài qiú/再|zài/传球|chuán qiú",
+        "Dribble forward first, then pass",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "5": [
+      [
+        "保持|bǎo chí/距离|jù lí/，|/等|děng/机会|jī huì/再|zài/抢球|qiǎng qiú",
+        "Keep a safe distance and wait for a chance to tackle",
+        "You stay balanced and delay the winger.",
+        true
+      ],
+      [
+        "马上|mǎ shàng/向前|xiàng qián/冲|chōng/上去|shàng qu/抢球|qiǎng qiú",
+        "Immediately rush forward to tackle",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "跑向|pǎo xiàng/边线|biān xiàn/，|/把|bǎ/中间|zhōng jiān/留给|liú gěi/对手|duì shǒu",
+        "Run to the touchline and leave the middle to the opponent",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ],
+    "9": [
+      [
+        "把|bǎ/球|qiú/传给|chuán gěi/离|lí/你|nǐ/近|jìn/的|de/队友|duì yǒu",
+        "Pass to the teammate close to you",
+        "Your teammate receives the ball cleanly and starts an attack.",
+        true
+      ],
+      [
+        "把|bǎ/球|qiú/传给|chuán gěi/离|lí/你|nǐ/远|yuǎn/的|de/队友|duì yǒu",
+        "Pass to the teammate far from you",
+        "That misses an important part of the clue. Look at the contrast or order of actions.",
+        false
+      ],
+      [
+        "自己|zì jǐ/带球|dài qiú/跑向|pǎo xiàng/人|rén/多|duō/的|de/地方|dì fang",
+        "Dribble toward the crowded area",
+        "That action would create a new problem. Read the whole clue, not just one familiar word.",
+        false
+      ]
+    ]
+  }
+};

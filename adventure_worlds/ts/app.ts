@@ -1,6 +1,6 @@
 import {forks} from "./forks.js";
 import {sceneArt} from "./art.js";
-import {worlds, normalClues, chapterRewards, storyDialogue} from "./content.js";
+import {worlds, normalClues, chapterRewards, storyDialogue, normalOptions} from "./content.js";
 import {KEY, fresh, restore, complete, tokens, progressKey, heroLevel, heroRank, routeKey} from "./engine.js";
 import type {World} from "./content.js";
 import type {Mode, Difficulty} from "./engine.js";
@@ -142,8 +142,9 @@ function render() {
     return;
   }
   const alternate=fork && routes[rk]===1;
-  const [name,icon,story,easyLine,easyTranslation,options]=alternate?fork.alternate:w.scenes[index];
+  const [name,icon,story,easyLine,easyTranslation,easyOptions]=alternate?fork.alternate:w.scenes[index];
   const [line,translation]=save.difficulty==="normal"?(alternate?fork.normal:normalClues[w.id][index]):[easyLine,easyTranslation];
+  const options=save.difficulty==="normal"&&!alternate?(normalOptions[w.id]?.[index]??easyOptions):easyOptions;
   const dialogue=alternate?fork.dialogue:storyDialogue[w.id][index];
   const previous=forks[w.id]?.[index-1];
   const previousRoute=routes[routeKey(key,index-1)];

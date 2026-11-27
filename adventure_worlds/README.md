@@ -11,3 +11,5 @@ Each four-scene chapter has a milestone treasure and a break option. Hero levels
 Story depth: every main scene now has three distinct action choices, contextual Chinese clues, and character dialogue. At scenes 5 and 9 each world offers two routes; both are legitimate, with different scene text, challenges and a callback in the following scene. Route choices persist independently for Easy and Normal; replay can explore alternate routes without duplicate XP or changing saved route history.
 
 Artwork: vector scene props replace the circular emoji overlays, with original illustrated food, gates, lamps, books, creatures, crystals, trophies and alternate-route objects. World cards now preview the art. Illustrations remain stylized and reusable rather than full bespoke painted backgrounds.
+
+Normal mode also has twelve authored sets of more demanding answer choices (contrast, order, spatial relationships), so it is more than longer clues.

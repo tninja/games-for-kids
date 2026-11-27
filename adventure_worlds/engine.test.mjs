@@ -132,3 +132,17 @@ test("alternate-route illustrations differ from the main route",async()=>{
   }
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });
+
+test("Normal mode has distinct multi-condition choices at twelve scenes",async()=>{
+ const {normalOptions}=await load("content");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ let count=0;
+ for(const w of worlds)for(const [i,opts] of Object.entries(normalOptions[w.id])){
+  assert.equal(opts.length,3);assert.equal(opts.filter(o=>o[3]).length,1);
+  assert.notDeepEqual(opts,w.scenes[i][5]);
+  assert.ok(!han(normalClues[w.id][i][0]).includes(han(opts.find(o=>o[3])[0])));
+  for(const o of opts)for(const t of tokens(o[0]))if(/\p{Script=Han}/u.test(t.zh))assert.ok(t.py);
+  count++;
+ }
+ assert.equal(count,12);
+});
