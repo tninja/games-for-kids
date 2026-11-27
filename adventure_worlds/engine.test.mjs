@@ -62,3 +62,22 @@ test("Easy defaults, Normal is longer, and both difficulties save independently"
 });
 
 test('help and retries earn equal XP; level increases each 100 XP',()=>{const s=fresh();for(let i=0;i<4;i++)assert.equal(complete(s,'dragon',i,'水|shuǐ',i%2===0,i%2!==0),25);assert.equal(heroLevel(s.xp),2);assert.equal(heroRank(3),'Pathfinder');assert.equal(complete(s,'dragon',3,'水|shuǐ',false,true),0);});
+
+test("every scene renders an original SVG illustration", async()=>{
+ const original=globalThis.document;
+ globalThis.document={createElement:()=>({className:"",innerHTML:""})};
+ try{
+  const {sceneArt}=await load("art");
+  for(const w of worlds) {
+    const illustrations=new Set();
+    w.scenes.forEach((scene,i)=>{
+      const art=sceneArt(w.id,i,scene[1]);
+      assert.equal(art.className,"scene-art");
+      assert.match(art.innerHTML,/<svg[^>]*viewBox="0 0 600 280"/);
+      assert.ok(art.innerHTML.includes(scene[1]));
+      illustrations.add(art.innerHTML);
+    });
+    assert.equal(illustrations.size,w.scenes.length);
+  }
+ }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});

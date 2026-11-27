@@ -22,6 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck:adventure_worlds
+      - run: for f in docs/adventure_worlds/*.js; do node --input-type=module --check < "$f"; done
       - run: npm run test:adventure_worlds
       - run: npm run build:adventure_worlds
       - run: npm run test:adventure_worlds

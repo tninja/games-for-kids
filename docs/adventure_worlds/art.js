@@ -37,7 +37,7 @@ function landscape(kind) {
  if(kind==="festival")s+=house(95,101)+house(510,113);
  return s;
 }
-function pitch(index,rain: boolean) {
+function pitch(index,rain) {
  let s='<path d="M0 90h600v56H0Z" fill="#6785a0"/><path d="M0 99h600m0 15H0m0 15h600" stroke="#bac9d9" stroke-width="5" stroke-dasharray="8 9"/><path d="M0 146h600v134H0Z" fill="#4c9a71"/><path d="M0 170h600m0 35H0m0 35h600" stroke="#60ac7f" stroke-width="16"/><g fill="none" stroke="#d8ead0" stroke-width="3"><path d="M130 154h340l85 126H45Z"/><path d="M300 154v126"/><ellipse cx="300" cy="216" rx="47" ry="28"/><path d="M90 218h76l-15 62M510 218h-76l15 62"/></g><g stroke="#f2efdc" stroke-width="3" fill="none"><path d="M44 160h83v52H44zM44 160l-15 15v52l15-15m83-52-15 15v52l15-15M29 175h83m-83 52h83"/><path d="M53 160v52m15-52v52m15-52v52m15-52v52M44 176h83m-83 16h83" opacity=".4"/></g>';
  s+=player(140+index%3*22,200,"#3d75c3",.85)+player(350-index%3*20,173,"#e5756b",.7)+player(445,212,"#e5756b",.85)+player(240,167,"#3d75c3",.7)+'<g transform="translate('+(270+index%4*28)+' 238)"><circle r="10" fill="#fff7e4" stroke="#39566b" stroke-width="2"/><path d="M0-5l5 4-2 5h-6l-2-5Z" fill="#39566b"/></g>';
  if(rain)s+='<g stroke="#c5e4ed" stroke-width="2" opacity=".6">'+Array.from({length:32},(_,i)=>'<path d="M'+((i*73)%600)+' '+((i*37)%220)+'l-12 25"/>').join("")+'</g>';
