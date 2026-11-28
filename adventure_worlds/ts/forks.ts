@@ -17,32 +17,32 @@ export const forks: Record<string, Record<number, Fork>> = {
         "A trail of silver scales",
         "🌊",
         "A river merchant has seen a feather floating downstream. Noodle wants to borrow his boat, but the merchant has a special rule.",
-        "船|chuán/只能|zhǐ néng/坐|zuò/一个|yí ge/人|rén/。|",
-        "The boat only holds one person.",
+        "船|chuán/只能|zhǐ néng/坐|zuò/一个人|yí ge rén/。|",
+        "The boat can hold only one person.",
         [
           [
-            "一个人|yí ge rén/先|xiān/过河|guò hé",
-            "One person crosses first",
+            "我|wǒ/坐船|zuò chuán/，|/小龙|xiǎo lóng/飞|fēi",
+            "I ride; the dragon flies",
             "Noodle flies alongside and the merchant points you toward the ice dragon.",
             true
           ],
           [
-            "两个人|liǎng ge rén/一起|yì qǐ/坐船|zuò chuán",
-            "Both ride in the boat",
-            "The boat wobbles; the merchant waves you back.",
+            "我|wǒ/和|hé/小龙|xiǎo lóng/一起|yì qǐ/坐船|zuò chuán",
+            "The dragon and I ride together",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "把|bǎ/船|chuán/推走|tuī zǒu",
-            "Push the boat away",
-            "The merchant catches his boat before it floats away.",
+            "我|wǒ/和|hé/小龙|xiǎo lóng/都|dōu/不|bù/过河|guò hé",
+            "Neither of us crosses",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "船|chuán/太|tài/小|xiǎo/了|le/，|/如果|rú guǒ/两个人|liǎng ge rén/一起|yì qǐ/上船|shàng chuán/，|/船|chuán/就|jiù/会|huì/沉|chén/下去|xià qù/。|",
-        "The boat is too small; if two people get on together it will sink."
+        "如果|rú guǒ/两个人|liǎng ge rén/同时|tóng shí/坐船|zuò chuán/，|/船|chuán/就|jiù/会|huì/沉|chén/下去|xià qu/。|/小龙|xiǎo lóng/可以|kě yǐ/飞|fēi/过去|guò qu/。|",
+        "If two people ride at once, the boat will sink. The dragon can fly across."
       ],
       "dialogue": "Boat merchant: “My boat is very small. No dragons larger than a sandwich!” Noodle: “What size sandwich?”",
       "follow": [
@@ -65,32 +65,32 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The telescope that sneezes",
         "🔭",
         "A stargazer has a map of the tower, but his telescope is pointed at the wrong part of the sky. Noodle checks a star chart.",
-        "星星|xīng xing/在|zài/月亮|yuè liang/旁边|páng biān/。|",
-        "The star is next to the moon.",
+        "太阳|tài yáng/旁边|páng biān/没有|méi yǒu/线索|xiàn suǒ/。|/月亮|yuè liang/旁边|páng biān/有|yǒu/。|",
+        "There is no clue beside the sun. There is one beside the moon.",
         [
           [
-            "看|kàn/月亮|yuè liang/旁边|páng biān",
-            "Look beside the moon",
+            "找|zhǎo/月亮|yuè liang/边上|biān shàng/的|de/星星|xīng xing",
+            "Find the star by the moon",
             "A constellation reveals the secret tower path.",
             true
           ],
           [
-            "看|kàn/太阳|tài yáng",
-            "Look toward the sun",
-            "The stargazer reminds you not to point a telescope at the sun.",
+            "找|zhǎo/太阳|tài yáng/边上|biān shàng/的|de/星星|xīng xing",
+            "Find the star by the sun",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
             "看|kàn/地上|dì shàng",
-            "Look at the ground",
-            "Noodle finds a pebble shaped like a potato.",
+            "Look on the ground",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "地图|dì tú/在|zài/天上|tiān shàng/最亮|zuì liàng/的|de/星星|xīng xing/里|lǐ/，|/那颗|nà kē/星星|xīng xing/就在|jiù zài/月亮|yuè liang/旁边|páng biān/。|",
-        "The map is in the brightest star, right next to the moon."
+        "地图|dì tú/藏在|cáng zài/一颗|yì kē/星星|xīng xing/里|lǐ/，|/它|tā/离|lí/太阳|tài yáng/很远|hěn yuǎn/，|/就在|jiù zài/月亮|yuè liang/旁边|páng biān/。|",
+        "The map is in a star far from the sun, right beside the moon."
       ],
       "dialogue": "Stargazer: “It's my new telescope.” Telescope: “ACHOO!” Noodle: “It has hay fever. In space.”",
       "follow": [
@@ -115,8 +115,8 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The lost-and-found monster",
         "🧢",
         "The lost-and-found cupboard has grown a face. It saw a bell run toward the kitchen, but it mixes up objects when it speaks.",
-        "这个|zhè ge/东西|dōng xi/有|yǒu/帽子|mào zi/，|/没有|méi yǒu/头|tóu/。|",
-        "This thing has a hat but no head.",
+        "它|tā/有|yǒu/盖子|gài zi/，|/可以|kě yǐ/装水|zhuāng shuǐ/。|",
+        "It has a cap and can hold water.",
         [
           [
             "水瓶|shuǐ píng",
@@ -127,20 +127,20 @@ export const forks: Record<string, Record<number, Fork>> = {
           [
             "足球|zú qiú",
             "Soccer ball",
-            "It bounces away; it has no cap.",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
             "书包|shū bāo",
             "Backpack",
-            "The cupboard looks inside but finds only homework.",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "柜子|guì zi/要|yào/找|zhǎo/一个|yí ge/没有|méi yǒu/头|tóu/却|què/有|yǒu/帽子|mào zi/的|de/东西|dōng xi/，|/它|tā/可以|kě yǐ/装水|zhuāng shuǐ/。|",
-        "The cupboard wants something with a cap but no head; it can hold water."
+        "这个|zhè ge/东西|dōng xi/不是|bú shì/用来|yòng lái/装书|zhuāng shū/的|de/，|/也|yě/不能|bù néng/踢|tī/，|/打开|dǎ kāi/盖子|gài zi/就|jiù/可以|kě yǐ/喝水|hē shuǐ/。|",
+        "This object doesn't hold books and isn't for kicking. Open its cap to drink."
       ],
       "dialogue": "Pip: “Do you have my hat?” Cupboard: “I have six hundred hats and one very confused sock.”",
       "follow": [
@@ -163,8 +163,8 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The backstage disguise",
         "🎭",
         "Behind the stage, three costumes hang beside a tiny pair of shoes. The bell is hiding inside one costume.",
-        "铃|líng/藏|cáng/在|zài/不会|bú huì/飞|fēi/的|de/动物|dòng wù/里|lǐ/。|",
-        "The bell hides in an animal that cannot fly.",
+        "它|tā/有|yǒu/四条腿|sì tiáo tuǐ/，|/会|huì/喵喵|miāo miāo/叫|jiào/。|",
+        "It has four legs and meows.",
         [
           [
             "猫|māo/的|de/衣服|yī fu",
@@ -175,20 +175,20 @@ export const forks: Record<string, Record<number, Fork>> = {
           [
             "鸟|niǎo/的|de/衣服|yī fu",
             "Bird costume",
-            "A real bird flies out. The bell is elsewhere.",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
             "蝴蝶|hú dié/的|de/衣服|yī fu",
             "Butterfly costume",
-            "Pip tries it on. It is much too small.",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "这个|zhè ge/动物|dòng wù/有|yǒu/四条|sì tiáo/腿|tuǐ/，|/没有|méi yǒu/翅膀|chì bǎng/，|/还|hái/会|huì/喵喵|miāo miāo/叫|jiào/。|",
-        "This animal has four legs, no wings and meows."
+        "铃|líng/藏在|cáng zài/一种|yì zhǒng/动物|dòng wù/的|de/衣服|yī fu/里|lǐ/，|/这种|zhè zhǒng/动物|dòng wù/没有|méi yǒu/翅膀|chì bǎng/，|/喜欢|xǐ huan/抓|zhuā/老鼠|lǎo shǔ/。|",
+        "The bell hides in a costume of an animal with no wings that likes catching mice."
       ],
       "dialogue": "Pip: “A bell wearing a costume? That explains why the principal couldn't find it.”",
       "follow": [
@@ -213,32 +213,32 @@ export const forks: Record<string, Record<number, Fork>> = {
         "A creature ferry",
         "🛶",
         "The riverside trail ends at a ferry. A friendly creature is waiting on the far bank. Your fox sees a sign beside the boat.",
-        "船|chuán/还|hái/没|méi/来|lái/。|",
-        "The boat hasn't arrived yet.",
+        "船|chuán/还|hái/在|zài/对面|duì miàn/。|/水|shuǐ/很深|hěn shēn/。|",
+        "The boat is still across the river. The water is deep.",
         [
           [
-            "等|děng/船|chuán",
-            "Wait for the boat",
+            "在|zài/岸上|àn shàng/等|děng",
+            "Wait on the bank",
             "The ferry arrives and introduces you to Moss Turtle.",
             true
           ],
           [
-            "跳进|tiào jìn/水里|shuǐ lǐ",
-            "Jump in the water",
-            "The ferry keeper stops you before you enter.",
+            "自己|zì jǐ/跳进|tiào jìn/水里|shuǐ lǐ",
+            "Jump into the water",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
             "回|huí/商店|shāng diàn",
             "Return to the shop",
-            "Your fox points at the approaching ferry.",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "河水|hé shuǐ/很|hěn/深|shēn/，|/船|chuán/还|hái/在|zài/对面|duì miàn/，|/我们|wǒ men/不能|bù néng/自己|zì jǐ/下水|xià shuǐ/。|",
-        "The river is deep and the boat is still on the other side; we can't enter the water ourselves."
+        "河水|hé shuǐ/太深|tài shēn/，|/我们|wǒ men/不能|bù néng/自己|zì jǐ/下水|xià shuǐ/，|/船|chuán/还|hái/没有|méi yǒu/到|dào/这边|zhè biān/。|",
+        "The water is too deep to enter; the boat hasn't reached this side."
       ],
       "dialogue": "Fox: “I can swim!” Ferry keeper: “You are an electric creature. Please do not test that today.”",
       "follow": [
@@ -261,32 +261,32 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The referee's missing whistle",
         "🪈",
         "The referee dropped her whistle while carrying the sign-up sheet. She has checked everywhere except one place.",
-        "椅子|yǐ zi/下面|xià miàn/有|yǒu/声音|shēng yīn/。|",
-        "There is a sound under the chair.",
+        "桌上|zhuō shàng/没有|méi yǒu/哨子|shào zi/。|/椅子|yǐ zi/下面|xià miàn/有|yǒu/声音|shēng yīn/。|",
+        "There is no whistle on the table. There's a sound under the chair.",
         [
           [
-            "看|kàn/椅子|yǐ zi/下面|xià miàn",
-            "Look under the chair",
+            "弯腰|wān yāo/看看|kàn kan",
+            "Bend down and look",
             "You find the whistle. She signs you up and starts the first match.",
             true
           ],
           [
-            "看|kàn/桌上|zhuō shàng",
-            "Look on the table",
-            "Only the sign-up sheet is there.",
+            "再|zài/找|zhǎo/桌上|zhuō shàng",
+            "Search the tabletop again",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "看|kàn/天上|tiān shàng",
-            "Look at the sky",
-            "A bird is singing, but it is not a whistle.",
+            "抬头|tái tóu/看|kàn/天上|tiān shàng",
+            "Look up at the sky",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "桌上|zhuō shàng/没有|méi yǒu/哨子|shào zi/，|/她|tā/弯腰|wān yāo/时|shí/听到|tīng dào/椅子|yǐ zi/下|xià/有|yǒu/声音|shēng yīn/。|",
-        "The whistle is not on the table; when she bent down, she heard a sound under the chair."
+        "裁判|cái pàn/在|zài/桌上|zhuō shàng/找|zhǎo/了|le/很久|hěn jiǔ/，|/没有|méi yǒu/找到|zhǎo dào/。|/她|tā/弯腰|wān yāo/时|shí/听到|tīng dào/椅子|yǐ zi/下面|xià miàn/有|yǒu/声音|shēng yīn/。|",
+        "The referee searched the tabletop for a long time without finding it. Bending down, she heard a sound under the chair."
       ],
       "dialogue": "Referee: “Without my whistle I must yell PEEEEEEP.” Fox: “Please never do that again.”",
       "follow": [
@@ -311,8 +311,8 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The equipment mix-up",
         "🎒",
         "The mascot has packed the wrong equipment before the new league match. One teammate cannot go onto the field until the problem is fixed.",
-        "队友|duì yǒu/没有|méi yǒu/球鞋|qiú xié/。|",
-        "Your teammate has no soccer shoes.",
+        "队友|duì yǒu/穿着|chuān zhe/拖鞋|tuō xié/，|/不能|bù néng/上场|shàng chǎng/。|",
+        "Your teammate wears slippers and can't play.",
         [
           [
             "借给|jiè gěi/他|tā/球鞋|qiú xié",
@@ -321,22 +321,22 @@ export const forks: Record<string, Record<number, Fork>> = {
             true
           ],
           [
-            "给|gěi/他|tā/足球|zú qiú",
-            "Give him a soccer ball",
-            "He already has a ball but still cannot play.",
+            "借给|jiè gěi/他|tā/拖鞋|tuō xié",
+            "Lend him slippers",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "借给|jiè gěi/他|tā/拖鞋|tuō xié",
-            "Lend him slippers",
-            "He laughs and points at his slippers.",
+            "借给|jiè gěi/他|tā/足球|zú qiú",
+            "Lend him a soccer ball",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "队友|duì yǒu/穿着|chuān zhe/拖鞋|tuō xié/来到|lái dào/球场|qiú chǎng/，|/他|tā/需要|xū yào/换|huàn/一双|yì shuāng/能|néng/踢球|tī qiú/的|de/鞋|xié/。|",
-        "Your teammate arrived wearing slippers; he needs shoes suitable for soccer."
+        "队友|duì yǒu/带了|dài le/足球|zú qiú/，|/但|dàn/脚上|jiǎo shàng/穿|chuān/的|de/是|shì/拖鞋|tuō xié/，|/裁判|cái pàn/不让|bú ràng/他|tā/上场|shàng chǎng/。|",
+        "The teammate brought a ball, but wears slippers; the referee won't let him play."
       ],
       "dialogue": "Mascot: “Twelve bananas, two pencils, and a frying pan. We're ready!” Coach: “For what?”",
       "follow": [
@@ -359,32 +359,32 @@ export const forks: Record<string, Record<number, Fork>> = {
         "The quick throw-in",
         "⚽",
         "In the semifinal, an opponent prepares a quick throw-in. A runner is sneaking behind your teammate. You have to cover the dangerous space.",
-        "对手|duì shǒu/跑到|pǎo dào/队友|duì yǒu/身后|shēn hòu/了|le/。|",
-        "The opponent ran behind your teammate.",
+        "队友|duì yǒu/只|zhǐ/看|kàn/球|qiú/。|/对手|duì shǒu/跑到|pǎo dào/他|tā/身后|shēn hòu/。|",
+        "Your teammate only watches the ball. An opponent runs behind him.",
         [
           [
-            "补防|bǔ fáng/身后|shēn hòu/的|de/空位|kòng wèi",
-            "Cover the space behind",
+            "去|qù/他|tā/后面|hòu miàn/保护|bǎo hù/球门|qiú mén",
+            "Cover behind him to protect goal",
             "You intercept the throw and send your team into the final.",
             true
           ],
           [
-            "一起|yì qǐ/看|kàn/球|qiú",
-            "Both watch the ball",
-            "The runner moves into dangerous space.",
+            "去|qù/他|tā/前面|qián miàn/看|kàn/球|qiú",
+            "Go in front of him to watch the ball",
+            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "向前|xiàng qián/跑|pǎo",
-            "Run forward",
-            "The space behind your teammate becomes even bigger.",
+            "和|hé/他|tā/一起|yì qǐ/只|zhǐ/看球|kàn qiú",
+            "Watch only the ball with him",
+            "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       "normal": [
-        "队友|duì yǒu/正在|zhèng zài/看|kàn/球|qiú/，|/没有|méi yǒu/看到|kàn dào/身后|shēn hòu/的|de/对手|duì shǒu/正|zhèng/跑向|pǎo xiàng/球门|qiú mén/。|",
-        "Your teammate is watching the ball and hasn't seen the opponent running toward goal behind him."
+        "队友|duì yǒu/正在|zhèng zài/看|kàn/界外球|jiè wài qiú/，|/没有|méi yǒu/发现|fā xiàn/对手|duì shǒu/已经|yǐ jīng/从|cóng/他|tā/身后|shēn hòu/跑向|pǎo xiàng/球门|qiú mén/。|",
+        "Your teammate watches the throw-in and hasn't noticed an opponent running behind him toward goal."
       ],
       "dialogue": "Mascot: “I can take the throw-in!” Coach: “It's the other team's throw-in.”",
       "follow": [
