@@ -8,3 +8,5 @@
 .dialogue{background:#101c35b0;border-left:3px solid #f1ce82;border-radius:8px;padding:10px 14px;color:#fff1d4;font-style:italic}.route-memory{color:#c5eddf;font-size:.95rem}.fork-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fork-option{margin:0}.fork-option p{font-weight:700}.fork-option .action{padding:10px}@media(max-width:480px){.fork-grid{grid-template-columns:1fr}}
 
 .world .scene-art{margin:0 0 8px;width:100%;border-radius:9px;box-shadow:none}.world .scene-art svg{aspect-ratio:600/280}.chapter .scene-art{border:1px solid #e4cfaa55}.chapter .dialogue{line-height:1.6}.fork-option .action{background:linear-gradient(135deg,#345c71,#2b405f)}
+
+.reading-reason{padding:8px 12px;border-left:3px solid #80c5aa;background:#163f45;color:#e5f8ee;border-radius:5px;line-height:1.5}

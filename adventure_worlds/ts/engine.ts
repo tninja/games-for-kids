@@ -43,3 +43,12 @@ export function heroLevel(xp: number) { return 1 + Math.floor(Math.max(0,xp)/100
 export function heroRank(level: number) { return level >= 20 ? 'World Guardian' : level >= 12 ? 'Master Explorer' : level >= 6 ? 'Adventure Knight' : level >= 3 ? 'Pathfinder' : 'Young Explorer'; }
 
 export function routeKey(world: string, index: number) { return world+":"+index; }
+
+// Shuffle only at scene entry; hints and retries retain button positions.
+export function shuffleChoices(items: number[], random=Math.random) {
+ const a=items.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
+}
+export function keywordOverlap(clue: string,choice: string,width: number=1) {
+ const grams=(line: string)=>{const h=tokens(line).map(t=>t.zh).join("").replace(/[^\p{Script=Han}]/gu,"");return new Set(Array.from({length:Math.max(0,h.length-width+1)},(_,i)=>h.slice(i,i+width)));};
+ const a=grams(clue),b=grams(choice);return [...b].filter(g=>a.has(g)).length/Math.max(1,b.size);
+}

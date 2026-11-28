@@ -25,7 +25,7 @@ try {
  assert.ok(await page.locator('.chapter .dialogue').isVisible());
  assert.ok(await page.locator('.scene-art svg .scene-prop').count());
  await page.getByRole('button',{name:'English help'}).click();
- assert.ok(await page.locator('.clue .translation').filter({hasText:'I want to eat an apple.'}).isVisible());
+ assert.ok(await page.locator('.clue .translation').filter({hasText:"I'm hungry, not thirsty. I don't eat fish."}).isVisible());
  // Seed a real v1 save just before a fork, then play the alternate branch and reload.
  await page.evaluate(()=>localStorage.setItem('adventure-worlds-v1',JSON.stringify({xp:100,progress:{dragon:4},words:{},mode:'all',difficulty:'easy'})));
  await page.reload();await page.getByRole('button',{name:/Dragon Kingdom/}).click();
@@ -35,8 +35,8 @@ try {
  await page.reload();await page.getByRole('button',{name:/Dragon Kingdom/}).click();
  assert.ok(await page.getByRole('heading',{name:'A trail of silver scales'}).isVisible());
  await page.getByRole('button',{name:'English help'}).click();
- const correct=page.locator('.choice').filter({hasText:'One person crosses first'}).locator('.action');
- await correct.click();assert.ok(await page.getByText('+25 XP · Quest complete!').isVisible());
+ const correct=page.locator('.choice').filter({hasText:'I ride; the dragon flies'}).locator('.action');
+ await correct.click();assert.ok(await page.getByText('+25 XP · Quest complete!').isVisible());assert.ok(await page.locator('.reading-reason').isVisible());
  await page.getByRole('button',{name:'Continue →'}).click();
  assert.ok(await page.locator('.route-memory').filter({hasText:"river merchant"}).isVisible());
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('adventure-worlds-v1')).progress.dragon),5);

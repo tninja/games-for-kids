@@ -19,7 +19,7 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
         }
       }
     }
-    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=12);
+    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=25);
   }
 });
 test("default pinyin, reward on completion, no duplicate XP on replay, help never blocks",()=>{
@@ -133,16 +133,27 @@ test("alternate-route illustrations differ from the main route",async()=>{
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
 });
 
-test("Normal mode has distinct multi-condition choices at twelve scenes",async()=>{
- const {normalOptions}=await load("content");
- const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+
+test("all 56 challenges have distinct actions and explanations; keyword matching cannot strongly favor the answer",async()=>{
+ const {readingReasons}=await load("content");const {forks}=await load("forks");const {keywordOverlap}=await load("engine");
  let count=0;
- for(const w of worlds)for(const [i,opts] of Object.entries(normalOptions[w.id])){
-  assert.equal(opts.length,3);assert.equal(opts.filter(o=>o[3]).length,1);
-  assert.notDeepEqual(opts,w.scenes[i][5]);
-  assert.ok(!han(normalClues[w.id][i][0]).includes(han(opts.find(o=>o[3])[0])));
-  for(const o of opts)for(const t of tokens(o[0]))if(/\p{Script=Han}/u.test(t.zh))assert.ok(t.py);
-  count++;
+ for(const w of worlds){
+  const cases=[...w.scenes.map((s,i)=>[s,normalClues[w.id][i],w.id+":"+i]),...Object.entries(forks[w.id]).map(([i,f])=>[f.alternate,f.normal,w.id+":"+i+":alt"])];
+  for(const [scene,normal,key] of cases){
+   const opts=scene[5];assert.equal(opts.length,3);assert.equal(opts.filter(o=>o[3]).length,1);assert.equal(new Set(opts.map(o=>o[0])).size,3);assert.ok(readingReasons[key]?.length>15);
+   for(const line of [scene[3],normal[0]])for(const [width,margin] of [[1,.08],[2,.12]]){
+    const good=keywordOverlap(line,opts.find(o=>o[3])[0],width);
+    const distractors=opts.filter(o=>!o[3]).map(o=>keywordOverlap(line,o[0],width));
+    assert.ok(good<=Math.max(...distractors)+margin+1e-9,key+" width "+width+" "+good+" > "+distractors);
+   }
+   count++;
+  }
  }
- assert.equal(count,12);
+ assert.equal(count,56);
+});
+test("shuffle is a non-mutating permutation and can vary the correct position",async()=>{
+ const {shuffleChoices}=await load("engine");const input=[0,1,2];
+ assert.deepEqual(shuffleChoices(input,()=>.999),[0,1,2]);
+ assert.deepEqual(shuffleChoices(input,()=>0),[1,2,0]);
+ assert.deepEqual(input,[0,1,2]);
 });
