@@ -1,9 +1,9 @@
 export type Mode = "all" | "tap" | "adaptive";
 export type Difficulty = "easy" | "normal";
-export interface Save { difficulty: Difficulty; xp: number; progress: Record<string, number>; words: Record<string, number>; mode: Mode; }
+export interface Save { difficulty: Difficulty; xp: number; progress: Record<string, number>; words: Record<string, number>; routes: Record<string, number>; mode: Mode; }
 export const KEY = "adventure-worlds-v1";
 export function fresh(): Save {
-  return {difficulty: "easy", xp: 0, progress: {}, words: {}, mode: "all"};
+  return {difficulty: "easy", xp: 0, progress: {}, words: {}, routes: {}, mode: "all"};
 }
 export function tokens(line: string) {
   return line.split("/").map(piece => { const [zh, py = ""] = piece.split("|"); return {zh, py}; });
@@ -16,10 +16,10 @@ export function restore(raw: string | null) {
     if (Number.isSafeInteger(v.xp) && v.xp >= 0) s.xp = v.xp;
     if (v.difficulty === "easy" || v.difficulty === "normal") s.difficulty = v.difficulty;
   if (["all","tap","adaptive"].includes(v.mode)) s.mode = v.mode;
-    for (const field of ["progress", "words"] as const) {
+    for (const field of ["progress", "words", "routes"] as const) {
       if (v[field] && typeof v[field] === "object") {
         for (const [k,n] of Object.entries(v[field])) {
-          if (!["__proto__","constructor","prototype"].includes(k) && typeof n === "number" && Number.isSafeInteger(n) && n >= 0) s[field][k] = n;
+          if (!["__proto__","constructor","prototype"].includes(k) && typeof n === "number" && Number.isSafeInteger(n) && n >= 0 && (field !== "routes" || n <= 1)) s[field][k] = n;
         }
       }
     }
@@ -41,3 +41,5 @@ export function progressKey(world: string, difficulty: Difficulty) { return diff
 
 export function heroLevel(xp: number) { return 1 + Math.floor(Math.max(0,xp)/100); }
 export function heroRank(level: number) { return level >= 20 ? 'World Guardian' : level >= 12 ? 'Master Explorer' : level >= 6 ? 'Adventure Knight' : level >= 3 ? 'Pathfinder' : 'Young Explorer'; }
+
+export function routeKey(world: string, index: number) { return world+":"+index; }

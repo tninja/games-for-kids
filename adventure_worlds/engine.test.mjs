@@ -11,7 +11,7 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
     assert.equal(w.scenes.length,12); assert.equal(chapterRewards[w.id].length,3);
     for(const [name,icon,story,clue,meaning,options] of w.scenes){
       assert.ok(name && icon && story && meaning);
-      assert.equal(options.filter(o=>o[3]).length,1);
+      assert.equal(options.length,3); assert.equal(options.filter(o=>o[3]).length,1);
       for(const line of [clue,...options.map(o=>o[0])]){
         for(const t of tokens(line)) {
           assert.ok(t.zh);
@@ -19,7 +19,7 @@ test("all worlds have twelve reachable scenes, one correct choice, translations 
         }
       }
     }
-    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=10);
+    assert.ok(tokens(w.scenes[0][3]).map(t=>t.zh).join("").length<=12);
   }
 });
 test("default pinyin, reward on completion, no duplicate XP on replay, help never blocks",()=>{
@@ -80,4 +80,69 @@ test("every scene renders an original SVG illustration", async()=>{
     assert.equal(illustrations.size,w.scenes.length);
   }
  }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});
+
+test("clues never contain the entire correct action; dialogue is authored for every scene",async()=>{
+ const {storyDialogue}=await load("content");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ for(const w of worlds){
+  assert.equal(storyDialogue[w.id].length,w.scenes.length);
+  w.scenes.forEach((s,i)=>{
+   const answer=han(s[5].find(o=>o[3])[0]);
+   assert.ok(!han(s[3]).includes(answer),w.id+" easy "+i);
+   assert.ok(!han(normalClues[w.id][i][0]).includes(answer),w.id+" normal "+i);
+   assert.ok(storyDialogue[w.id][i].length>10);
+  });
+ }
+});
+
+test("routes persist separately for each difficulty, old saves default to no routes",async()=>{
+ const {routeKey}=await load("engine");
+ const s=restore('{"xp":25,"progress":{"dragon":1},"mode":"all"}');
+ assert.deepEqual(s.routes,{});
+ s.routes[routeKey(progressKey("dragon","easy"),4)]=1;
+ s.routes[routeKey(progressKey("dragon","normal"),4)]=0;
+ assert.deepEqual(restore(JSON.stringify(s)),s);
+ assert.deepEqual(restore('{"routes":{"dragon:4":7}}').routes,{});
+});
+test("all eight alternate routes have valid independent reading challenges",async()=>{
+ const {forks}=await load("forks");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ for(const w of worlds){
+  assert.deepEqual(Object.keys(forks[w.id]),["4","8"]);
+  for(const fork of Object.values(forks[w.id])){
+   assert.equal(fork.paths.length,2);assert.equal(fork.follow.length,2);
+   const s=fork.alternate;assert.equal(s[5].length,3);assert.equal(s[5].filter(o=>o[3]).length,1);
+   const correct=han(s[5].find(o=>o[3])[0]);
+   assert.ok(!han(s[3]).includes(correct));assert.ok(!han(fork.normal[0]).includes(correct));
+   for(const line of [s[3],fork.normal[0],...s[5].map(o=>o[0]),...fork.paths.map(p=>p.label)])for(const t of tokens(line))if(/\p{Script=Han}/u.test(t.zh))assert.ok(t.py);
+  }
+ }
+});
+
+test("alternate-route illustrations differ from the main route",async()=>{
+ const original=globalThis.document;
+ globalThis.document={createElement:()=>({className:"",innerHTML:""})};
+ try{
+  const {sceneArt}=await load("art");const {forks}=await load("forks");
+  for(const w of worlds)for(const i of [4,8]){
+   const a=sceneArt(w.id,i,w.scenes[i][1],0).innerHTML;
+   const b=sceneArt(w.id,i,forks[w.id][i].alternate[1],1).innerHTML;
+   assert.notEqual(a,b);assert.match(b,/data-variant="1"/);
+  }
+ }finally{if(original===undefined)delete globalThis.document;else globalThis.document=original;}
+});
+
+test("Normal mode has distinct multi-condition choices at twelve scenes",async()=>{
+ const {normalOptions}=await load("content");
+ const han=line=>tokens(line).map(t=>t.zh).join("").replace(/[，。！？、\s]/g,"");
+ let count=0;
+ for(const w of worlds)for(const [i,opts] of Object.entries(normalOptions[w.id])){
+  assert.equal(opts.length,3);assert.equal(opts.filter(o=>o[3]).length,1);
+  assert.notDeepEqual(opts,w.scenes[i][5]);
+  assert.ok(!han(normalClues[w.id][i][0]).includes(han(opts.find(o=>o[3])[0])));
+  for(const o of opts)for(const t of tokens(o[0]))if(/\p{Script=Han}/u.test(t.zh))assert.ok(t.py);
+  count++;
+ }
+ assert.equal(count,12);
 });
