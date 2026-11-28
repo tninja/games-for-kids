@@ -610,7 +610,7 @@ export class ArenaGame {
           shot.target = target.id;
           const aim = unit(target.x - shot.x, target.y - shot.y);
           const turn = Math.min(1, dt * 7);
-          const speed = shot.ally ? 220 : 130;
+          const speed = shot.ally ? 220 : 130 * this.challenge.bossProjectileSpeed;
           const heading = unit(shot.vx * (1 - turn) + aim.x * speed * turn, shot.vy * (1 - turn) + aim.y * speed * turn);
           shot.vx = heading.x * speed; shot.vy = heading.y * speed;
         }

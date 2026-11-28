@@ -853,3 +853,45 @@ test("Difficulty preserves movement controls, hero damage, safe practice and two
   assert.equal(new Set(damage).size, 1);
   assert.ok(damage[0] > 0);
 });
+
+test("Hard and Expert rounds reach valid endings on every map without simulation stalls", context => {
+  for (const difficulty of ["hard", "expert"]) {
+    let wins = 0;
+    for (const stage of STAGES) for (const character of ["steelix", "duskull"]) {
+      const game = new ArenaGame({ character, buddy: null, stage: stage.id, difficulty, seed: 31 });
+      for (let i = 0; i < 60 * 330 && ["playing", "upgrade"].includes(game.phase); i++) {
+        if (game.phase === "upgrade") game.chooseUpgrade(game.upgradeChoices[0].id);
+        else game.step(dt, driver(game));
+      }
+      const label = difficulty + " / " + stage.name + " / " + character;
+      assert.ok(["won", "lost"].includes(game.phase), label + " stalled at " + game.elapsed);
+      assert.ok(Number.isFinite(game.player.x) && Number.isFinite(game.player.y));
+      assert.ok(game.player.hp >= 0 && game.player.hp <= game.player.maxHp);
+      if (game.phase === "won") {
+        wins++; assert.equal(game.boss, undefined); assert.equal(game.bossEnraged, true);
+        assert.equal(game.upgradesTaken.length, 2);
+      } else assert.equal(game.player.hp, 0);
+      context.diagnostic(label + ": " + game.phase + " at " + game.elapsed.toFixed(1) + "s");
+    }
+    assert.ok(wins > 0, difficulty + " must permit victories with normal movement and attacks");
+  }
+});
+
+
+test("Leaders use stage-scaled difficulty health and retain spell speed after homing updates", () => {
+  for (const setting of DIFFICULTIES) for (const id of [1, 4]) {
+    const game = new ArenaGame({ character: "steelix", buddy: null, stage: id, difficulty: setting.id, seed: 31 });
+    game.upgradeRound = 2; game.elapsed = 89.99;
+    Object.assign(game.player, { cooldown: 1000, energy: -1000, shield: 1000 });
+    game.step(dt);
+    assert.equal(game.boss.maxHp, Math.round(setting.bossHp * game.level.strength));
+    game.boss.timer = 0; game.step(dt);
+    const warning = game.hazards[0];
+    assert.ok(warning.wait > 0);
+    Object.assign(game.player, { x: 915, y: 510 });
+    advance(game, warning.duration + 0.1);
+    const spell = game.shots.find(shot => !shot.ally && shot.kind === (id === 1 ? "ghost" : "water"));
+    assert.ok(spell, setting.id + " stage " + id);
+    assert.ok(Math.abs(Math.hypot(spell.vx, spell.vy) - (id === 1 ? 130 : 210) * setting.bossProjectileSpeed) < 0.001);
+  }
+});

@@ -292,3 +292,12 @@ test("Legacy Easy defaults migrate once without losing badges, and choosing Easy
   assert.equal(restored.nodes.get("difficulty").value, "relaxed");
   assert.equal(restored.start("duskull").challenge.name, "Easy");
 });
+
+test("Invalid saved difficulty falls back to Normal while a valid new choice remains usable", async () => {
+  const storage = new Map([["pocket-arena-v1", JSON.stringify({ difficultyVersion: 2, difficulty: "missing-level" })]]);
+  const ui = await browser(390, 470, storage);
+  assert.equal(ui.nodes.get("difficulty").value, "standard");
+  assert.equal(ui.start("steelix").options.difficulty, "standard");
+  ui.nodes.get("difficulty").value = "expert"; ui.nodes.get("difficulty").dispatch("change");
+  assert.equal(ui.start("steelix").options.difficulty, "expert");
+});
