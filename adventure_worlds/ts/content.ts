@@ -524,8 +524,8 @@ export const worlds: World[] = [
             true
           ],
           [
-            "找|zhǎo/没有|méi yǒu/三个|sān ge/角|jiǎo/的|de/圆门|yuán mén",
-            "Find the round door without three corners",
+            "找|zhǎo/不是|bú shì/三角形|sān jiǎo xíng/的|de/圆门|yuán mén",
+            "Find the round door, not the triangle",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
@@ -989,20 +989,20 @@ export const worlds: World[] = [
         "The match is over. Your friends are waiting for you.",
         [
           [
-            "和|hé/大家|dà jiā/一起|yì qǐ/庆祝|qìng zhù",
+            "和|hé/朋友|péng you/一起|yì qǐ/庆祝|qìng zhù",
             "Celebrate together with everyone",
             "Thunder Fox evolves into radiant Storm Fox!",
             true
           ],
           [
-            "和|hé/大家|dà jiā/说|shuō/再见|zài jiàn/，|/自己|zì jǐ/庆祝|qìng zhù",
-            "Say goodbye to everyone and celebrate alone",
+            "不|bù/和|hé/朋友|péng you/一起|yì qǐ/庆祝|qìng zhù",
+            "Don't celebrate together with friends",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "让|ràng/大家|dà jiā/自己|zì jǐ/庆祝|qìng zhù",
-            "Let everyone celebrate without you",
+            "让|ràng/朋友|péng you/先|xiān/回家|huí jiā/，|/自己|zì jǐ/庆祝|qìng zhù",
+            "Send friends home and celebrate alone",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]

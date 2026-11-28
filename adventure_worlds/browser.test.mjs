@@ -25,7 +25,7 @@ try {
  assert.ok(await page.locator('.chapter .dialogue').isVisible());
  assert.ok(await page.locator('.scene-art svg .scene-prop').count());
  await page.getByRole('button',{name:'English help'}).click();
- assert.ok(await page.locator('.clue .translation').filter({hasText:'I'm hungry, not thirsty. I don't eat fish.'}).isVisible());
+ assert.ok(await page.locator('.clue .translation').filter({hasText:"I'm hungry, not thirsty. I don't eat fish."}).isVisible());
  // Seed a real v1 save just before a fork, then play the alternate branch and reload.
  await page.evaluate(()=>localStorage.setItem('adventure-worlds-v1',JSON.stringify({xp:100,progress:{dragon:4},words:{},mode:'all',difficulty:'easy'})));
  await page.reload();await page.getByRole('button',{name:/Dragon Kingdom/}).click();
