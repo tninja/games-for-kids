@@ -25,14 +25,14 @@ export const forks = {
             true
           ],
           [
-            "我|wǒ/和|hé/小龙|xiǎo lóng/一起|yì qǐ/坐船|zuò chuán",
-            "The dragon and I ride together",
+            "我|wǒ/飞|fēi/，|/小龙|xiǎo lóng/坐船|zuò chuán",
+            "I fly; the dragon rides",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "我|wǒ/和|hé/小龙|xiǎo lóng/都|dōu/不|bù/过河|guò hé",
-            "Neither of us crosses",
+            "我|wǒ/和|hé/小龙|xiǎo lóng/一起|yì qǐ/坐船|zuò chuán",
+            "The dragon and I ride together",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -113,8 +113,8 @@ export const forks = {
         "The lost-and-found monster",
         "🧢",
         "The lost-and-found cupboard has grown a face. It saw a bell run toward the kitchen, but it mixes up objects when it speaks.",
-        "它|tā/有|yǒu/盖子|gài zi/，|/可以|kě yǐ/装水|zhuāng shuǐ/。|",
-        "It has a cap and can hold water.",
+        "它|tā/有|yǒu/盖子|gài zi/，|/可以|kě yǐ/装|zhuāng/东西|dōng xi/喝|hē/。|",
+        "It has a cap and can hold something to drink.",
         [
           [
             "水瓶|shuǐ píng",
@@ -215,20 +215,20 @@ export const forks = {
         "The boat is still across the river. The water is deep.",
         [
           [
-            "在|zài/岸上|àn shàng/等|děng",
-            "Wait on the bank",
+            "等|děng/船|chuán/到|dào/这边|zhè biān/再|zài/上船|shàng chuán",
+            "Wait for the boat to arrive before boarding",
             "The ferry arrives and introduces you to Moss Turtle.",
             true
           ],
           [
-            "自己|zì jǐ/跳进|tiào jìn/水里|shuǐ lǐ",
-            "Jump into the water",
+            "不|bù/等|děng/船|chuán/，|/自己|zì jǐ/下水|xià shuǐ",
+            "Enter the water without waiting for the boat",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "回|huí/商店|shāng diàn",
-            "Return to the shop",
+            "在|zài/水里|shuǐ lǐ/等|děng/船|chuán",
+            "Wait for the boat in the water",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -356,7 +356,7 @@ export const forks = {
       "alternate": [
         "The quick throw-in",
         "⚽",
-        "In the semifinal, an opponent prepares a quick throw-in. A runner is sneaking behind your teammate. You have to cover the dangerous space.",
+        "In the semifinal, an opponent prepares a quick throw-in. The coach notices a runner and calls to you in Chinese.",
         "队友|duì yǒu/只|zhǐ/看|kàn/球|qiú/。|/对手|duì shǒu/跑到|pǎo dào/他|tā/身后|shēn hòu/。|",
         "Your teammate only watches the ball. An opponent runs behind him.",
         [
@@ -367,14 +367,14 @@ export const forks = {
             true
           ],
           [
-            "去|qù/他|tā/前面|qián miàn/看|kàn/球|qiú",
-            "Go in front of him to watch the ball",
+            "去|qù/他|tā/后面|hòu miàn/只|zhǐ/看|kàn/界外球|jiè wài qiú",
+            "Go behind him but watch only the throw-in",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "和|hé/他|tā/一起|yì qǐ/只|zhǐ/看球|kàn qiú",
-            "Watch only the ball with him",
+            "去|qù/他|tā/前面|qián miàn/，|/不管|bù guǎn/球门|qiú mén",
+            "Go in front of him and ignore the goal",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]

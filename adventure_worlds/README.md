@@ -13,3 +13,5 @@ Story depth: every main scene now has three distinct action choices, contextual 
 Artwork: vector scene props replace the circular emoji overlays, with original illustrated food, gates, lamps, books, creatures, crystals, trophies and alternate-route objects. World cards now preview the art. Illustrations remain stylized and reusable rather than full bespoke painted backgrounds.
 
 Normal mode also has twelve authored sets of more demanding answer choices (contrast, order, spatial relationships), so it is more than longer clues.
+
+Reading comprehension update: all 56 main and alternate challenges use revised clues and actions, including same-vocabulary contrasts and reversed action order. Both difficulties share the action sets; Normal includes richer context and explicit conditions. Choices shuffle once at scene entry and stay fixed through hints and retries. After solving, a short English explanation explains why the action follows from the clue. The automated keyword-overlap check is a heuristic, not a substitute for actual reading tests with children.

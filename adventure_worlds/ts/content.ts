@@ -16,7 +16,7 @@ export const worlds: World[] = [
         "Breakfast disaster",
         "🍎",
         "A talking dragon egg rolls into the kitchen. Spicy whispers, ‘Please don't let me cook. Last time I set water on fire.’ The egg speaks:",
-        "我|wǒ/饿|è/了|le/，|/不|bù/渴|kě/。|/我|wǒ/不|bù/吃鱼|chī yú/。|",
+        "我|wǒ/饿|è/了|le/，|/不|bù/渴|kě/。|/不|bù/吃鱼|chī yú/。|",
         "I'm hungry, not thirsty. I don't eat fish.",
         [
           [
@@ -231,9 +231,9 @@ export const worlds: World[] = [
       [
         "Upside-down library",
         "📚",
-        "The librarian insists books are best read upside down. Noodle tries and falls off a chair. A magic map is hidden in a book.",
-        "红书|hóng shū/里|lǐ/只有|zhǐ yǒu/笑话|xiào hua/。|/没有|méi yǒu/地图|dì tú/。|",
-        "The red book has only jokes. It has no map.",
+        "The librarian reads books upside down. Noodle tries and falls off a chair. Only a red book and a blue book are on the table. A magic map is hidden in one of them.",
+        "地图|dì tú/不在|bú zài/红书|hóng shū/里|lǐ/，|/也|yě/不在|bú zài/桌下|zhuō xià/。|",
+        "The map is not in the red book or under the table.",
         [
           [
             "翻开|fān kāi/另一本|lìng yì běn/书|shū",
@@ -285,7 +285,7 @@ export const worlds: World[] = [
       [
         "The little thief",
         "🐦",
-        "The bird took the lantern because its nest was dark. Noodle wants to help, not fight.",
+        "A small bird is holding the missing lantern. Noodle wonders why it took it. The bird explains in Chinese.",
         "小鸟|xiǎo niǎo/的|de/家|jiā/太|tài/黑|hēi/了|le/。|",
         "The bird's home is too dark.",
         [
@@ -313,18 +313,18 @@ export const worlds: World[] = [
         "Moon festival",
         "🏮",
         "The queen invites everyone to a festival. Noodle has baked a cake shaped like a potato. One last task will bring back the moonlight.",
-        "月亮|yuè liang/不亮|bú liàng/。|/塔上|tǎ shàng/也|yě/没有|méi yǒu/灯|dēng/。|",
-        "The moon is dark. There is no lamp on the tower either.",
+        "月亮|yuè liang/不亮|bú liàng/。|/要|yào/先|xiān/修好|xiū hǎo/月亮|yuè liang/才|cái/能|néng/庆祝|qìng zhù/。|",
+        "The moon is dark. We must fix it before celebrating.",
         [
           [
-            "先|xiān/上塔|shàng tǎ/，|/再|zài/吃蛋糕|chī dàn gāo",
-            "Go up the tower before eating cake",
+            "先|xiān/把|bǎ/灯|dēng/带上|dài shàng/塔|tǎ/，|/再|zài/吃蛋糕|chī dàn gāo",
+            "Take the lamp up the tower before eating cake",
             "Moonlight returns! You become Guardian of the Moon.",
             true
           ],
           [
-            "先|xiān/吃蛋糕|chī dàn gāo/，|/再|zài/上塔|shàng tǎ",
-            "Eat cake before going up the tower",
+            "先|xiān/吃蛋糕|chī dàn gāo/，|/再|zài/把|bǎ/灯|dēng/带上|dài shàng/塔|tǎ",
+            "Eat cake before taking the lamp up the tower",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
@@ -416,14 +416,14 @@ export const worlds: World[] = [
             true
           ],
           [
-            "开|kāi/没有|méi yǒu/声音|shēng yīn/的|de/门|mén",
-            "Open the door without sound",
+            "关|guān/有|yǒu/声音|shēng yīn/的|de/门|mén",
+            "Close the door with the sound",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "把|bǎ/两扇|liǎng shàn/门|mén/都|dōu/关上|guān shàng",
-            "Close both doors",
+            "开|kāi/没有|méi yǒu/声音|shēng yīn/的|de/门|mén",
+            "Open the quiet door",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -513,7 +513,7 @@ export const worlds: World[] = [
       [
         "Triangle footprints",
         "👣",
-        "Strange footprints lead to two doors. Pip tries to measure them with a banana. Your notebook offers a clue.",
+        "Three doors have a circle, triangle and square on them. Pip measures a strange footprint with a banana. The notebook gives you its shape.",
         "脚印|jiǎo yìn/有|yǒu/三个|sān ge/角|jiǎo/。|",
         "The footprint has three corners.",
         [
@@ -524,14 +524,14 @@ export const worlds: World[] = [
             true
           ],
           [
-            "找|zhǎo/四角|sì jiǎo/的|de/门|mén",
-            "Find the four-corner door",
+            "找|zhǎo/没有|méi yǒu/三个|sān ge/角|jiǎo/的|de/圆门|yuán mén",
+            "Find the round door without three corners",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "找|zhǎo/没有|méi yǒu/角|jiǎo/的|de/门|mén",
-            "Find the door with no corners",
+            "找|zhǎo/四角形|sì jiǎo xíng/门|mén",
+            "Find the four-corner door",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -594,7 +594,7 @@ export const worlds: World[] = [
       [
         "The bell's secret",
         "🔔",
-        "The bell ran away because it wants to perform music instead of ringing all day. It has written its own song.",
+        "The bell has run away from school. Pip finally gets a chance to ask why. The bell explains in Chinese.",
         "我|wǒ/想|xiǎng/让|ràng/大家|dà jiā/听|tīng/我的|wǒ de/歌|gē/。|",
         "I want everyone to hear my song.",
         [
@@ -621,7 +621,7 @@ export const worlds: World[] = [
       [
         "A messy party",
         "🎈",
-        "The principal is coming. The cake monster has eaten all the plates. The bell offers to return if you help tidy up.",
+        "The party is almost over. The cake monster has eaten all the plates. The bell makes an offer in Chinese.",
         "桌上|zhuō shàng/有|yǒu/垃圾|lā jī/。|/校长|xiào zhǎng/快|kuài/来|lái/了|le/。|",
         "There is trash on the table. The principal is coming soon.",
         [
@@ -688,8 +688,8 @@ export const worlds: World[] = [
         "The first companion",
         "🌿",
         "Three little creatures hide in the meadow. The trainer tells you which fox is electric.",
-        "它|tā/有|yǒu/四条腿|sì tiáo tuǐ/，|/尾巴|wěi ba/像|xiàng/太阳|tài yáng/的|de/颜色|yán sè/。|",
-        "It has four legs and a tail the color of the sun.",
+        "它|tā/有|yǒu/四条腿|sì tiáo tuǐ/。|/尾巴|wěi ba/像|xiàng/太阳|tài yáng/。|",
+        "It has four legs. Its tail looks like the sun.",
         [
           [
             "找|zhǎo/黄色|huáng sè/狐狸|hú li",
@@ -741,7 +741,7 @@ export const worlds: World[] = [
       [
         "A tired teammate",
         "💚",
-        "The fox is tired. The healer points at a sign.",
+        "The healer examines Thunder Fox after the match, then gives you a note in Chinese.",
         "小狐狸|xiǎo hú li/眼睛|yǎn jing/都|dōu/睁不开|zhēng bu kāi/了|le/。|",
         "The fox can barely open its eyes.",
         [
@@ -928,9 +928,9 @@ export const worlds: World[] = [
         ]
       ],
       [
-        "Spark Shield",
+        "The first round",
         "🛡️",
-        "A wind creature prepares a strong attack. Thunder Fox can use its new skill, but timing matters.",
+        "The first round begins. Your opponent makes a move. The trainer tells you what is happening.",
         "对手|duì shǒu/的|de/攻击|gōng jī/很|hěn/强|qiáng/。|/先|xiān/不能|bù néng/受伤|shòu shāng/。|",
         "The opponent's attack is strong. First, don't get hurt.",
         [
@@ -984,25 +984,25 @@ export const worlds: World[] = [
       [
         "Friendship champions",
         "🏆",
-        "Both teams shake paws after the match. Moss Turtle has fallen asleep inside the trophy. The referee invites everyone to celebrate.",
+        "Both teams shake paws after the match. Moss Turtle has fallen asleep inside the trophy. The referee makes an announcement in Chinese.",
         "比赛|bǐ sài/结束|jié shù/了|le/。|/朋友|péng you/都|dōu/在|zài/等|děng/你|nǐ/。|",
         "The match is over. Your friends are waiting for you.",
         [
           [
-            "留下|liú xià/和|hé/大家|dà jiā/庆祝|qìng zhù",
-            "Stay and celebrate with everyone",
+            "和|hé/大家|dà jiā/一起|yì qǐ/庆祝|qìng zhù",
+            "Celebrate together with everyone",
             "Thunder Fox evolves into radiant Storm Fox!",
             true
           ],
           [
-            "让|ràng/大家|dà jiā/走|zǒu/，|/自己|zì jǐ/庆祝|qìng zhù",
-            "Send everyone away and celebrate alone",
+            "和|hé/大家|dà jiā/说|shuō/再见|zài jiàn/，|/自己|zì jǐ/庆祝|qìng zhù",
+            "Say goodbye to everyone and celebrate alone",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "自己|zì jǐ/回家|huí jiā",
-            "Go home alone",
+            "让|ràng/大家|dà jiā/自己|zì jǐ/庆祝|qìng zhù",
+            "Let everyone celebrate without you",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -1023,25 +1023,25 @@ export const worlds: World[] = [
       [
         "The kickoff",
         "🏟️",
-        "You're playing left back in the cup final. Your teammate rushes forward. The coach calls:",
+        "You're playing left back in the cup final. The coach calls from the sideline.",
         "另一个|lìng yí ge/后卫|hòu wèi/在|zài/前面|qián miàn/。|/后面|hòu miàn/没人|méi rén/。|",
         "The other defender is up front. Nobody is behind.",
         [
           [
-            "留在|liú zài/后面|hòu miàn",
-            "Stay back",
+            "队友|duì yǒu/在前|zài qián/，|/我|wǒ/在后|zài hòu",
+            "Teammate up front; I stay back",
             "You intercept a counterattack. Your team cheers!",
             true
           ],
           [
-            "跟着|gēn zhe/他|tā/去|qù/前面|qián miàn",
-            "Follow him forward",
-            "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
+            "队友|duì yǒu/在后|zài hòu/，|/我|wǒ/在前|zài qián",
+            "Teammate stays back; I go forward",
+            "Your teammate has already moved forward; don't assume he will cover for you.",
             false
           ],
           [
-            "离开|lí kāi/球场|qiú chǎng",
-            "Leave the field",
+            "队友|duì yǒu/和|hé/我|wǒ/都|dōu/在前|zài qián",
+            "Teammate and I both go forward",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -1050,7 +1050,7 @@ export const worlds: World[] = [
       [
         "The pressing opponent",
         "⚽",
-        "You win the ball. A striker blocks your path. Your coach spots an open teammate.",
+        "You win the ball in a tense moment. Your coach describes the players' positions in Chinese.",
         "前面|qián miàn/和|hé/左边|zuǒ biān/有|yǒu/对手|duì shǒu/。|/右边|yòu biān/有|yǒu/队友|duì yǒu/。|",
         "Opponents are in front and left. A teammate is on the right.",
         [
@@ -1075,9 +1075,9 @@ export const worlds: World[] = [
         ]
       ],
       [
-        "Help your teammate",
+        "A sudden counterattack",
         "🛡️",
-        "Your teammate is defending a fast winger. A striker is running toward your goal.",
+        "Your team is defending. The coach notices something and calls to you.",
         "队友|duì yǒu/在|zài/边上|biān shàng/。|/对手|duì shǒu/向|xiàng/球门|qiú mén/跑|pǎo/。|",
         "Your teammate is on the wing. An opponent is running toward goal.",
         [
@@ -1104,25 +1104,25 @@ export const worlds: World[] = [
       [
         "The winning move",
         "🥅",
-        "It is 1–1. A defender blocks your shot. A teammate is open. The coach has a plan.",
+        "It is 1–1. You have the ball near goal. The coach sees an opportunity and calls to you.",
         "你|nǐ/前面|qián miàn/有人|yǒu rén/。|/队友|duì yǒu/前面|qián miàn/没人|méi rén/。|",
         "Someone is in front of you. No one is in front of your teammate.",
         [
           [
-            "让|ràng/队友|duì yǒu/射门|shè mén",
-            "Let your teammate shoot",
+            "传给|chuán gěi/队友|duì yǒu/让|ràng/他|tā/射门|shè mén",
+            "Pass so your teammate can shoot",
             "Your teammate scores! You win the Teamwork Cup.",
             true
           ],
           [
-            "自己|zì jǐ/射门|shè mén",
-            "Shoot yourself",
+            "让|ràng/队友|duì yǒu/等|děng/你|nǐ/自己|zì jǐ/射门|shè mén",
+            "Make your teammate wait while you shoot",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "把球|bǎ qiú/踢出|tī chū/球场|qiú chǎng",
-            "Kick the ball out",
+            "等|děng/队友|duì yǒu/前面|qián miàn/有人|yǒu rén/再|zài/传球|chuán qiú",
+            "Wait until someone is in front of your teammate before passing",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -1212,7 +1212,7 @@ export const worlds: World[] = [
       [
         "A teammate's mistake",
         "🤝",
-        "A teammate misses your pass and looks upset. Your coach explains what a captain does.",
+        "A pass goes out of bounds. Your teammate looks at the coach, who explains the situation.",
         "队友|duì yǒu/没|méi/接住|jiē zhù/球|qiú/。|/他|tā/很|hěn/难过|nán guò/。|",
         "Your teammate missed the ball and feels sad.",
         [
@@ -1271,29 +1271,29 @@ export const worlds: World[] = [
         "The ground is slippery; the nearby teammate is unmarked.",
         [
           [
-            "传给|chuán gěi/近处|jìn chù/队友|duì yǒu",
+            "给|gěi/近处|jìn chù/的|de/队友|duì yǒu/传球|chuán qiú",
             "Pass to the nearby teammate",
             "Your teammate receives the ball cleanly and starts an attack.",
             true
           ],
           [
-            "传给|chuán gěi/远处|yuǎn chù/队友|duì yǒu",
-            "Pass to the distant teammate",
+            "不给|bù gěi/近处|jìn chù/的|de/队友|duì yǒu/传球|chuán qiú",
+            "Don't pass to the nearby teammate",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "自己|zì jǐ/带球|dài qiú/去|qù/远处|yuǎn chù",
-            "Dribble to the far side",
+            "给|gěi/远处|yuǎn chù/的|de/队友|duì yǒu/传球|chuán qiú",
+            "Pass to the distant teammate",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
         ]
       ],
       [
-        "One last recovery",
+        "A sudden change",
         "⏱️",
-        "The score is tied. Your team loses the ball and a striker sprints toward your goal. You are the nearest defender.",
+        "The score is tied. The crowd suddenly gasps. Your coach calls to you.",
         "我们|wǒ men/丢球|diū qiú/了|le/。|/对手|duì shǒu/向|xiàng/球门|qiú mén/跑|pǎo/。|",
         "We lost the ball. The opponent is running toward goal.",
         [
@@ -1318,9 +1318,9 @@ export const worlds: World[] = [
         ]
       ],
       [
-        "The captain's pass",
+        "The final decision",
         "🥅",
-        "Two opponents close you down in the last minute. A teammate runs into open space. The crowd goes quiet.",
+        "You have the ball in the last minute. The crowd goes quiet. The coach describes the situation in Chinese.",
         "两个人|liǎng ge rén/挡住|dǎng zhù/你|nǐ/。|/队友|duì yǒu/前面|qián miàn/没人|méi rén/。|",
         "Two people block you. No one is in front of your teammate.",
         [
@@ -1395,8 +1395,8 @@ export const normalClues: Record<string, [string, string][]> = {
       "It didn't take the lantern to sell it; at night it cannot see its home."
     ],
     [
-      "只有|zhǐ yǒu/塔顶|tǎ dǐng/的|de/灯|dēng/能|néng/让|ràng/月亮|yuè liang/变亮|biàn liàng/。|/桌上|zhuō shàng/的|de/灯|dēng/只能|zhǐ néng/照亮|zhào liàng/蛋糕|dàn gāo/。|",
-      "Only the lamp at the tower top can brighten the moon. A lamp on the table only lights the cake."
+      "只有|zhǐ yǒu/塔顶|tǎ dǐng/的|de/灯|dēng/能|néng/让|ràng/月亮|yuè liang/变亮|biàn liàng/。|/月亮|yuè liang/变亮|biàn liàng/以后|yǐ hòu/才能|cái néng/吃蛋糕|chī dàn gāo/。|",
+      "Only the lamp on the tower can brighten the moon. We can eat cake only after the moon is bright."
     ]
   ],
   "mystery": [
@@ -1586,7 +1586,7 @@ export const storyDialogue: Record<string, string[]> = {
     "Cloud dragon: “Please don't put me in the fridge. I'm not leftover soup!”",
     "Librarian: “I once read a whole book upside down. It was a book about bats.”",
     "Shadow dragon: “I'm the guardian of darkness. My electricity bill is surprisingly low.”",
-    "Noodle: “Maybe the bird needs a night-light. I need one too, but don't tell the other dragons.”",
+    "Noodle: “I have never met a bird who wanted to borrow a whole moon.”",
     "Queen: “The moon needs its light back.” Noodle: “And the cake needs its mouth back. Mine.”"
   ],
   "mystery": [
@@ -1599,21 +1599,21 @@ export const storyDialogue: Record<string, string[]> = {
     "Pip: “My banana ruler says the footprint is approximately one banana long.”",
     "Monster: “ACHOO!” Pip: “There goes my hat. Again.”",
     "Pip: “The spider asked me for a dinner reservation. I don't think we can afford eight seats.”",
-    "Bell: “I have a beautiful singing voice.” Pip: “I have heard you at eight every morning. Prove it.”",
+    "Pip: “Do you have a secret?” Bell: “Yes! It is a very LOUD secret.”",
     "Cake monster: “I ate the plates because they're round like cookies.” Pip: “That is not a defense.”",
     "Bell: “Thank you, thank you! My next song is called No More Monday Mornings.”"
   ],
   "creatures": [
     "Bird: “Can I join your team?” Trainer: “Let's read the clue first.”",
     "Thunder Fox: “Can I practice my lightning on a toaster?” Trainer: “Absolutely not.”",
-    "Fox: “I am not sleeping. I am practicing very advanced eye-closing.”",
+    "Fox: “I am ready for my very important medical appointment.”",
     "Bird: “I would like to be rescued with all my feathers, please.”",
     "Fox: “My tail is out of battery.” Trainer: “Your tail is not a remote control.”",
     "Turtle: “I'm a very fast turtle.” Fox: “How fast?” Turtle: “Lunch first.”",
     "Rock creature: “I am rock solid!” Turtle: “That's your only joke, isn't it?”",
     "Fox: “I hope the crystal isn't spicy.” Turtle: “Please stop eating important quest items.”",
     "Referee: “Next team!” Fox: “Can our team name be The Extremely Handsome Foxes?”",
-    "Fox: “Shield? I thought you said sandwich.” Turtle: “Focus!”",
+    "Fox: “Do you think they serve sandwiches at halftime?” Turtle: “Focus!”",
     "Dragon: “I can explain the ribbon.” Fox: “Were you wrapping yourself as a birthday present?”",
     "Turtle: “This trophy is surprisingly comfortable.” Fox: “You cannot live in our award.”"
   ],

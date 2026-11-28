@@ -1,7 +1,7 @@
 import {forks} from "./forks.js";
 import {sceneArt} from "./art.js";
-import {worlds, normalClues, chapterRewards, storyDialogue, normalOptions} from "./content.js";
-import {KEY, fresh, restore, complete, tokens, progressKey, heroLevel, heroRank, routeKey} from "./engine.js";
+import {worlds, normalClues, chapterRewards, storyDialogue, readingReasons} from "./content.js";
+import {KEY, fresh, restore, complete, tokens, progressKey, heroLevel, heroRank, routeKey, shuffleChoices} from "./engine.js";
 import type {World} from "./content.js";
 import type {Mode, Difficulty} from "./engine.js";
 const root = document.querySelector<HTMLElement>("#game")!;
@@ -11,6 +11,7 @@ let world: World | undefined;
 let index = 0, helped = false, firstTry = true, solved = false, english = false, feedback = "", points = 0, levelBefore = 1, audioStatus = "";
 let replaying = false;
 let replayRoutes: Record<string, number> = {};
+let choiceOrder = [0,1,2];
 const revealed = new Set<string>();
 function el(tag: string, text = "", cls = "") {
   const e = document.createElement(tag); e.textContent = text; e.className = cls; return e;
@@ -52,6 +53,7 @@ function reading(line: string, interactive = true) {
   return box;
 }
 function resetScene() {
+  choiceOrder = shuffleChoices([0,1,2]);
   helped = false; firstTry = true; solved = false; english = false; feedback = ""; points = 0; levelBefore = heroLevel(save.xp); audioStatus = ""; revealed.clear();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
@@ -144,7 +146,8 @@ function render() {
   const alternate=fork && routes[rk]===1;
   const [name,icon,story,easyLine,easyTranslation,easyOptions]=alternate?fork.alternate:w.scenes[index];
   const [line,translation]=save.difficulty==="normal"?(alternate?fork.normal:normalClues[w.id][index]):[easyLine,easyTranslation];
-  const options=save.difficulty==="normal"&&!alternate?(normalOptions[w.id]?.[index]??easyOptions):easyOptions;
+  const options=easyOptions;
+  const reason=readingReasons[w.id+":"+index+(alternate?":alt":"")];
   const dialogue=alternate?fork.dialogue:storyDialogue[w.id][index];
   const previous=forks[w.id]?.[index-1];
   const previousRoute=routes[routeKey(key,index-1)];
@@ -161,9 +164,8 @@ function render() {
   if (english) clue.append(el("p",translation,"translation"));
   root.append(clue);
   const actions=el("section","","actions");
-  actions.append(el("h2","What will you do?"));
-  const offset=(index+worlds.indexOf(w)+(alternate?1:0))%options.length;
-  const ordered=options.slice(offset).concat(options.slice(0,offset));
+  actions.append(el("h2","Read the whole clue. What will you do?"));
+  const ordered=choiceOrder.map(i=>options[i]);
   for (const [label,meaning,outcome,correct] of ordered) {
     const row=el("div","","choice");
     const b=btn("",()=>{
@@ -186,7 +188,7 @@ function render() {
     const result=el("section","","panel result"); result.setAttribute("role","status");
     result.append(el("h2",solved?"✨ Great adventure!":"Something unexpected happened…"),el("p",feedback));
     if (solved) {
-      result.append(el("p",points ? "+"+points+" XP · Quest complete!" : "Replay complete — no extra XP.","progress"));
+      result.append(el("p","Why it works: "+reason,"reading-reason"),el("p",points ? "+"+points+" XP · Quest complete!" : "Replay complete — no extra XP.","progress"));
       if (heroLevel(save.xp)>levelBefore) result.append(el("h2","🎉 Level up! Level "+heroLevel(save.xp),"level-up"));
       if ((index+1)%4===0) result.append(el("h2","🎁 Chapter treasure: "+chapterRewards[w.id][Math.floor(index/4)],"level-up"));
       result.append(btn(index+1===w.scenes.length?"Finish adventure":(index+1)%4===0?"Next chapter →":"Continue →",()=>{index++;resetScene();render();}));
