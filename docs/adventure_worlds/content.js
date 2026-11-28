@@ -511,8 +511,8 @@ export const worlds = [
         "Triangle footprints",
         "👣",
         "Three doors have a circle, triangle and square on them. Pip measures a strange footprint with a banana. The notebook gives you its shape.",
-        "脚印|jiǎo yìn/有|yǒu/三个|sān ge/角|jiǎo/。|",
-        "The footprint has three corners.",
+        "脚印|jiǎo yìn/不是|bú shì/圆形|yuán xíng/，|/也|yě/不是|bú shì/方形|fāng xíng/。|",
+        "The footprint is neither round nor square.",
         [
           [
             "找|zhǎo/三角形|sān jiǎo xíng/门|mén",
@@ -521,14 +521,14 @@ export const worlds = [
             true
           ],
           [
-            "找|zhǎo/不是|bú shì/三角形|sān jiǎo xíng/的|de/圆门|yuán mén",
-            "Find the round door, not the triangle",
+            "找|zhǎo/圆形|yuán xíng/门|mén",
+            "Find the round door",
             "That choice doesn't fit the whole clue. Try comparing the actions or conditions.",
             false
           ],
           [
-            "找|zhǎo/四角形|sì jiǎo xíng/门|mén",
-            "Find the four-corner door",
+            "找|zhǎo/方形|fāng xíng/门|mén",
+            "Find the square door",
             "That would not solve the problem. Read the clue again, or listen to it.",
             false
           ]
@@ -1422,8 +1422,8 @@ export const normalClues = {
       "The fridge doesn't want juice; it wants a white drink that cows give us."
     ],
     [
-      "脚印|jiǎo yìn/有|yǒu/三条|sān tiáo/边|biān/和|hé/三个|sān ge/角|jiǎo/，|/我们|wǒ men/需要|xū yào/找|zhǎo/一样|yí yàng/的|de/形状|xíng zhuàng/。|",
-      "The footprint has three sides and three corners; find the same shape."
+      "脚印|jiǎo yìn/不像|bú xiàng/圆形|yuán xíng/，|/也|yě/不像|bú xiàng/方形|fāng xíng/。|/我们|wǒ men/要|yào/找|zhǎo/三个|sān ge/门|mén/中|zhōng/剩下|shèng xià/的|de/那个|nà ge/。|",
+      "The footprint is neither round nor square. Find the remaining one of the three doors."
     ],
     [
       "它|tā/闻|wén/了|le/胡椒|hú jiāo/就|jiù/一直|yì zhí/打喷嚏|dǎ pēn tì/，|/现在|xiàn zài/要|yào/用|yòng/干净|gān jìng/的|de/东西|dōng xi/擦|cā/鼻子|bí zi/。|",
@@ -1492,8 +1492,8 @@ export const normalClues = {
       "Its wings are tied. Competing now would be unfair to it."
     ],
     [
-      "虽然|suī rán/比赛|bǐ sài/已经|yǐ jīng/结束|jié shù/，|/但是|dàn shì/朋友们|péng you men/都|dōu/想|xiǎng/和|hé/你|nǐ/一起|yì qǐ/分享|fēn xiǎng/快乐|kuài lè/。|",
-      "Although the match is over, your friends want to share the joy with you."
+      "虽然|suī rán/比赛|bǐ sài/结束|jié shù/了|le/，|/朋友们|péng you men/没有|méi yǒu/离开|lí kāi/。|/他们|tā men/想|xiǎng/和|hé/你|nǐ/一起|yì qǐ/，|/不想|bù xiǎng/自己|zì jǐ/回家|huí jiā/。|",
+      "Although the match is over, your friends have not left. They want to stay with you, not go home alone."
     ]
   ],
   "soccer": [
@@ -1651,7 +1651,7 @@ export const readingReasons = {
   "mystery:3": "The condition must be met before the reward.",
   "mystery:4": "Follow the tracks, not the places without them.",
   "mystery:5": "Milk is the white drink; socks aren't a drink.",
-  "mystery:6": "Three corners form a triangle.",
+  "mystery:6": "The clue rules out round and square. Only the triangle is left.",
   "mystery:7": "A tissue helps its nose; pepper makes sneezing worse.",
   "mystery:8": "The plates and bell are together; the other two places have different objects.",
   "mystery:9": "It wants an audience for its own song, not its usual bell duty.",
